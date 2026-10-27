@@ -1,0 +1,149 @@
+mod support;
+use scraper::{Html, Selector};
+use support::*;
+#[test]
+fn excluded_nested_dependency_is_snippet_only() {
+    let f = Fixture::new("nested-dependency");
+    assert_eq!(f.run(&[]).status.code(), Some(101));
+    let files = html_files(&f.report().join("src"));
+    assert!(!files.is_empty());
+    for path in files {
+        let html = std::fs::read_to_string(path).unwrap();
+        let doc = Html::parse_document(&html);
+        assert_eq!(
+            doc.select(&Selector::parse(".code-line").unwrap()).count(),
+            0
+        );
+        assert!(!html.contains("DEPENDENCY_FULL_SOURCE_SENTINEL"));
+    }
+}
+#[test]
+fn clean_cached_and_uncached_reports() {
+    let f = Fixture::new("clean");
+    for _ in 0..2 {
+        assert_success(&f.run(&[]));
+        let html = f.html("index.html");
+        assert!(html.contains("Succeeded"));
+        assert!(html.contains("0 unique"));
+        assert!(html.contains("Complete"));
+        assert!(html.contains("fixture-clean"));
+    }
+    assert!(!f.report().join("metadata.json").exists());
+    assert!(f.report().join("licenses/rustdoc-MIT.txt").exists());
+}
+#[test]
+fn warning_source_and_suggestion_are_escaped() {
+    let f = Fixture::new("warning");
+    assert_success(&f.run(&[]));
+    let lint = html_files(&f.report().join("lint"));
+    assert_eq!(lint.len(), 1);
+    let doc = Html::parse_document(&std::fs::read_to_string(&lint[0]).unwrap());
+    assert_eq!(doc.select(&Selector::parse(".finding").unwrap()).count(), 1);
+    assert!(
+        doc.root_element()
+            .text()
+            .collect::<String>()
+            .contains("MachineApplicable")
+    );
+    assert!(
+        doc.select(&Selector::parse(".diagnostic-note a").unwrap())
+            .any(|link| {
+                link.value().attr("href").is_some_and(|href| {
+                    href.starts_with("https://rust-lang.github.io/rust-clippy/rust-")
+                        && href.ends_with("/index.html#clone_on_copy")
+                })
+            }),
+        "Clippy's version-specific further-information URL must be clickable"
+    );
+    let src = html_files(&f.report().join("src"));
+    assert_eq!(src.len(), 1);
+    let doc = Html::parse_document(&std::fs::read_to_string(&src[0]).unwrap());
+    assert_eq!(
+        doc.select(&Selector::parse("script,[onclick],[onerror]").unwrap())
+            .count(),
+        0
+    );
+    assert!(
+        doc.root_element()
+            .text()
+            .collect::<String>()
+            .contains("<script>")
+    );
+    assert_eq!(
+        doc.select(&Selector::parse(".code-line").unwrap()).count(),
+        4
+    );
+}
+#[test]
+fn lint_and_compile_failure_keep_reports_and_exit_codes() {
+    let f = Fixture::new("warning");
+    let out = f.run(&["--", "--", "-D", "warnings"]);
+    assert_eq!(
+        out.status.code(),
+        Some(101),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    assert!(f.html("index.html").contains("Failed"));
+    assert!(f.html("index.html").contains("1 errors"));
+    let e = Fixture::new("compile-error");
+    let out = e.run(&[]);
+    assert_eq!(out.status.code(), Some(101));
+    assert!(e.html("index.html").contains("Failed"));
+    assert!(!html_files(&e.report().join("lint")).is_empty());
+}
+#[test]
+fn workspace_paths_unicode_and_multi_target_dedup() {
+    let f = Fixture::new("workspace");
+    assert_success(&f.run(&["--", "--workspace", "--all-targets"]));
+    let html = f.html("index.html");
+    assert!(html.contains("fixture-one"));
+    assert!(html.contains("fixture-two"));
+    assert_eq!(html_files(&f.report().join("src")).len(), 3);
+    assert!(!html.contains("one/one/"));
+    for file in html_files(&f.report().join("src")) {
+        let source = std::fs::read_to_string(file).unwrap();
+        let doc = Html::parse_document(&source);
+        assert!(
+            doc.select(&Selector::parse(".code-line").unwrap()).count() > 0,
+            "workspace source unexpectedly fell back"
+        );
+    }
+    let lint = html_files(&f.report().join("lint"));
+    assert_eq!(lint.len(), 1);
+    let doc = Html::parse_document(&std::fs::read_to_string(&lint[0]).unwrap());
+    assert_eq!(doc.select(&Selector::parse(".finding").unwrap()).count(), 5);
+}
+#[test]
+fn output_and_target_dir_paths_follow_invocation_directory() {
+    let f = Fixture::new("clean");
+    assert_success(&f.run(&["--output", "report space", "--", "--target-dir", "cache"]));
+    assert!(f.root.join("report space/index.html").is_file());
+    assert!(!f.root.join("cache/clippy-html").exists());
+    assert_success(&f.run(&["--", "--target-dir=cache"]));
+    assert!(f.root.join("cache/clippy-html/index.html").is_file());
+    let elsewhere = f.temp.path().join("elsewhere");
+    std::fs::create_dir(&elsewhere).unwrap();
+    let out = std::process::Command::new(env!("CARGO_BIN_EXE_cargo-clippy-html"))
+        .current_dir(&elsewhere)
+        .args(["--output", "relative-report", "--", "--manifest-path"])
+        .arg(f.root.join("Cargo.toml"))
+        .output()
+        .unwrap();
+    assert_success(&out);
+    assert!(elsewhere.join("relative-report/index.html").exists());
+}
+#[test]
+fn refuses_metadata_and_preserves_unowned_directory() {
+    let f = Fixture::new("clean");
+    assert_eq!(f.run(&["--metadata", "x.json"]).status.code(), Some(2));
+    assert!(!f.root.join("x.json").exists());
+    let folder = f.root.join("notes");
+    std::fs::create_dir(&folder).unwrap();
+    std::fs::write(folder.join("important.txt"), "keep").unwrap();
+    assert!(!f.run(&["--output", "notes"]).status.success());
+    assert_eq!(
+        std::fs::read_to_string(folder.join("important.txt")).unwrap(),
+        "keep"
+    );
+}

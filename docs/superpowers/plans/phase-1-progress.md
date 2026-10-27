@@ -1,0 +1,40 @@
+# SDD ledger — plan: docs/superpowers/plans/2026-10-27-phase-1.md
+
+- Baseline: cargo test passed, 0 tests. User selected in-place codex/phase-1 branch.
+- Pre-flight: Task 1 -> 4: RunOptions/CargoContext match collection inputs.
+- Pre-flight: Task 2 -> 3/4: normalized findings and raw messages remain separate.
+- Pre-flight: Task 3/4 -> 5/6: Report carries run/collection state separately from findings.
+- Pre-flight: Task 5 -> 6: PageMap owns all generated paths.
+- Pre-flight: Task 6 -> 7: renderer writes only staging; publisher owns replacement.
+- Pre-flight: Task 7 -> 8: published index and warnings are separate from Clippy exit status.
+- Ruling: Use this tracked ledger instead of Bash-only skill workspace scripts on Windows. No Bash runtime is introduced. Cost: task bookkeeping is manual.
+- Ruling: Do not commit automatically; the plan makes commits conditional on approval and user has authorized implementation and branch creation, not commits. Cost: changes remain reviewable in the working tree.
+- Task 1: CLI tests RED (3 failed stubs) -> GREEN (5 passed). Installed toolchains include 1.95 but not 1.94; MSRV not verified.
+- Ruling: clap::Error handles help/version display and exit codes directly instead of a separate CliAction. Cost: CLI callers use clap error classification.
+- Ruling: model stores severity/applicability as strings and expansion as preserved JSON, avoiding loss of future variants and opaque macro details. Renderer never interprets expansion as HTML. Cost: no enum exhaustiveness checking.
+- Task 2/3: complete, RED observed -> GREEN (12 total tests, including forced fingerprint collision).
+- Task 4/5: collection/source tests RED -> GREEN (17 total tests); process stress and filesystem boundary tests remain.
+- Ruling: Rust 1.90.0 bundles themes in rustdoc.css; no separate light.css is needed (official directory inspected after a 404). Cost: upstream CSS includes unused theme declarations.
+- Ruling: Actual Cargo JSON uses workspace-relative source paths (one/src/lib.rs), not package-relative paths. Normalize against workspace_root; verified by strengthened actual workspace test. Cost if wrong: nonstandard remapped paths fall back to diagnostic snippets.
+- User screenshot identified heading as a sibling flex column and item-table CSS treating HTML table groups as grid cells. Move heading inside main/width-limiter using rustdoc breadcrumbs and use a distinct report-table class. Structural regression and actual workspace source tests observed RED before correction.
+- Tasks 4/5/6/7: connected and verified. 27 unit + 6 actual Clippy integration tests passed after workspace-path/heading regression fixes.
+- Task 8: documentation and final validation in progress.
+- Ruling: Kept compile-time templates but use String errors at module boundaries rather than a separate error hierarchy. Cost: callers match no machine-readable error variants in Phase 1.
+- Verification limitation: browser tool blocks file://. User provided screenshot, corrections regenerated; final browser visual confirmation remains manual. No browser policy workaround attempted.
+- Test process note: core tests and reported regressions observed RED before implementation; some supplementary stress/rollback tests were added after their implementation, not claimed as TDD evidence.
+- Task 8: functional verification complete: 32 unit + 7 actual integration tests, rustfmt and clippy -Dwarnings passed. Rust1.94 locked check and isolated debug install/direct/Cargo invocation smoke succeeded. Browser manual items remain documented; no all-platform acceptance claim.
+- Final review: independent reviewer requested changes for 4 important findings; no critical/minor findings. All 4 verified with failing regressions and fixed in one pass; green suite 39/39.
+- Final: fixed output ownership race — unexpected_destination_created_during_render_is_preserved and unexpected_object_moved_to_backup_is_never_deleted RED -> GREEN.
+- Final: fixed Windows alias locking — case_aliases_share_one_publication_lock RED -> GREEN.
+- Final: fixed repeated full-file span validation — long_source_validates_each_span_once_and_marks_the_right_row RED (1001 validations) -> GREEN (1 validation).
+- Final: fixed excluded nested dependency inclusion — excluded_nested_dependency_is_snippet_only RED (5 full-code rows) -> GREEN (no full source).
+- Ruling: Publication lock is parent-scoped rather than derived from caller-spelled output name. This covers Windows case aliases without assuming case-sensitive-directory settings. Cost: sibling report publications serialize.
+- Final: Ruling: Visual/browser behavior remains manual because the browser policy blocks file URLs; user screenshots drove fixes. Cost if wrong: a remaining layout defect may need another screenshot-driven correction.
+- Final: Ruling: Linux/macOS and Firefox execution are deferred to planned platform validation; Rust1.94 check/install results are now verified locally. Cost if wrong: OS-specific defects remain possible until CI.
+- Final: Ruling: Future unknown diagnostic enum variants may be rejected by cargo_metadata before normalization and marked incomplete. No current compiler reproduction was identified. Cost if wrong: future toolchains can need a dependency update.
+- Final: Ruling: Crash atomicity and malicious filesystem races/marker forgery are outside the documented guarantees. Ordinary concurrent directory creation is covered by regression and post-rename ownership checks. Cost if wrong: stronger adversarial filesystem coordination would require a separate design.
+- Final: Ruling: Vendor provenance/licenses are included but no independent legal audit was performed; fonts remain excluded. Cost if wrong: redistributable asset selection may need correction.
+- Final: Ruling: Phase2/3 features remain intentionally deferred; individual omitted planned edge tests are not claimed as executed. Cost if wrong: later acceptance work can uncover additional edge cases.
+- User UI corrections: sidebar shows context package name(s); finding metadata uses package name rather than opaque package ID; physical location blocks merge repeated span/child/replacement ranges while preserving labels, notes and suggestions.
+- Branch remains codex/phase-1 with uncommitted changes; no push, merge, release or global PATH change performed.
+- Follow-up: Clippy further-information help URL was plain text. Actual integration regression RED -> GREEN; note links preserve the compiler-specific version, use escaped HTTPS anchors, and reject unsafe schemes/credentials. Full suite 40/40 passed.

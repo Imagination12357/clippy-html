@@ -1,0 +1,71 @@
+# Clippy HTML
+
+Clippy의 구조화된 진단을 rustdoc 스타일의 정적 HTML 문서로 탐색하는 Cargo 서브커맨드입니다.
+
+현재 구현 범위는 **Phase 1**입니다. 실제 Clippy 진단 수집, 중복 병합, 홈·진단 종류·전체 소스 페이지, 줄 anchor, child 진단과 suggestion replacement 표시를 제공합니다. 검색, category 페이지, 테마 선택, 정밀 span/구문 강조, suggestion diff/copy, metadata export는 후속 단계입니다.
+
+## 설치와 실행
+
+Rust와 Clippy가 필요합니다. 이 저장소에서 설치합니다.
+
+```powershell
+rustup component add clippy
+cargo install --path . --locked
+```
+
+검사할 Cargo 프로젝트에서 실행합니다.
+
+```powershell
+cargo clippy-html
+cargo clippy-html --open
+cargo clippy-html --output report
+cargo clippy-html -- --all-targets --all-features
+cargo clippy-html -- --workspace --all-targets -- -W clippy::pedantic
+```
+
+기본 결과물은 Cargo target directory 아래의 `clippy-html/index.html`입니다. `--output`을 지정하면 그 경로를 사용합니다. 상대경로는 명령을 실행한 폴더 기준입니다. 전달한 `--target-dir`도 기본 보고서 위치에 반영됩니다.
+
+첫 `--` 이후는 Cargo Clippy에 전달합니다. 그 안의 두 번째 `--` 이후는 rustc/Clippy 인자입니다. `--all-targets`와 `--all-features`는 기본 강제하지 않습니다. 출력 형식을 변경하는 `--message-format`과 소스를 수정하는 `--fix`는 Cargo 인자 영역에서 거부합니다. Phase 1의 `--metadata`는 미지원 옵션 오류이며 공개 metadata JSON을 자동 생성하지 않습니다.
+
+## 보고서 읽기
+
+생성한 `index.html`을 브라우저에서 직접 엽니다. 서버나 인터넷 연결, JavaScript가 없어도 기본 탐색이 가능합니다.
+
+- 홈에는 검사 종료 상태, 수집 완전성, 원본 진단 수와 병합 후 finding 수를 별도로 표시합니다.
+- 진단 종류 페이지에는 code, 실제 severity, target, primary/secondary 위치, note/help, suggestion 묶음과 applicability를 표시합니다.
+- 소스 페이지에는 관련 workspace 파일의 전체 코드, 줄 번호, 줄 단위 진단 표시, finding 링크를 표시합니다.
+- Clippy category는 Phase 1에서 Unknown입니다. 공식 테이블을 도입하기 전에는 이름으로 추측하지 않습니다.
+- 동일한 위치라도 package, severity, 관련 span 또는 suggestion이 다르면 별 진단입니다. 같은 진단이 여러 target에서 발생하면 target 목록을 합칩니다.
+
+소스의 실제 내용과 진단 위치가 맞지 않거나 파일을 읽을 수 없으면 진단 snippet과 사유를 표시합니다. 외부 dependency와 생성 코드의 전체 파일은 기본 복사하지 않습니다. 자동 수정은 하지 않습니다.
+
+보고서에는 **원본 소스코드와 로컬 경로가 포함될 수 있습니다**. artifact나 Pages에 게시할 때 공개 범위를 확인해야 합니다.
+
+## 실패와 기존 결과물
+
+Clippy가 경고를 오류로 처리하거나 컴파일 오류로 실패해도 가능한 보고서를 생성하고 비영 종료 코드를 유지합니다. 보고서 생성 성공을 검사 성공으로 표시하지 않습니다. JSON 손상이나 완료 메시지 누락은 불완전 수집으로 표시합니다. Cargo 자체 시작이나 metadata 조회에 실패하면 기존 보고서를 유지합니다.
+
+출력은 임시 폴더에 완성·검증한 뒤 교체합니다. 기존 폴더는 `.clippy-html-owned` marker가 있는 전용 보고서일 때만 교체합니다. 일반 폴더나 프로젝트/target 루트를 덮어쓰지 않습니다. 동시 출력 writer는 lock으로 구별합니다.
+
+중단 후 lock이나 backup이 남으면 도구가 알려 주는 경로를 확인합니다. 실행 중인 생성기가 없는지 확인하고, backup의 정상 결과물을 보존한 뒤 복구합니다. 도구는 불확실한 backup이나 stale lock을 임의 삭제하지 않습니다. 여러 rename 사이의 전원 장애까지 원자적으로 복구하는 기능은 없습니다.
+
+## 개발 검증
+
+```powershell
+cargo build --example cargo_probe --locked
+cargo test --locked
+cargo fmt --check
+cargo clippy --all-targets --locked -- -D warnings
+```
+
+process 테스트는 먼저 빌드한 `cargo_probe` helper를 사용해 양쪽 pipe의 대량 출력을 검증합니다. 통합 테스트는 fixture를 임시 폴더에 복사하므로 저장소의 fixture 소스를 수정하지 않습니다. fixture 자체는 외부 의존성을 사용하지 않습니다.
+
+Rust 1.94에서 locked compile check를 확인했습니다. 현재 실행 환경과 검증 범위는 [검증 기록](docs/validation/2026-10-27-phase-1.md)에 남깁니다.
+
+## 구조와 라이선스
+
+CLI → Cargo 수집 → 진단 정규화/병합 → 소스 로드 → HTML 생성 → 출력 교체 순서입니다. parser와 renderer는 독립적으로 테스트할 수 있습니다. 파일별 책임은 [설계 문서](docs/superpowers/specs/2026-10-27-clippy-html-design.md)에 있습니다.
+
+프로젝트 코드는 MIT 또는 Apache-2.0입니다. rustdoc CSS는 Rust 1.90.0의 커밋 `1159e78c4747b02ef996e55082b704c09b970588`을 기준으로 MIT 조건으로 재사용했습니다. normalize.css의 별도 MIT 라이선스도 포함합니다. 폰트 파일은 포함하지 않으며 시스템 글꼴을 사용합니다.
+
+출처와 변경은 [UPSTREAM.md](assets/vendor/rustdoc/UPSTREAM.md)에 기록합니다. 필요한 고지는 생성 보고서의 `licenses/`에도 함께 배포됩니다. rustdoc의 버전 간 DOM/API 호환성은 보장하지 않습니다.
