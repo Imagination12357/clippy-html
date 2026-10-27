@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="cargo-clippy-html">
+<title>{{ title }} — Clippy HTML</title>
+<link rel="stylesheet" href="{{ root }}static.files/normalize.css">
+<link rel="stylesheet" href="{{ root }}static.files/rustdoc.css">
+<link rel="stylesheet" href="{{ root }}static.files/clippy-html.css">
+</head>
+<body class="rustdoc">
+<a class="skip-link" href="#main-content">Skip to main content</a>
+<nav class="sidebar" aria-label="Report navigation">
+<div class="sidebar-crate"><h2><a href="{{ root }}index.html">Clippy HTML</a></h2><p class="crate-context">{{ crate_context }}</p></div>
+<div class="sidebar-elems"><section><h3>{{ section }}</h3><ul class="block">{% for link in sidebar %}<li><a href="{{ link.href }}">{{ link.text }}</a></li>{% endfor %}</ul></section>
+<section><h3>About</h3><ul class="block"><li><a href="{{ root }}index.html">Report overview</a></li><li><a href="{{ root }}licenses/rustdoc-MIT.txt">rustdoc license</a></li><li><a href="{{ root }}licenses/normalize-MIT.txt">normalize.css license</a></li><li><a href="{{ root }}licenses/UPSTREAM.md">Style provenance</a></li></ul></section></div>
+</nav>
+<main id="main-content" class="content" tabindex="-1"><div class="width-limiter">
+<div class="main-heading"><div class="rustdoc-breadcrumbs"><a href="{{ root }}index.html">Report</a> <span aria-hidden="true">/</span> {{ title }}</div><span class="report-label">CLIPPY HTML</span><h1>{{ title }}</h1></div>
+{{ content|safe }}</div></main>
+</body></html>

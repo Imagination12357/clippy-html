@@ -1,0 +1,10 @@
+<p class="report-intro">Clippy diagnostics for <strong>{{ workspace }}</strong>.</p>
+<dl class="report-summary"><dt>Clippy execution</dt><dd>{{ status }} · exit {{ exit }}</dd><dt>Diagnostic collection</dt><dd>{{ collection }}</dd><dt>Findings</dt><dd>{{ count }} unique · {{ errors }} errors · {{ warnings }} warnings</dd><dt>Original messages</dt><dd>{{ raw_count }}</dd><dt>Forwarded arguments</dt><dd><code>{{ args }}</code></dd></dl>
+{% if issues.len() > 0 %}<section class="run-issues"><h2>Collection issues</h2><ul>{% for issue in issues %}<li>{{ issue }}</li>{% endfor %}</ul></section>{% endif %}
+<h2 id="packages">Workspace packages</h2><table class="report-table"><thead><tr><th>Package</th><th>Observed during inspection</th></tr></thead><tbody>{% for p in packages %}<tr><td><code>{{ p.name }}</code></td><td>{{ p.observed }}</td></tr>{% endfor %}</tbody></table>
+<details><summary>Observed targets</summary><ul>{% for target in targets %}<li><code>{{ target }}</code></li>{% endfor %}</ul></details>
+<h2 id="lints">Diagnostic kinds</h2>{% if lints.len() == 0 %}<p>No diagnostics were collected. See the execution and collection status above.</p>{% else %}<table class="report-table"><thead><tr><th>Diagnostic</th><th>Occurrences</th></tr></thead><tbody>{% for item in lints %}<tr><td><a href="{{ item.link.href }}"><code>{{ item.link.text }}</code></a></td><td>{{ item.count }}</td></tr>{% endfor %}</tbody></table>{% endif %}
+<h2 id="files">Source files</h2><ul class="source-list">{% for item in files %}<li><a href="{{ item.href }}"><code>{{ item.text }}</code></a></li>{% endfor %}</ul>
+<details><summary>Cargo stderr{% if stderr_truncated %} (truncated){% endif %}</summary><pre>{{ stderr }}</pre></details>
+{% if stdout.len() > 0 %}<details><summary>Other stdout{% if stdout_truncated %} (truncated){% endif %}</summary><pre>{{ stdout }}</pre></details>{% endif %}
+<p class="report-footnote">Source code may be included in this report. Generated locally; no network connection is needed to read it.</p>
