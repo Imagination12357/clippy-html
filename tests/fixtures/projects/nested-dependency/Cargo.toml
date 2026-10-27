@@ -1,0 +1,8 @@
+[package]
+name = "fixture-owner"
+version = "0.1.0"
+edition = "2024"
+[dependencies]
+excluded-dep = { path = "vendor/dep" }
+[workspace]
+exclude = ["vendor/dep"]

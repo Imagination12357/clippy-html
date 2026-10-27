@@ -1,3 +1,4 @@
+mod cargo;
 mod cli;
 mod diagnostic;
 fn main() {
