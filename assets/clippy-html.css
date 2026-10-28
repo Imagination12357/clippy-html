@@ -23,6 +23,7 @@
 .source-code .diagnostic-line { background: var(--src-line-number-highlighted-background-color); }
 .diagnostic-marker { font-size: .8rem; margin-left: 1ch; }
 .source-files, .source-findings { margin-bottom: 1.5em; }
+.source-files { padding-left: var(--sidebar-elems-left-padding); }
 .source-files > summary, .source-findings > summary { font-size: 1.125rem; }
 .source-count { color: var(--right-side-color); font-size: .8em; }
 :focus-visible { outline: 2px solid var(--search-input-focused-border-color); outline-offset: 3px; }

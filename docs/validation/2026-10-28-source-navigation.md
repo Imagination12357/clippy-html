@@ -29,3 +29,5 @@
 ## Rustdoc tree style correction
 
 User feedback identified that the initial hierarchy used a custom list layout. Replaced it with rustdoc's `#src-sidebar`, `details.dir-entry`, `summary`, `div.folders`, `div.files` and `a.selected` structure. Folders precede files; native rustdoc CSS controls indentation, hover and selection. The tree is outside `.sidebar-elems` to avoid its general navigation-link padding. Counts, current-file accessibility, open current ancestors and independent findings navigation remain. Generated-report regressions failed before this correction and pass afterward; browser visual confirmation remains manual.
+
+Screenshot follow-up: intentionally align the Files section with the combined report sidebar using `padding-left: var(--sidebar-elems-left-padding)` on `.source-files` only. This shares the existing sidebar inset without inheriting `.sidebar-elems` link rules; native tree indentation and selection remain intact.
