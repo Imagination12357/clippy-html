@@ -108,7 +108,7 @@ pages.rs가 커지면 홈/lint/source별로 분리한다. 처음부터 내용 �
 - workspace member가 소유하는 파일을 기본 전체 코드 포함 대상으로 한다. workspace 밖에 둔 member도 metadata의 manifest 경계로 식별한다.
 - canonical 경로를 검사해 symlink가 허용 소스 경계 밖을 가리키면 전체 파일을 복사하지 않는다. 외부 dependency, 생성 코드, 가상 파일은 진단 snippet과 위치 텍스트로 대체한다.
 - finding이 없는 파일은 복사하지 않는다. source 페이지는 파일마다 하나이며 여러 package/target의 관련 finding을 연결할 수 있다.
-- 원본 경로를 출력 경로에 그대로 이어 붙이지 않는다. 2026-10-28 후속 UI 결정에 따라 source는 workspace 상대 경로를 안전한 파일명으로 인코딩해 src/<relative-path>.html에 배치하며, 선두 src/ 중복을 생략한다. 외부 경로는 별도 namespace로 격리하고 Windows 예약 이름과 대소문자 충돌을 처리한다. 원래 경로는 표시 텍스트로 보존한다. lint는 code로부터 안전한 ID를 만들어 namespace 및 대소문자 충돌을 피한다.
+- 원본 경로를 출력 경로에 그대로 이어 붙이지 않는다. 2026-10-28 후속 UI 결정에 따라 source는 workspace 상대 경로를 안전한 파일명으로 인코딩해 src/<relative-path>.html에 배치하며, 선두 src/ 중복을 생략한다. 외부 경로는 별도 namespace로 격리하고 Windows 예약 이름과 대소문자 충돌을 처리한다. 원래 경로는 표시 텍스트로 보존한다. lint는 후속 A1 결정에 따라 lint/clippy/<name>.html 또는 lint/rustc/<code>.html을 사용하고, 코드 없는 진단은 lint/general.html에 둔다. lint와 source 모두 안전한 파일명 인코딩 및 결정적인 충돌 처리를 적용한다.
 - 동일 입력의 경로 mapping을 정렬해 고정하고 충돌은 명시적으로 해결한다. 모든 내부 href는 생성한 mapping으로만 구성한다.
 - 한 source 페이지에 L<줄번호>와 finding-<ID> anchor를 유일하게 만든다. 여러 finding이 같은 줄을 가리키면 각 finding anchor를 따로 배치한다. 한 finding의 복수 span은 동일 anchor를 중복 생성하지 않는다.
 - UTF-8 byte 경계, CRLF, 다중 줄 span, 파일 끝 위치를 검증한다. 현재 파일과 진단 snippet이 맞지 않거나 위치가 유효하지 않으면 정밀 강조와 diff 합성을 생략하고 이유와 원래 snippet을 표시한다.

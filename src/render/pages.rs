@@ -577,7 +577,7 @@ pub fn render_report(
             Page {
                 title,
                 section: "Occurrences",
-                root: "../".into(),
+                root: relative_href(path, Path::new(""), None),
                 sidebar,
                 content: render(&Lint {
                     findings: views(fs, path, sources, pages, &report.project.packages),

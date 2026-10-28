@@ -46,6 +46,7 @@ fn warning_source_and_suggestion_are_escaped() {
     assert_success(&f.run(&[]));
     let lint = html_files(&f.report().join("lint"));
     assert_eq!(lint.len(), 1);
+    assert!(f.report().join("lint/clippy/clone_on_copy.html").is_file());
     let doc = Html::parse_document(&std::fs::read_to_string(&lint[0]).unwrap());
     assert_eq!(doc.select(&Selector::parse(".finding").unwrap()).count(), 1);
     assert!(
@@ -136,6 +137,7 @@ fn lint_and_compile_failure_keep_reports_and_exit_codes() {
     let out = e.run(&[]);
     assert_eq!(out.status.code(), Some(101));
     assert!(e.html("index.html").contains("Failed"));
+    assert!(e.report().join("lint/rustc/E0308.html").is_file());
     assert!(!html_files(&e.report().join("lint")).is_empty());
 }
 #[test]

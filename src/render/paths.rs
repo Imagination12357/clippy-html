@@ -8,23 +8,48 @@ pub struct PageMap {
     pub lint_pages: BTreeMap<String, PathBuf>,
     pub source_pages: BTreeMap<PathBuf, PathBuf>,
 }
-fn assigned_names<K: Ord + Clone>(
-    keys: impl IntoIterator<Item = K>,
+fn assigned_paths<K: Ord>(
+    candidates: BTreeMap<K, PathBuf>,
     digest: impl Fn(&K) -> String,
-) -> BTreeMap<K, String> {
-    let keys: std::collections::BTreeSet<_> = keys.into_iter().collect();
-    let mut counts: BTreeMap<String, usize> = BTreeMap::new();
-    keys.into_iter()
-        .map(|key| {
-            let base = digest(&key);
-            let count = counts.entry(base.clone()).or_default();
-            let name = if *count == 0 {
-                base
-            } else {
-                format!("{base}-{count}")
-            };
-            *count += 1;
-            (key, name)
+) -> BTreeMap<K, PathBuf> {
+    let collision_key = |path: &Path| {
+        path.to_string_lossy()
+            .replace('\\', "/")
+            .to_lowercase()
+            .to_uppercase()
+    };
+    let mut used: std::collections::BTreeSet<_> =
+        candidates.values().map(|p| collision_key(p)).collect();
+    let mut assigned = std::collections::BTreeSet::new();
+    candidates
+        .into_iter()
+        .map(|(key, mut path)| {
+            // Conservatively group Windows Unicode case aliases before writing.
+            if !assigned.insert(collision_key(&path)) {
+                let digest = digest(&key);
+                let stem = path
+                    .file_stem()
+                    .unwrap_or_default()
+                    .to_string_lossy()
+                    .into_owned();
+                let mut suffix = 0;
+                loop {
+                    let extra = if suffix == 0 {
+                        String::new()
+                    } else {
+                        format!("-{suffix}")
+                    };
+                    path.set_file_name(format!(
+                        "{stem}-{}{extra}.html",
+                        digest.get(..16).unwrap_or(&digest)
+                    ));
+                    if used.insert(collision_key(&path)) {
+                        break;
+                    }
+                    suffix += 1;
+                }
+            }
+            (key, path)
         })
         .collect()
 }
@@ -112,16 +137,29 @@ fn source_candidate(root: &Path, path: &Path) -> PathBuf {
     }
 }
 pub fn build_page_map(report: &Report, sources: &BTreeMap<PathBuf, SourceFile>) -> PageMap {
-    let lint_pages = assigned_names(report.findings.iter().map(group_key), |key| {
-        if key == "General:general" {
-            "general".into()
-        } else {
-            blake3::hash(key.as_bytes()).to_hex().to_string()
-        }
-    })
-    .into_iter()
-    .map(|(key, name)| (key, PathBuf::from(format!("lint/{name}.html"))))
-    .collect();
+    let lint_candidates = report
+        .findings
+        .iter()
+        .map(|finding| {
+            let path = if let Some(code) = finding.code.as_deref() {
+                let (namespace, name) = if finding.origin == "Clippy" {
+                    ("clippy", code.strip_prefix("clippy::").unwrap_or(code))
+                } else {
+                    ("rustc", code)
+                };
+                PathBuf::from(format!(
+                    "lint/{namespace}/{}.html",
+                    safe_component(name, false)
+                ))
+            } else {
+                PathBuf::from("lint/general.html")
+            };
+            (group_key(finding), path)
+        })
+        .collect();
+    let lint_pages = assigned_paths(lint_candidates, |key| {
+        blake3::hash(key.as_bytes()).to_hex().to_string()
+    });
     let candidates: BTreeMap<_, _> = sources
         .keys()
         .map(|key| {
@@ -131,40 +169,11 @@ pub fn build_page_map(report: &Report, sources: &BTreeMap<PathBuf, SourceFile>) 
             )
         })
         .collect();
-    let mut used: std::collections::BTreeSet<_> = candidates
-        .values()
-        .map(|p| p.to_string_lossy().to_lowercase().to_uppercase())
-        .collect();
-    let mut assigned = std::collections::BTreeSet::new();
-    let source_pages = candidates
-        .into_iter()
-        .map(|(key, mut path)| {
-            // Conservatively group Unicode case aliases, including final sigma
-            // and Kelvin sign, before creating files on Windows.
-            if !assigned.insert(path.to_string_lossy().to_lowercase().to_uppercase()) {
-                let digest = blake3::hash(key.as_os_str().as_encoded_bytes()).to_hex();
-                let stem = path
-                    .file_stem()
-                    .unwrap_or_default()
-                    .to_string_lossy()
-                    .into_owned();
-                let mut suffix = 0;
-                loop {
-                    let extra = if suffix == 0 {
-                        String::new()
-                    } else {
-                        format!("-{suffix}")
-                    };
-                    path.set_file_name(format!("{stem}-{}{extra}.html", &digest[..16]));
-                    if used.insert(path.to_string_lossy().to_lowercase().to_uppercase()) {
-                        break;
-                    }
-                    suffix += 1;
-                }
-            }
-            (key, path)
-        })
-        .collect();
+    let source_pages = assigned_paths(candidates, |key| {
+        blake3::hash(key.as_os_str().as_encoded_bytes())
+            .to_hex()
+            .to_string()
+    });
     PageMap {
         lint_pages,
         source_pages,
@@ -196,6 +205,101 @@ pub fn relative_href(from: &Path, to: &Path, anchor: Option<&str>) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn lint_urls_keep_names_namespaces_and_distinct_safe_paths() {
+        use crate::diagnostic::model::*;
+        let cargo_metadata::Message::CompilerMessage(message) =
+            serde_json::from_value(crate::diagnostic::sample()).unwrap()
+        else {
+            panic!()
+        };
+        let finding = crate::diagnostic::normalize::normalize(&message, Path::new("/demo"));
+        let codes = [
+            Some("clippy::clone_on_copy"),
+            Some("E0308"),
+            Some("unused_variables"),
+            None,
+            Some("clone_on_copy"),
+            Some("clippy::CON"),
+            Some("clippy::../a #%.rs"),
+            Some("clippy::σ"),
+            Some("clippy::ς"),
+            Some("clippy::Foo"),
+            Some("clippy::foo"),
+        ];
+        let mut report = Report {
+            project: ProjectInfo {
+                workspace_root: "/demo".into(),
+                target_dir: "/demo/target".into(),
+                packages: vec![],
+            },
+            execution: Execution {
+                code: Some(0),
+                complete: true,
+                requested_args: vec![],
+                observed_packages: vec![],
+                observed_targets: vec![],
+                stderr: String::new(),
+                stderr_truncated: false,
+                text_stdout: String::new(),
+                stdout_truncated: false,
+                issues: vec![],
+            },
+            raw_count: codes.len(),
+            findings: codes
+                .into_iter()
+                .map(|code| {
+                    let mut f = finding.clone();
+                    f.code = code.map(str::to_owned);
+                    f.origin = if code.is_some_and(|c| c.starts_with("clippy::")) {
+                        "Clippy"
+                    } else if code.is_some() {
+                        "Rust compiler"
+                    } else {
+                        "General"
+                    }
+                    .into();
+                    f
+                })
+                .collect(),
+        };
+        let pages = build_page_map(&report, &BTreeMap::new()).lint_pages;
+        assert_eq!(
+            pages["Clippy:clippy::clone_on_copy"],
+            PathBuf::from("lint/clippy/clone_on_copy.html")
+        );
+        assert_eq!(
+            pages["Rust compiler:E0308"],
+            PathBuf::from("lint/rustc/E0308.html")
+        );
+        assert_eq!(
+            pages["Rust compiler:unused_variables"],
+            PathBuf::from("lint/rustc/unused_variables.html")
+        );
+        assert_eq!(pages["General:general"], PathBuf::from("lint/general.html"));
+        assert_eq!(
+            pages["Rust compiler:clone_on_copy"],
+            PathBuf::from("lint/rustc/clone_on_copy.html")
+        );
+        assert_eq!(
+            pages["Clippy:clippy::CON"],
+            PathBuf::from("lint/clippy/~00CON.html")
+        );
+        let unique: std::collections::BTreeSet<_> = pages
+            .values()
+            .map(|p| p.to_string_lossy().to_lowercase().to_uppercase())
+            .collect();
+        assert_eq!(unique.len(), codes.len());
+        for path in pages.values() {
+            assert!(path.starts_with("lint"));
+            assert!(
+                path.components()
+                    .all(|c| matches!(c, std::path::Component::Normal(_)))
+            );
+        }
+        report.findings.reverse();
+        assert_eq!(pages, build_page_map(&report, &BTreeMap::new()).lint_pages);
+    }
     #[test]
     fn source_names_preserve_hierarchy_without_unsafe_or_colliding_paths() {
         use crate::diagnostic::model::*;
@@ -311,8 +415,27 @@ mod tests {
     }
     #[test]
     fn colliding_names_are_distinct_and_order_independent() {
-        let names = assigned_names(["b", "a"], |_| "same".into());
+        let names = assigned_paths(
+            BTreeMap::from([
+                ("b", "lint/same.html".into()),
+                ("a", "lint/same.html".into()),
+                ("c", "lint/same-collision.html".into()),
+            ]),
+            |_| "collision".into(),
+        );
         assert_ne!(names["a"], names["b"]);
-        assert_eq!(names, assigned_names(["a", "b"], |_| "same".into()));
+        assert_eq!(names["b"], PathBuf::from("lint/same-collision-1.html"));
+        assert_eq!(names["c"], PathBuf::from("lint/same-collision.html"));
+        assert_eq!(
+            names,
+            assigned_paths(
+                BTreeMap::from([
+                    ("a", "lint/same.html".into()),
+                    ("c", "lint/same-collision.html".into()),
+                    ("b", "lint/same.html".into())
+                ]),
+                |_| "collision".into()
+            )
+        );
     }
 }

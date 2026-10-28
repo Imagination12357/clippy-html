@@ -23,7 +23,7 @@
 - Workspace fixture report: `target/phase-1-preview/index.html`.
 - Comparison docs: `target/doc/cargo_clippy_html/index.html`.
 - Browser file URLs remain blocked by the available automation surface. HTML parsing and local link validation passed; visual layout and cross-browser behavior require manual confirmation. No server workaround was used.
-- Source filenames become readable; lint-group HTML names and internal finding IDs remain hashed in this change.
+- Source filenames become readable. The later approved lint-URL A1 change also gives lint groups readable names under `lint/clippy/` and `lint/rustc/`; internal finding IDs remain hashed.
 - The tree lists files represented in diagnostics, rather than every workspace source file. No JavaScript or new dependencies were added.
 
 ## Rustdoc tree style correction
