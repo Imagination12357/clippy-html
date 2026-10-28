@@ -16,12 +16,20 @@
 
 Modifications to rustdoc.css: removed all @font-face declarations and the
 clipboard/checkmark SVG custom properties. The latter assets have separate
-source references and are not used by this report. Fonts and their binaries
-are not distributed. System fonts and report-specific rules live in
-assets/clippy-html.css. The remaining upstream styles are retained.
+source references and are not used by this report. The selected original
+font-face declarations are supplied separately in fonts.css; 12 unchanged
+WOFF2 files and their original OFL-1.1 notices are in fonts/. See FONTS.md
+for the exact file inventory, source details and hashes. Report-specific
+rules live in assets/clippy-html.css. The remaining upstream styles are retained.
 
-No rustdoc JavaScript, logo or font assets are included. Upstream API and DOM
+No rustdoc JavaScript, logo or Fira Mono assets are included. Upstream API and DOM
 compatibility across releases are not promised.
+
+The upstream COPYRIGHT.txt is preserved unmodified as a reference, including
+its entries for resources not shipped here. The actual included-resource
+inventory is THIRD-PARTY-NOTICES.md at the repository root and under licenses/
+in generated reports. The project's own code and Cargo license metadata
+remain MIT OR Apache-2.0; font files retain their own OFL-1.1 terms.
 
 The initial Phase 1 snapshot used Rust 1.90.0. The 2026-10-27 style-alignment
 update pins the same version as this project's generated reference docs.

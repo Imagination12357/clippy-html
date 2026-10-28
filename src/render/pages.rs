@@ -125,6 +125,9 @@ struct FindingView {
 struct Lint {
     findings: Vec<FindingView>,
 }
+#[derive(Template)]
+#[template(path = "licenses.html")]
+struct Licenses;
 struct SourceRow {
     number: usize,
     text: String,
@@ -380,40 +383,9 @@ pub fn render_report(
     pages: &PageMap,
     destination: &Path,
 ) -> Result<(), String> {
-    for dir in ["static.files", "licenses", "lint", "src"] {
+    super::assets::write_assets(destination)?;
+    for dir in ["lint", "src"] {
         std::fs::create_dir_all(destination.join(dir)).map_err(|e| e.to_string())?;
-    }
-    for (path, bytes) in [
-        (
-            "static.files/rustdoc.css",
-            include_str!("../../assets/vendor/rustdoc/rustdoc.css"),
-        ),
-        (
-            "static.files/normalize.css",
-            include_str!("../../assets/vendor/rustdoc/normalize.css"),
-        ),
-        (
-            "static.files/clippy-html.css",
-            include_str!("../../assets/clippy-html.css"),
-        ),
-        (
-            "licenses/rustdoc-MIT.txt",
-            include_str!("../../assets/vendor/rustdoc/LICENSE-MIT"),
-        ),
-        (
-            "licenses/rustdoc-COPYRIGHT.txt",
-            include_str!("../../assets/vendor/rustdoc/COPYRIGHT.txt"),
-        ),
-        (
-            "licenses/normalize-MIT.txt",
-            include_str!("../../assets/vendor/rustdoc/normalize-LICENSE-MIT"),
-        ),
-        (
-            "licenses/UPSTREAM.md",
-            include_str!("../../assets/vendor/rustdoc/UPSTREAM.md"),
-        ),
-    ] {
-        std::fs::write(destination.join(path), bytes).map_err(|e| e.to_string())?;
     }
     let groups: BTreeMap<String, Vec<&Finding>> =
         report.findings.iter().fold(BTreeMap::new(), |mut map, f| {
@@ -545,6 +517,31 @@ pub fn render_report(
             root: String::new(),
             sidebar,
             content: render(&index)?,
+            crate_context: crate_context(report, &[]),
+            crates: crate_infos(report, &[]),
+            heading_kind: "Report",
+            source_page: false,
+            source_tree: String::new(),
+        },
+    )?;
+    write_page(
+        destination,
+        Path::new("licenses/index.html"),
+        Page {
+            title: "Licenses and third-party notices",
+            section: "Licenses",
+            root: "../".into(),
+            sidebar: vec![
+                Link {
+                    href: "#fonts".into(),
+                    text: "Fonts".into(),
+                },
+                Link {
+                    href: "#styles".into(),
+                    text: "Styles and notices".into(),
+                },
+            ],
+            content: render(&Licenses)?,
             crate_context: crate_context(report, &[]),
             crates: crate_infos(report, &[]),
             heading_kind: "Report",
@@ -715,11 +712,57 @@ pub fn validate_report(destination: &Path) -> Result<(), String> {
             }
         }
     }
-    Ok(())
+    super::assets::validate_font_resources(&root)
 }
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn missing_css_font_resource_is_rejected() {
+        let t = tempfile::tempdir().unwrap();
+        std::fs::create_dir(t.path().join("static.files")).unwrap();
+        std::fs::write(
+            t.path().join("index.html"),
+            "<link href=\"static.files/fonts.css\">",
+        )
+        .unwrap();
+        std::fs::write(
+            t.path().join("static.files/fonts.css"),
+            "@font-face { src: url(\"missing.woff2\"); }",
+        )
+        .unwrap();
+        assert!(
+            validate_report(t.path()).is_err(),
+            "a report with missing font resources cannot be published"
+        );
+    }
+    #[test]
+    fn nonlocal_css_font_resources_are_rejected() {
+        let t = tempfile::tempdir().unwrap();
+        let root = t.path().join("report");
+        std::fs::create_dir_all(root.join("static.files")).unwrap();
+        std::fs::write(
+            root.join("index.html"),
+            "<link href=\"static.files/fonts.css\">",
+        )
+        .unwrap();
+        std::fs::write(t.path().join("outside.woff2"), b"wOF2").unwrap();
+        for reference in [
+            "../../outside.woff2",
+            "https://example.com/font.woff2",
+            "data:font/woff2;base64,d09GMg==",
+        ] {
+            std::fs::write(
+                root.join("static.files/fonts.css"),
+                format!("@font-face {{ src: url(\"{reference}\"); }}"),
+            )
+            .unwrap();
+            assert!(
+                validate_report(&root).is_err(),
+                "font resources must stay inside the report: {reference}"
+            );
+        }
+    }
     #[test]
     fn validates_links_inside_nested_source_pages() {
         let t = tempfile::tempdir().unwrap();
@@ -828,7 +871,7 @@ mod tests {
         assert_eq!(result[0].suggestions[0].replacements.len(), 1);
     }
     #[test]
-    fn empty_report_has_success_status() {
+    fn empty_report_has_success_status_and_valid_license_links() {
         let t = tempfile::tempdir().unwrap();
         let report = Report {
             project: ProjectInfo {
@@ -872,6 +915,12 @@ mod tests {
             )
             .count(),
             1
+        );
+        std::fs::remove_file(t.path().join("licenses/Fira-LICENSE.txt")).unwrap();
+        assert!(
+            validate_report(t.path())
+                .unwrap_err()
+                .contains("Fira-LICENSE.txt")
         );
     }
     #[test]

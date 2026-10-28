@@ -12,7 +12,7 @@ Rust 개발자가 실제 Clippy 진단을 rustdoc과 익숙한 외형의 정적 
 
 - A1: 실제 Clippy 결과를 사용하는 최소 보고서를 첫 검토 대상으로 삼는다.
 - rustdoc CSS를 직접 재사용하며, 첫 보고서부터 해당 스타일을 적용한다.
-- 당장 폰트는 시스템 글꼴을 사용한다. rustdoc 폰트의 재배포 조건 확인과 포함은 이후에 진행한다.
+- 2026-10-28 폰트 도입 결정: 고정한 rustdoc의 기본 WOFF2 12개와 원본 OFL-1.1 고지를 동봉한다. 자체 코드와 Cargo의 MIT OR Apache-2.0 표기는 유지한다.
 - 기본 결과물은 서버 없는 정적 멀티페이지 HTML이다. 진단마다 별도 페이지는 만들지 않는다.
 - Phase 1 기능 코어, Phase 2 탐색과 상호작용, Phase 3 배포와 CI 순서를 유지한다.
 
@@ -66,7 +66,8 @@ Renderer는 Cargo를 실행하지 않는다. 정규화기는 HTML을 만들지 �
 | src/output.rs | 임시 출력 -> 검증된 디렉터리 갱신 및 복구 |
 | templates/ | 공통 레이아웃과 페이지별 템플릿 |
 | assets/vendor/rustdoc/ | 고정한 upstream CSS와 재사용 자산, 출처 및 라이선스 |
-| assets/clippy-html.css | 시스템 폰트 지정과 진단 관련 추가 스타일 |
+| assets/clippy-html.css | 진단 관련 추가 스타일과 공통 사이드바 여백 |
+| src/render/assets.rs | 정적 텍스트·바이너리 자산 출력과 CSS 폰트 참조 검증 |
 | tests/fixtures/ | 저장된 JSON과 작은 Rust fixture 프로젝트 |
 | tests/integration.rs | 실제 바이너리와 fixture를 통한 통합 검증 |
 
@@ -123,9 +124,9 @@ source 페이지: 전체 코드, 줄 번호, 관련 finding 목록과 상호 링
 
 좌측 탐색, 본문 폭, 제목 계층, 코드 블록 등은 고정한 rustdoc CSS와 맞는 구조를 사용한다. Phase 1은 light 기본 외형, Phase 2는 Light/Dark/Auto 선택과 저장을 제공한다. 아직 없는 검색·category 기능의 동작하지 않는 UI는 노출하지 않는다.
 
-가져올 Rust 릴리스와 정확한 커밋은 CSS 도입 직전에 확정하고 출처 파일에 기록한다. CSS와 필요한 테마 자산만 가져오며 upstream JS는 초기 의존성이 아니다. CSS의 @font-face와 폰트 URL은 제거하고 프로젝트 override에서 system-ui 및 monospace를 지정한다. 내장 SVG와 참조 이미지도 라이선스를 확인해 포함하거나 대체한다. 손댄 부분과 고정 기준을 기록한다.
+가져온 Rust 릴리스와 정확한 커밋은 출처 파일에 기록한다. upstream JS는 초기 의존성이 아니다. 고정된 원본 CSS에서 기본 @font-face 선언 12개를 별도 fonts.css로 가져오고 수정 없는 WOFF2를 동봉한다. 역할별 폰트 스택, 굵기, 기울임, local(), swap, 한글 unicode-range는 원본을 따른다. Fira Mono는 기본 스택에서 사용하지 않아 제외한다. 내장 SVG와 참조 이미지도 라이선스를 확인해 포함하거나 대체한다. 손댄 부분과 고정 기준을 기록한다.
 
-원본 저작권과 선택한 라이선스 및 자산별 고지를 저장소와 생성 보고서에 포함한다. 보고서에는 해당 고지로 가는 링크를 둔다. 향후 폰트 포함은 별도 작업으로 두고 현재 페이지 구조의 전제 조건으로 만들지 않는다.
+원본 저작권과 선택한 라이선스 및 자산별 고지를 저장소와 생성 보고서에 포함한다. 보고서에는 실제 동봉 자산의 라이선스 안내 페이지를 제공하고 upstream COPYRIGHT 원문은 참조 자료로 구분한다. 폰트 원본의 해시를 기록하고 저장소에서 줄바꿈 변환을 금지한다. 실행 파일 배포 묶음에도 내장 자산의 고지를 포함한다. 폰트의 별도 조건은 자체 코드 또는 검사 대상 소스의 라이선스를 바꾸지 않는다.
 
 템플릿 기본 escaping을 사용하고 raw HTML에는 고정한 템플릿/신뢰한 구문 강조 결과만 허용한다. 검색은 Phase 2에서 로컬 classic JS로 제공하며 fetch나 module loading에 의존하지 않는다. 동적 결과는 textContent와 검증된 로컬 링크로 만든다.
 

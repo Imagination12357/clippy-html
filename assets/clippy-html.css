@@ -1,8 +1,4 @@
 /* Clippy-only additions. Layout, navigation, headings and lists use rustdoc CSS. */
-:root {
-    --font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-    --font-family-code: ui-monospace, Consolas, "Liberation Mono", monospace;
-}
 .report-summary { margin: 1em 0 1.5em; }
 .report-summary dt, .report-summary dd { padding-bottom: .35em; }
 .report-footer { margin-top: 3em; color: var(--right-side-color); font-size: .75rem; }

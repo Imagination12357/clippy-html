@@ -2,6 +2,78 @@ mod support;
 use scraper::{Html, Selector};
 use support::*;
 #[test]
+fn reports_bundle_original_fonts_and_separate_licenses() {
+    let f = Fixture::new("clean");
+    assert_success(&f.run(&[]));
+    let names = [
+        "FiraSans-Regular-0fe48ade.woff2",
+        "FiraSans-Italic-81dc35de.woff2",
+        "FiraSans-Medium-e1aa3f0a.woff2",
+        "FiraSans-MediumItalic-ccf7e434.woff2",
+        "SourceSerif4-Regular-6b053e98.ttf.woff2",
+        "SourceSerif4-It-ca3b17ed.ttf.woff2",
+        "SourceSerif4-Semibold-457a13ac.ttf.woff2",
+        "SourceSerif4-Bold-6d4fd4c0.ttf.woff2",
+        "SourceCodePro-Regular-8badfe75.ttf.woff2",
+        "SourceCodePro-It-fc8b9304.ttf.woff2",
+        "SourceCodePro-Semibold-aa29a496.ttf.woff2",
+        "NanumBarunGothic-13b3dcba.ttf.woff2",
+    ];
+    let mut total = 0;
+    for name in names {
+        let bytes =
+            std::fs::read(f.report().join("static.files").join(name)).expect("bundled WOFF2");
+        assert_eq!(&bytes[..4], b"wOF2");
+        assert_eq!(
+            bytes,
+            std::fs::read(
+                std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                    .join("assets/vendor/rustdoc/fonts")
+                    .join(name)
+            )
+            .unwrap()
+        );
+        total += bytes.len();
+    }
+    assert_eq!(total, 1_386_044);
+    let css = f.html("static.files/fonts.css");
+    assert_eq!(css.matches("@font-face").count(), 12);
+    assert!(!css.contains("Fira Mono"));
+    for name in [
+        "Fira-LICENSE.txt",
+        "SourceSerif4-LICENSE.md",
+        "SourceCodePro-LICENSE.txt",
+        "NanumBarunGothic-LICENSE.txt",
+    ] {
+        let license = f.html(&format!("licenses/{name}"));
+        assert!(license.contains("SIL OPEN FONT LICENSE Version 1.1"));
+        assert!(license.contains("Reserved Font Name"));
+        assert_eq!(
+            license.as_bytes(),
+            std::fs::read(
+                std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                    .join("assets/vendor/rustdoc/fonts")
+                    .join(name)
+            )
+            .unwrap()
+        );
+    }
+    let doc = Html::parse_document(&f.html("index.html"));
+    assert!(
+        doc.select(&Selector::parse("link[rel=stylesheet]").unwrap())
+            .any(|link| link.value().attr("href") == Some("static.files/fonts.css"))
+    );
+    assert!(f.html("licenses/index.html").contains("OFL-1.1"));
+    assert!(
+        f.html("licenses/generator-MIT.txt")
+            .contains("Imagination12357")
+    );
+    assert!(
+        f.html("licenses/THIRD-PARTY-NOTICES.md")
+            .contains("OFL-1.1")
+    );
+}
+#[test]
 fn excluded_nested_dependency_is_snippet_only() {
     let f = Fixture::new("nested-dependency");
     assert_eq!(f.run(&[]).status.code(), Some(101));

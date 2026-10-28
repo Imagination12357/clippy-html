@@ -1,0 +1,18 @@
+# Bundled report assets
+
+The generator's own code remains MIT OR Apache-2.0; see LICENSE-MIT and LICENSE-APACHE. Third-party files retain their own licenses. These notices do not change the licenses of source code inspected by the generator or of diagnostic content included in a report.
+
+| Included component | License | Original notice in this repository | Notice in generated reports |
+|---|---|---|---|
+| rustdoc CSS and derived font declarations | MIT option | assets/vendor/rustdoc/LICENSE-MIT | licenses/rustdoc-MIT.txt |
+| normalize.css | MIT | assets/vendor/rustdoc/normalize-LICENSE-MIT | licenses/normalize-MIT.txt |
+| Fira Sans: regular, italic, medium, medium italic | OFL-1.1 | assets/vendor/rustdoc/fonts/Fira-LICENSE.txt | licenses/Fira-LICENSE.txt |
+| Source Serif 4: regular, italic, semibold, bold | OFL-1.1 | assets/vendor/rustdoc/fonts/SourceSerif4-LICENSE.md | licenses/SourceSerif4-LICENSE.md |
+| Source Code Pro: regular, italic, semibold | OFL-1.1 | assets/vendor/rustdoc/fonts/SourceCodePro-LICENSE.txt | licenses/SourceCodePro-LICENSE.txt |
+| NanumBarunGothic: regular | OFL-1.1 | assets/vendor/rustdoc/fonts/NanumBarunGothic-LICENSE.txt | licenses/NanumBarunGothic-LICENSE.txt |
+
+Each font-family license file preserves the original copyright and Reserved Font Name declarations and the full OFL-1.1 text. The font binaries are unchanged copies of the pinned rustdoc output. See assets/vendor/rustdoc/FONTS.md (licenses/FONTS.md in generated reports) for file names, source details and SHA-256 values.
+
+The original rustdoc COPYRIGHT.txt is retained unmodified as upstream reference material. It also discusses resources this generator does not ship, including Rust logos, rustdoc JavaScript and Fira Mono. It is not the inventory of this bundle; the table above is that inventory.
+
+Source packages must include these notices, all listed original license texts and FONTS.md. Release archives containing the executable must carry the same notices and license texts alongside the generator's own licenses, since the executable embeds these report assets. Generated reports carry their own copies under licenses/ and a linked license overview. This file describes bundled report assets, rather than the complete dependency license inventory.

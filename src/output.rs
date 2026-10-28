@@ -217,6 +217,34 @@ mod tests {
         );
     }
     #[test]
+    fn missing_font_assets_keep_old_report() {
+        let t = tempfile::tempdir().unwrap();
+        let path = t.path().join("report");
+        std::fs::create_dir(&path).unwrap();
+        std::fs::write(path.join(".clippy-html-owned"), "1\n").unwrap();
+        std::fs::write(path.join("index.html"), "old").unwrap();
+        let target = prepare_target(&path, &project(t.path())).unwrap();
+        let result = publish_report(&target, |staging| {
+            simple_report(staging)?;
+            std::fs::create_dir(staging.join("static.files")).map_err(|e| e.to_string())?;
+            std::fs::write(
+                staging.join("static.files/fonts.css"),
+                "@font-face { src: url(\"missing.woff2\"); }",
+            )
+            .map_err(|e| e.to_string())?;
+            std::fs::write(
+                staging.join("index.html"),
+                "<link href=\"static.files/fonts.css\">",
+            )
+            .map_err(|e| e.to_string())
+        });
+        assert!(matches!(result, Err(message) if message.contains("Missing font resource")));
+        assert_eq!(
+            std::fs::read_to_string(path.join("index.html")).unwrap(),
+            "old"
+        );
+    }
+    #[test]
     fn refuses_unowned_or_project_directory() {
         let t = tempfile::tempdir().unwrap();
         let p = project(t.path());

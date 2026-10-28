@@ -68,7 +68,11 @@ Rust 1.94에서 locked compile check를 확인했습니다. 현재 실행 환경
 
 CLI → Cargo 수집 → 진단 정규화/병합 → 소스 로드 → HTML 생성 → 출력 교체 순서입니다. parser와 renderer는 독립적으로 테스트할 수 있습니다. 파일별 책임은 [설계 문서](docs/superpowers/specs/2026-10-27-clippy-html-design.md)에 있습니다.
 
-프로젝트 코드는 MIT 또는 Apache-2.0입니다. rustdoc CSS는 이 프로젝트의 비교용 문서를 생성한 Rust 1.97.1, 커밋 `8bab26f4f68e0e26f0bb7960be334d5b520ea452`을 기준으로 MIT 조건으로 재사용했습니다. normalize.css의 별도 MIT 라이선스와 rustdoc 저작권 고지도 포함합니다. 폰트 파일은 포함하지 않으며 시스템 글꼴을 사용합니다.
+프로젝트 코드와 Cargo 라이선스 표기는 MIT 또는 Apache-2.0을 유지합니다. rustdoc CSS는 이 프로젝트의 비교용 문서를 생성한 Rust 1.97.1, 커밋 `8bab26f4f68e0e26f0bb7960be334d5b520ea452`을 기준으로 MIT 조건으로 재사용했습니다. normalize.css의 별도 MIT 라이선스와 rustdoc 저작권 고지도 포함합니다.
+
+기본 폰트는 Fira Sans(UI), Source Serif 4(본문), Source Code Pro(코드), NanumBarunGothic(한글 보완)입니다. rustdoc의 WOFF2 12개를 수정 없이 동봉하며 폰트에는 각각 OFL-1.1이 적용됩니다. 원본 저작권·예약 이름·라이선스 전문을 함께 배포합니다. [실제 동봉 자산과 고지](THIRD-PARTY-NOTICES.md), [폰트 출처와 해시](assets/vendor/rustdoc/FONTS.md)를 확인할 수 있습니다. 생성 보고서에서도 footer의 라이선스 안내를 통해 같은 고지에 접근할 수 있습니다. 이 조건이 검사 대상 소스의 라이선스를 바꾸지는 않습니다.
+
+폰트와 고지는 실행 파일에 내장되어 보고서에 출력되므로 실행 시 rustdoc 설치나 폰트 다운로드가 필요하지 않습니다. 실행 파일을 배포할 때는 THIRD-PARTY-NOTICES.md에 명시된 라이선스 파일과 출처 고지를 배포 묶음에도 포함합니다. 원본 rustdoc의 local() 우선순위와 font-display: swap을 유지하며, Source Code Pro는 원본처럼 동봉 파일을 직접 사용합니다.
 
 출처와 변경은 [UPSTREAM.md](assets/vendor/rustdoc/UPSTREAM.md)에 기록합니다. 필요한 고지는 생성 보고서의 `licenses/`에도 함께 배포됩니다. rustdoc의 버전 간 DOM/API 호환성은 보장하지 않습니다.
 
