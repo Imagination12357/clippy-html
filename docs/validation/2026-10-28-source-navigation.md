@@ -25,3 +25,7 @@
 - Browser file URLs remain blocked by the available automation surface. HTML parsing and local link validation passed; visual layout and cross-browser behavior require manual confirmation. No server workaround was used.
 - Source filenames become readable; lint-group HTML names and internal finding IDs remain hashed in this change.
 - The tree lists files represented in diagnostics, rather than every workspace source file. No JavaScript or new dependencies were added.
+
+## Rustdoc tree style correction
+
+User feedback identified that the initial hierarchy used a custom list layout. Replaced it with rustdoc's `#src-sidebar`, `details.dir-entry`, `summary`, `div.folders`, `div.files` and `a.selected` structure. Folders precede files; native rustdoc CSS controls indentation, hover and selection. The tree is outside `.sidebar-elems` to avoid its general navigation-link padding. Counts, current-file accessibility, open current ancestors and independent findings navigation remain. Generated-report regressions failed before this correction and pass afterward; browser visual confirmation remains manual.

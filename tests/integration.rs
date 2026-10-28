@@ -69,7 +69,27 @@ fn warning_source_and_suggestion_are_escaped() {
     assert!(f.report().join("src/lib.rs.html").is_file());
     let doc = Html::parse_document(&std::fs::read_to_string(&src[0]).unwrap());
     assert_eq!(
+        doc.select(
+            &Selector::parse(
+                "#src-sidebar .dir-entry > .files > a.selected[aria-current=\"page\"]"
+            )
+            .unwrap()
+        )
+        .count(),
+        1
+    );
+    assert_eq!(
+        doc.select(&Selector::parse("#src-sidebar ul, #src-sidebar li").unwrap())
+            .count(),
+        0
+    );
+    assert_eq!(
         doc.select(&Selector::parse("#main-content > p > code").unwrap())
+            .count(),
+        0
+    );
+    assert_eq!(
+        doc.select(&Selector::parse(".sidebar-elems #src-sidebar").unwrap())
             .count(),
         0
     );
@@ -147,6 +167,13 @@ fn workspace_paths_unicode_and_multi_target_dedup() {
     for file in html_files(&f.report().join("src")) {
         let source = std::fs::read_to_string(file).unwrap();
         let doc = Html::parse_document(&source);
+        assert!(
+            doc.select(
+                &Selector::parse("#src-sidebar .dir-entry > summary + .folders + .files").unwrap()
+            )
+            .count()
+                >= 2
+        );
         assert_eq!(
             doc.select(&Selector::parse(".source-tree a[aria-current=\"page\"]").unwrap())
                 .count(),

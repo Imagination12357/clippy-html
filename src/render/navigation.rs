@@ -26,24 +26,44 @@ struct Node {
 struct TreeEntry<'a> {
     name: &'a str,
     file: &'a Option<FileLink>,
-    children: String,
+    children: TreeContents,
     open: bool,
 }
-fn render_children(node: &Node) -> Result<String, String> {
-    let mut html = String::new();
+#[derive(Default, Template)]
+#[template(path = "source-tree-contents.html")]
+struct TreeContents {
+    folders: String,
+    files: String,
+}
+fn render_children(node: &Node) -> Result<TreeContents, String> {
+    let mut contents = TreeContents::default();
     for (name, child) in &node.children {
-        html.push_str(
-            &TreeEntry {
-                name,
-                file: &child.file,
-                children: render_children(child)?,
-                open: child.open,
-            }
-            .render()
-            .map_err(|e| e.to_string())?,
-        );
+        if child.file.is_some() {
+            contents.files.push_str(
+                &TreeEntry {
+                    name,
+                    file: &child.file,
+                    children: TreeContents::default(),
+                    open: false,
+                }
+                .render()
+                .map_err(|e| e.to_string())?,
+            );
+        }
+        if !child.children.is_empty() {
+            contents.folders.push_str(
+                &TreeEntry {
+                    name,
+                    file: &None,
+                    children: render_children(child)?,
+                    open: child.open,
+                }
+                .render()
+                .map_err(|e| e.to_string())?,
+            );
+        }
     }
-    Ok(html)
+    Ok(contents)
 }
 pub(super) fn source_counts(findings: &[Finding]) -> BTreeMap<PathBuf, usize> {
     let mut counts = BTreeMap::new();
@@ -89,9 +109,9 @@ pub(super) fn source_tree(
             current: active,
         });
     }
-    let mut html = render_children(&root)?;
+    let mut contents = render_children(&root)?;
     if !external.children.is_empty() {
-        html.push_str(
+        contents.folders.push_str(
             &TreeEntry {
                 name: "External sources",
                 file: &None,
@@ -102,7 +122,7 @@ pub(super) fn source_tree(
             .map_err(|e| e.to_string())?,
         );
     }
-    Ok(html)
+    contents.render().map_err(|e| e.to_string())
 }
 
 #[cfg(test)]
@@ -179,6 +199,24 @@ mod tests {
             )
             .unwrap();
             let doc = scraper::Html::parse_fragment(&html);
+            assert_eq!(
+                doc.select(
+                    &scraper::Selector::parse("div.files > a.selected[aria-current=\"page\"]")
+                        .unwrap()
+                )
+                .count(),
+                1
+            );
+            assert!(
+                doc.select(
+                    &scraper::Selector::parse(
+                        "details.dir-entry > summary + div.folders + div.files"
+                    )
+                    .unwrap()
+                )
+                .count()
+                    >= 2
+            );
             assert_eq!(
                 doc.select(&scraper::Selector::parse("a").unwrap()).count(),
                 2

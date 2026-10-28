@@ -12,7 +12,13 @@
 <a class="skip-main-content" href="#main-content">Skip to main content</a>
 <nav class="sidebar" aria-label="Report navigation">
 <div class="sidebar-crate"><h2><a href="{{ root }}index.html">Clippy HTML</a>{% for item in crates %}<span class="crate-info"><span class="version crate-context">{{ item.name }}</span><span class="version crate-version">{{ item.version }}</span></span>{% endfor %}{% if crates.len() == 0 %}<span class="version crate-context">{{ crate_context }}</span>{% endif %}</h2></div>
-<div class="sidebar-elems"><ul class="block"><li><a href="{{ root }}index.html">Report overview</a></li></ul><section id="rustdoc-toc">{% if source_page %}<details class="source-files" open><summary>Files</summary><ul class="block source-tree">{{ source_tree|safe }}</ul></details><details class="source-findings" open><summary>Findings in this file</summary>{% else %}<h3>{{ section }}</h3>{% endif %}<ul class="block">{% for link in sidebar %}<li><a href="{{ link.href }}" title="{{ link.text }}">{{ link.text }}</a></li>{% endfor %}</ul>{% if source_page %}</details>{% endif %}</section></div>
+{% if source_page %}
+<div class="sidebar-elems"><ul class="block"><li><a href="{{ root }}index.html">Report overview</a></li></ul></div>
+<details class="source-files" open><summary>Files</summary><div id="src-sidebar" class="source-tree">{{ source_tree|safe }}</div></details>
+<div class="sidebar-elems"><section id="rustdoc-toc"><details class="source-findings" open><summary>Findings in this file</summary><ul class="block">{% for link in sidebar %}<li><a href="{{ link.href }}" title="{{ link.text }}">{{ link.text }}</a></li>{% endfor %}</ul></details></section></div>
+{% else %}
+<div class="sidebar-elems"><ul class="block"><li><a href="{{ root }}index.html">Report overview</a></li></ul><section id="rustdoc-toc"><h3>{{ section }}</h3><ul class="block">{% for link in sidebar %}<li><a href="{{ link.href }}" title="{{ link.text }}">{{ link.text }}</a></li>{% endfor %}</ul></section></div>
+{% endif %}
 </nav>
 <main>{% if !source_page %}<div class="width-limiter">{% endif %}<section id="main-content" class="content" tabindex="-1">
 <div class="main-heading">{% if root.len() > 0 %}<div class="rustdoc-breadcrumbs"><a href="{{ root }}index.html">{{ crate_context }}</a><span aria-hidden="true"> ::</span></div>{% endif %}<h1>{{ heading_kind }} <span>{{ title }}</span></h1></div>
