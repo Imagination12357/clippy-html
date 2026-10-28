@@ -55,6 +55,10 @@ const FILES: &[(&str, &[u8])] = &[
         include_bytes!("../../assets/vendor/rustdoc/FONTS.md"),
     ),
     (
+        "licenses/HIGHLIGHTING.md",
+        include_bytes!("../../assets/vendor/rustdoc/HIGHLIGHTING.md"),
+    ),
+    (
         "licenses/THIRD-PARTY-NOTICES.md",
         include_bytes!("../../THIRD-PARTY-NOTICES.md"),
     ),

@@ -130,7 +130,7 @@ struct Lint {
 struct Licenses;
 struct SourceRow {
     number: usize,
-    text: String,
+    fragments: Vec<super::highlight::Fragment>,
     marked: bool,
     links: Vec<Link>,
 }
@@ -153,12 +153,12 @@ fn source_rows(
     let Some(text) = source.text.as_deref() else {
         return vec![];
     };
-    let mut rows: Vec<_> = text
-        .split('\n')
+    let mut rows: Vec<_> = super::highlight::lines(text)
+        .into_iter()
         .enumerate()
-        .map(|(i, line)| SourceRow {
+        .map(|(i, fragments)| SourceRow {
             number: i + 1,
-            text: line.trim_end_matches('\r').into(),
+            fragments,
             marked: false,
             links: vec![],
         })

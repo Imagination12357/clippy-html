@@ -2,6 +2,49 @@ mod support;
 use scraper::{Html, Selector};
 use support::*;
 #[test]
+fn multiline_highlighting_preserves_source_text_without_creating_html() {
+    let f = Fixture::new("warning");
+    let source = "#![warn(clippy::clone_on_copy)]\n#[allow(dead_code)]\npub fn copy_number(value: i32) -> i32 {\n    let _ = r##\"</span><script>alert('bad')</script>&\nfn fake() {}\"##;\n    /* outer /* nested */\n       still a comment */\n    value.clone()\n}\n";
+    std::fs::write(f.root.join("src/lib.rs"), source).unwrap();
+    assert_success(&f.run(&[]));
+    let path = html_files(&f.report().join("src")).pop().unwrap();
+    let doc = Html::parse_document(&std::fs::read_to_string(path).unwrap());
+    let text = doc
+        .select(&Selector::parse(".line-text").unwrap())
+        .map(|line| line.text().collect::<String>())
+        .collect::<Vec<_>>()
+        .join("\n");
+    assert_eq!(text, source);
+    assert_eq!(
+        doc.select(&Selector::parse("script,[onclick],[onerror]").unwrap())
+            .count(),
+        0
+    );
+    let keywords: Vec<_> = doc
+        .select(&Selector::parse(".line-text .kw").unwrap())
+        .map(|span| span.text().collect::<String>())
+        .collect();
+    assert_eq!(
+        keywords.iter().filter(|text| text.as_str() == "fn").count(),
+        1
+    );
+    assert!(
+        doc.select(&Selector::parse(".line-text .string").unwrap())
+            .any(|span| span.text().collect::<String>().contains("fn fake"))
+    );
+    assert!(
+        doc.select(&Selector::parse(".line-text .comment").unwrap())
+            .any(|span| span.text().collect::<String>().contains("still a comment"))
+    );
+    assert!(
+        doc.select(&Selector::parse("#L8.diagnostic-line .diagnostic-marker").unwrap())
+            .any(|link| link
+                .text()
+                .collect::<String>()
+                .contains("clippy::clone_on_copy"))
+    );
+}
+#[test]
 fn reports_bundle_original_fonts_and_separate_licenses() {
     let f = Fixture::new("clean");
     assert_success(&f.run(&[]));
@@ -191,6 +234,25 @@ fn warning_source_and_suggestion_are_escaped() {
     assert_eq!(
         doc.select(&Selector::parse(".code-line").unwrap()).count(),
         4
+    );
+    assert!(
+        doc.select(&Selector::parse(".line-text .kw").unwrap())
+            .any(|span| span.text().collect::<String>() == "fn")
+    );
+    assert!(
+        doc.select(&Selector::parse(".line-text .doccomment").unwrap())
+            .any(|span| span.text().collect::<String>().contains("<script>"))
+    );
+    let rendered_source = doc
+        .select(&Selector::parse(".line-text").unwrap())
+        .map(|line| line.text().collect::<String>())
+        .collect::<Vec<_>>()
+        .join("\n");
+    assert_eq!(
+        rendered_source,
+        std::fs::read_to_string(f.root.join("src/lib.rs"))
+            .unwrap()
+            .replace("\r\n", "\n")
     );
 }
 #[test]

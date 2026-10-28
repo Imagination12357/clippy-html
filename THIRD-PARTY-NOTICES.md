@@ -5,6 +5,7 @@ The generator's own code remains MIT OR Apache-2.0; see LICENSE-MIT and LICENSE-
 | Included component | License | Original notice in this repository | Notice in generated reports |
 |---|---|---|---|
 | rustdoc CSS and derived font declarations | MIT option | assets/vendor/rustdoc/LICENSE-MIT | licenses/rustdoc-MIT.txt |
+| Adapted rustdoc lexical highlighting rules | MIT option | assets/vendor/rustdoc/LICENSE-MIT and HIGHLIGHTING.md | licenses/rustdoc-MIT.txt and licenses/HIGHLIGHTING.md |
 | normalize.css | MIT | assets/vendor/rustdoc/normalize-LICENSE-MIT | licenses/normalize-MIT.txt |
 | Fira Sans: regular, italic, medium, medium italic | OFL-1.1 | assets/vendor/rustdoc/fonts/Fira-LICENSE.txt | licenses/Fira-LICENSE.txt |
 | Source Serif 4: regular, italic, semibold, bold | OFL-1.1 | assets/vendor/rustdoc/fonts/SourceSerif4-LICENSE.md | licenses/SourceSerif4-LICENSE.md |

@@ -63,6 +63,7 @@ Renderer는 Cargo를 실행하지 않는다. 정규화기는 HTML을 만들지 �
 | src/render/pages.rs | 페이지 모델 -> 공통 레이아웃, 홈, lint, source HTML |
 | src/render/navigation.rs | 소스별 finding 수 집계 -> 현재 경로가 펼쳐진 파일 트리 |
 | src/render/paths.rs | 내부 식별자 -> 충돌 없는 출력 경로와 상대 링크 |
+| src/render/highlight.rs | 전체 Rust 소스 -> 원본 색상 클래스가 붙은 행별 텍스트 fragment |
 | src/output.rs | 임시 출력 -> 검증된 디렉터리 갱신 및 복구 |
 | templates/ | 공통 레이아웃과 페이지별 템플릿 |
 | assets/vendor/rustdoc/ | 고정한 upstream CSS와 재사용 자산, 출처 및 라이선스 |
@@ -120,7 +121,7 @@ pages.rs가 커지면 홈/lint/source별로 분리한다. 처음부터 내용 �
 
 lint 페이지: 동일 code의 occurrence 목록, severity, 메시지, target, 코드 위치, child note/help, replacement와 applicability를 표시한다. Clippy code는 공식 문서로 연결한다. compiler code는 별도 namespace로 구별하며 code 없는 진단은 일반 진단 묶음에 둔다. 위치 없는 오류도 홈에서 접근 가능해야 한다.
 
-source 페이지: 전체 코드, 줄 번호, 관련 finding 목록과 상호 링크를 표시한다. 사이드바는 진단에 포함된 파일의 Files 트리와 Findings in this file 목록을 각각 접고 펼칠 수 있게 제공한다. 파일별 finding 수와 현재 파일을 표시하고 현재 경로를 기본으로 펼친다. Phase 1은 줄 단위 진단 위치와 primary/secondary 텍스트 구분을 제공한다. 정밀 span 강조와 Rust 구문 강조는 Phase 2에서 추가한다.
+source 페이지: 전체 코드, 줄 번호, 관련 finding 목록과 상호 링크를 표시한다. 사이드바는 진단에 포함된 파일의 Files 트리와 Findings in this file 목록을 각각 접고 펼칠 수 있게 제공한다. 파일별 finding 수와 현재 파일을 표시하고 현재 경로를 기본으로 펼친다. 줄 단위 진단 위치와 primary/secondary 텍스트 구분을 제공한다. 2026-10-28 후속 구현으로 Rust 토큰 기반 구문 색칠을 추가하며 원본 rustdoc CSS 클래스를 사용한다. 파일 전체를 분석한 뒤 행별 텍스트 fragment를 템플릿에서 escape한다. 정밀 진단 span 강조는 Phase 2 범위로 남긴다.
 
 좌측 탐색, 본문 폭, 제목 계층, 코드 블록 등은 고정한 rustdoc CSS와 맞는 구조를 사용한다. Phase 1은 light 기본 외형, Phase 2는 Light/Dark/Auto 선택과 저장을 제공한다. 아직 없는 검색·category 기능의 동작하지 않는 UI는 노출하지 않는다.
 

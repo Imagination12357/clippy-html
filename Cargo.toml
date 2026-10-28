@@ -16,6 +16,9 @@ tempfile = "3.27.0"
 askama = "0.16.1"
 webbrowser = "1.2.5"
 url = "2"
+ra-ap-rustc_lexer = "=0.178.0"
+# The lexer requires both Unicode tables to stay on Unicode 17.
+unicode-ident = "=1.0.22"
 
 [dev-dependencies]
 scraper = "0.24"
