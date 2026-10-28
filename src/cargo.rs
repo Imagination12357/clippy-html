@@ -39,6 +39,7 @@ pub fn load_project(ctx: &CargoContext) -> Result<ProjectInfo, String> {
             workspace_member: m.workspace_members.contains(&p.id),
             id: p.id.to_string(),
             name: p.name.to_string(),
+            version: p.version.to_string(),
             manifest: p.manifest_path.into_std_path_buf(),
         })
         .collect();

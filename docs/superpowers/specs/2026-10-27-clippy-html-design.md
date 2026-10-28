@@ -61,6 +61,7 @@ Renderer는 Cargo를 실행하지 않는다. 정규화기는 HTML을 만들지 �
 | src/source.rs | 진단의 파일 참조 -> 읽은 소스 또는 명시적인 fallback |
 | src/render/mod.rs | 보고서 모델 -> 완성된 임시 보고서 |
 | src/render/pages.rs | 페이지 모델 -> 공통 레이아웃, 홈, lint, source HTML |
+| src/render/navigation.rs | 소스별 finding 수 집계 -> 현재 경로가 펼쳐진 파일 트리 |
 | src/render/paths.rs | 내부 식별자 -> 충돌 없는 출력 경로와 상대 링크 |
 | src/output.rs | 임시 출력 -> 검증된 디렉터리 갱신 및 복구 |
 | templates/ | 공통 레이아웃과 페이지별 템플릿 |
@@ -107,7 +108,7 @@ pages.rs가 커지면 홈/lint/source별로 분리한다. 처음부터 내용 �
 - workspace member가 소유하는 파일을 기본 전체 코드 포함 대상으로 한다. workspace 밖에 둔 member도 metadata의 manifest 경계로 식별한다.
 - canonical 경로를 검사해 symlink가 허용 소스 경계 밖을 가리키면 전체 파일을 복사하지 않는다. 외부 dependency, 생성 코드, 가상 파일은 진단 snippet과 위치 텍스트로 대체한다.
 - finding이 없는 파일은 복사하지 않는다. source 페이지는 파일마다 하나이며 여러 package/target의 관련 finding을 연결할 수 있다.
-- 원본 경로를 출력 경로에 그대로 이어 붙이지 않는다. source는 안전한 ASCII 파일 ID 기반으로 src/<file-id>.html에 배치하고 원래 경로는 표시 텍스트로 보존한다. lint도 code로부터 안전한 ID를 만들어 namespace 및 대소문자 충돌을 피한다.
+- 원본 경로를 출력 경로에 그대로 이어 붙이지 않는다. 2026-10-28 후속 UI 결정에 따라 source는 workspace 상대 경로를 안전한 파일명으로 인코딩해 src/<relative-path>.html에 배치하며, 선두 src/ 중복을 생략한다. 외부 경로는 별도 namespace로 격리하고 Windows 예약 이름과 대소문자 충돌을 처리한다. 원래 경로는 표시 텍스트로 보존한다. lint는 code로부터 안전한 ID를 만들어 namespace 및 대소문자 충돌을 피한다.
 - 동일 입력의 경로 mapping을 정렬해 고정하고 충돌은 명시적으로 해결한다. 모든 내부 href는 생성한 mapping으로만 구성한다.
 - 한 source 페이지에 L<줄번호>와 finding-<ID> anchor를 유일하게 만든다. 여러 finding이 같은 줄을 가리키면 각 finding anchor를 따로 배치한다. 한 finding의 복수 span은 동일 anchor를 중복 생성하지 않는다.
 - UTF-8 byte 경계, CRLF, 다중 줄 span, 파일 끝 위치를 검증한다. 현재 파일과 진단 snippet이 맞지 않거나 위치가 유효하지 않으면 정밀 강조와 diff 합성을 생략하고 이유와 원래 snippet을 표시한다.
@@ -118,7 +119,7 @@ pages.rs가 커지면 홈/lint/source별로 분리한다. 처음부터 내용 �
 
 lint 페이지: 동일 code의 occurrence 목록, severity, 메시지, target, 코드 위치, child note/help, replacement와 applicability를 표시한다. Clippy code는 공식 문서로 연결한다. compiler code는 별도 namespace로 구별하며 code 없는 진단은 일반 진단 묶음에 둔다. 위치 없는 오류도 홈에서 접근 가능해야 한다.
 
-source 페이지: 전체 코드, 줄 번호, 관련 finding 목록과 상호 링크를 표시한다. Phase 1은 줄 단위 진단 위치와 primary/secondary 텍스트 구분을 제공한다. 정밀 span 강조와 Rust 구문 강조는 Phase 2에서 추가한다.
+source 페이지: 전체 코드, 줄 번호, 관련 finding 목록과 상호 링크를 표시한다. 사이드바는 진단에 포함된 파일의 Files 트리와 Findings in this file 목록을 각각 접고 펼칠 수 있게 제공한다. 파일별 finding 수와 현재 파일을 표시하고 현재 경로를 기본으로 펼친다. Phase 1은 줄 단위 진단 위치와 primary/secondary 텍스트 구분을 제공한다. 정밀 span 강조와 Rust 구문 강조는 Phase 2에서 추가한다.
 
 좌측 탐색, 본문 폭, 제목 계층, 코드 블록 등은 고정한 rustdoc CSS와 맞는 구조를 사용한다. Phase 1은 light 기본 외형, Phase 2는 Light/Dark/Auto 선택과 저장을 제공한다. 아직 없는 검색·category 기능의 동작하지 않는 UI는 노출하지 않는다.
 

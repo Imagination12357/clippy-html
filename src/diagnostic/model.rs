@@ -66,6 +66,7 @@ pub struct Finding {
 pub struct PackageInfo {
     pub id: String,
     pub name: String,
+    pub version: String,
     pub manifest: PathBuf,
     pub workspace_member: bool,
 }

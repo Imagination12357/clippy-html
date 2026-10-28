@@ -15,6 +15,15 @@ fn excluded_nested_dependency_is_snippet_only() {
             0
         );
         assert!(!html.contains("DEPENDENCY_FULL_SOURCE_SENTINEL"));
+        assert_eq!(
+            doc.select(&Selector::parse(".source-tree a[aria-current=\"page\"]").unwrap())
+                .count(),
+            1
+        );
+        assert!(
+            doc.select(&Selector::parse(".source-findings a").unwrap())
+                .all(|a| a.value().attr("href").unwrap().starts_with("#finding-"))
+        );
     }
 }
 #[test]
@@ -57,7 +66,24 @@ fn warning_source_and_suggestion_are_escaped() {
     );
     let src = html_files(&f.report().join("src"));
     assert_eq!(src.len(), 1);
+    assert!(f.report().join("src/lib.rs.html").is_file());
     let doc = Html::parse_document(&std::fs::read_to_string(&src[0]).unwrap());
+    assert_eq!(
+        doc.select(&Selector::parse("#main-content > p > code").unwrap())
+            .count(),
+        0
+    );
+    let active = doc
+        .select(&Selector::parse(".source-tree a[aria-current=\"page\"]").unwrap())
+        .next()
+        .expect("active source file");
+    assert!(active.text().collect::<String>().contains("lib.rs"));
+    assert!(active.text().collect::<String>().contains("1"));
+    let finding = doc
+        .select(&Selector::parse(".source-findings a").unwrap())
+        .next()
+        .expect("finding line navigation");
+    assert_eq!(finding.value().attr("href"), Some("#L3"));
     assert_eq!(
         doc.select(&Selector::parse("script,[onclick],[onerror]").unwrap())
             .count(),
@@ -99,11 +125,43 @@ fn workspace_paths_unicode_and_multi_target_dedup() {
     let html = f.html("index.html");
     assert!(html.contains("fixture-one"));
     assert!(html.contains("fixture-two"));
+    let doc = Html::parse_document(&html);
+    let crate_entries: Vec<_> = doc
+        .select(&Selector::parse(".sidebar-crate .crate-info").unwrap())
+        .map(|entry| entry.text().collect::<String>())
+        .collect();
+    assert!(
+        crate_entries
+            .iter()
+            .any(|entry| entry.contains("fixture-one") && entry.contains("0.1.0"))
+    );
+    assert!(
+        crate_entries
+            .iter()
+            .any(|entry| entry.contains("fixture-two") && entry.contains("0.2.0"))
+    );
     assert_eq!(html_files(&f.report().join("src")).len(), 3);
+    assert!(f.report().join("src/one/src/lib.rs.html").is_file());
+    assert!(f.report().join("src/one/src/한글.rs.html").is_file());
     assert!(!html.contains("one/one/"));
     for file in html_files(&f.report().join("src")) {
         let source = std::fs::read_to_string(file).unwrap();
         let doc = Html::parse_document(&source);
+        assert_eq!(
+            doc.select(&Selector::parse(".source-tree a[aria-current=\"page\"]").unwrap())
+                .count(),
+            1
+        );
+        assert!(
+            doc.select(&Selector::parse(".source-tree details[open]").unwrap())
+                .count()
+                >= 2
+        );
+        assert!(
+            doc.select(&Selector::parse(".source-tree details:not([open])").unwrap())
+                .count()
+                >= 1
+        );
         assert!(
             doc.select(&Selector::parse(".code-line").unwrap()).count() > 0,
             "workspace source unexpectedly fell back"

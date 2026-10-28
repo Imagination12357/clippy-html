@@ -2,3 +2,4 @@
 mod pages;
 pub mod paths;
 pub use pages::{render_report, validate_report};
+mod navigation;

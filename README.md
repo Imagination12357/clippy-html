@@ -34,6 +34,7 @@ cargo clippy-html -- --workspace --all-targets -- -W clippy::pedantic
 - 홈에는 검사 종료 상태, 수집 완전성, 원본 진단 수와 병합 후 finding 수를 별도로 표시합니다.
 - 진단 종류 페이지에는 code, 실제 severity, target, primary/secondary 위치, note/help, suggestion 묶음과 applicability를 표시합니다.
 - 소스 페이지에는 관련 workspace 파일의 전체 코드, 줄 번호, 줄 단위 진단 표시, finding 링크를 표시합니다.
+- 소스 HTML은 `src/diagnostic/normalize.rs.html`처럼 원래 경로를 알아볼 수 있는 이름을 사용합니다. 위험한 파일명 문자는 인코딩하고 충돌 시 식별자를 붙입니다. 소스 사이드바의 Files 트리에는 진단에 포함된 파일과 진단 수를 표시하며, 현재 파일의 경로를 펼칩니다. Findings in this file 목록에서 해당 줄로 이동할 수 있습니다.
 - Clippy category는 Phase 1에서 Unknown입니다. 공식 테이블을 도입하기 전에는 이름으로 추측하지 않습니다.
 - 동일한 위치라도 package, severity, 관련 span 또는 suggestion이 다르면 별 진단입니다. 같은 진단이 여러 target에서 발생하면 target 목록을 합칩니다.
 
@@ -66,6 +67,17 @@ Rust 1.94에서 locked compile check를 확인했습니다. 현재 실행 환경
 
 CLI → Cargo 수집 → 진단 정규화/병합 → 소스 로드 → HTML 생성 → 출력 교체 순서입니다. parser와 renderer는 독립적으로 테스트할 수 있습니다. 파일별 책임은 [설계 문서](docs/superpowers/specs/2026-10-27-clippy-html-design.md)에 있습니다.
 
-프로젝트 코드는 MIT 또는 Apache-2.0입니다. rustdoc CSS는 Rust 1.90.0의 커밋 `1159e78c4747b02ef996e55082b704c09b970588`을 기준으로 MIT 조건으로 재사용했습니다. normalize.css의 별도 MIT 라이선스도 포함합니다. 폰트 파일은 포함하지 않으며 시스템 글꼴을 사용합니다.
+프로젝트 코드는 MIT 또는 Apache-2.0입니다. rustdoc CSS는 이 프로젝트의 비교용 문서를 생성한 Rust 1.97.1, 커밋 `8bab26f4f68e0e26f0bb7960be334d5b520ea452`을 기준으로 MIT 조건으로 재사용했습니다. normalize.css의 별도 MIT 라이선스와 rustdoc 저작권 고지도 포함합니다. 폰트 파일은 포함하지 않으며 시스템 글꼴을 사용합니다.
 
 출처와 변경은 [UPSTREAM.md](assets/vendor/rustdoc/UPSTREAM.md)에 기록합니다. 필요한 고지는 생성 보고서의 `licenses/`에도 함께 배포됩니다. rustdoc의 버전 간 DOM/API 호환성은 보장하지 않습니다.
+
+## rustdoc 스타일 비교
+
+외부 예제 대신 이 프로젝트의 문서를 비교 기준으로 사용합니다.
+
+```powershell
+cargo doc --no-deps --document-private-items
+cargo run --locked -- --output target/rustdoc-style-preview -- --all-targets -- -W clippy::pedantic
+```
+
+`target/doc/cargo_clippy_html/index.html`과 `target/rustdoc-style-preview/index.html`을 나란히 엽니다. 비교용 Clippy 실행에만 pedantic을 전달하여 lint·소스 화면을 살펴볼 진단을 확보합니다. 도구의 기본 lint 설정을 바꾸지는 않습니다. 비교 범위와 의도적인 차이는 [비교 기록](docs/validation/2026-10-27-rustdoc-style.md)에 있습니다.

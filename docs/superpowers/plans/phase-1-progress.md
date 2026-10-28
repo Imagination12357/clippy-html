@@ -8,7 +8,7 @@
 - Pre-flight: Task 6 -> 7: renderer writes only staging; publisher owns replacement.
 - Pre-flight: Task 7 -> 8: published index and warnings are separate from Clippy exit status.
 - Ruling: Use this tracked ledger instead of Bash-only skill workspace scripts on Windows. No Bash runtime is introduced. Cost: task bookkeeping is manual.
-- Ruling: Do not commit automatically; the plan makes commits conditional on approval and user has authorized implementation and branch creation, not commits. Cost: changes remain reviewable in the working tree.
+- Historical ruling (superseded by later explicit user authorization): commits originally required separate approval. User now authorizes autonomous commits after validation.
 - Task 1: CLI tests RED (3 failed stubs) -> GREEN (5 passed). Installed toolchains include 1.95 but not 1.94; MSRV not verified.
 - Ruling: clap::Error handles help/version display and exit codes directly instead of a separate CliAction. Cost: CLI callers use clap error classification.
 - Ruling: model stores severity/applicability as strings and expansion as preserved JSON, avoiding loss of future variants and opaque macro details. Renderer never interprets expansion as HTML. Cost: no enum exhaustiveness checking.
@@ -38,3 +38,8 @@
 - User UI corrections: sidebar shows context package name(s); finding metadata uses package name rather than opaque package ID; physical location blocks merge repeated span/child/replacement ranges while preserving labels, notes and suggestions.
 - Branch remains codex/phase-1 with uncommitted changes; no push, merge, release or global PATH change performed.
 - Follow-up: Clippy further-information help URL was plain text. Actual integration regression RED -> GREEN; note links preserve the compiler-specific version, use escaped HTTPS anchors, and reject unsafe schemes/credentials. Full suite 40/40 passed.
+- Follow-up requested by user: generate this project's own cargo docs and align report styles before Phase 2. Generated local rustdoc1.97.1 reference; updated pinned CSS to match, adopted native main/section/sidebar/item-table/code structure, and removed layout overrides. Tests 40/40 passed. Comparison artifacts and explicit differences are documented in docs/validation/2026-10-27-rustdoc-style.md.
+- Ruling: The reference stylesheet is now Rust1.97.1 rather than initial1.90.0 to match locally generated project docs. Fonts remain excluded. Cost: the CSS snapshot is tied to this explicit rustdoc version; future toolchain docs can differ.
+- 2026-10-28 follow-up: preserve package version from Cargo metadata and show it under each sidebar crate name; differing-version workspace regression RED -> GREEN, suite 40/40. Removed Diagnostic kinds origin prefix and the repetitive home footnote; gave lint names the available list width. Category table remains Phase 2, explained Unknown to user.
+- 2026-10-28 correction: user wants shared column alignment across item tables. Reverted the Diagnostic kinds-only width override and its unused class; retained origin-prefix removal. Common rustdoc item-table columns apply everywhere.
+- 2026-10-28 source navigation: user resumed the approved three-item follow-up; see 2026-10-28-source-navigation.md for implementation and verification. Existing approved style changes will be included in the next commit. No push or merge authorized.

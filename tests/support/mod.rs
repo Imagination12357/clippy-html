@@ -53,9 +53,15 @@ pub fn assert_success(out: &Output) {
     );
 }
 pub fn html_files(dir: &Path) -> Vec<PathBuf> {
-    std::fs::read_dir(dir)
-        .unwrap()
-        .map(|e| e.unwrap().path())
-        .filter(|p| p.extension().is_some_and(|e| e == "html"))
-        .collect()
+    let mut files = Vec::new();
+    for entry in std::fs::read_dir(dir).unwrap() {
+        let path = entry.unwrap().path();
+        if path.is_dir() {
+            files.extend(html_files(&path));
+        } else if path.extension().is_some_and(|e| e == "html") {
+            files.push(path);
+        }
+    }
+    files.sort();
+    files
 }

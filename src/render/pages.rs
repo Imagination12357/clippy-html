@@ -19,6 +19,10 @@ struct PackageRow {
     name: String,
     observed: &'static str,
 }
+struct CrateInfo {
+    name: String,
+    version: String,
+}
 #[derive(Template)]
 #[template(path = "base.html")]
 struct Page<'a> {
@@ -28,6 +32,10 @@ struct Page<'a> {
     sidebar: Vec<Link>,
     content: String,
     crate_context: String,
+    crates: Vec<CrateInfo>,
+    heading_kind: &'a str,
+    source_page: bool,
+    source_tree: String,
 }
 #[derive(Template)]
 #[template(path = "index.html")]
@@ -126,9 +134,9 @@ struct SourceRow {
 #[derive(Template)]
 #[template(path = "source.html")]
 struct SourceView {
-    path: String,
     reason: String,
     rows: Vec<SourceRow>,
+    digits: usize,
 }
 
 fn source_rows(
@@ -185,13 +193,16 @@ fn render(t: &impl Template) -> Result<String, String> {
     t.render().map_err(|e| e.to_string())
 }
 fn write_page(destination: &Path, path: &Path, page: Page<'_>) -> Result<(), String> {
+    if let Some(parent) = path.parent() {
+        std::fs::create_dir_all(destination.join(parent)).map_err(|e| e.to_string())?;
+    }
     std::fs::write(destination.join(path), render(&page)?).map_err(|e| e.to_string())
 }
 fn target_label(t: &TargetInfo) -> String {
     format!("{} ({})", t.name, t.kinds.join(", "))
 }
-fn crate_context(report: &Report, findings: &[&Finding]) -> String {
-    let names: std::collections::BTreeSet<_> = report
+fn crate_infos(report: &Report, findings: &[&Finding]) -> Vec<CrateInfo> {
+    let mut crates: Vec<_> = report
         .project
         .packages
         .iter()
@@ -199,8 +210,17 @@ fn crate_context(report: &Report, findings: &[&Finding]) -> String {
             p.workspace_member
                 && (findings.is_empty() || findings.iter().any(|f| f.package_id == p.id))
         })
-        .map(|p| p.name.as_str())
+        .map(|p| CrateInfo {
+            name: p.name.clone(),
+            version: p.version.clone(),
+        })
         .collect();
+    crates.sort_by(|a, b| a.name.cmp(&b.name).then(a.version.cmp(&b.version)));
+    crates
+}
+fn crate_context(report: &Report, findings: &[&Finding]) -> String {
+    let crates = crate_infos(report, findings);
+    let names: Vec<_> = crates.iter().map(|c| c.name.as_str()).collect();
     if names.is_empty() {
         report
             .project
@@ -210,7 +230,7 @@ fn crate_context(report: &Report, findings: &[&Finding]) -> String {
             .to_string_lossy()
             .into_owned()
     } else {
-        names.into_iter().collect::<Vec<_>>().join(", ")
+        names.join(", ")
     }
 }
 fn display_spans(f: &Finding) -> Vec<Span> {
@@ -381,6 +401,10 @@ pub fn render_report(
             include_str!("../../assets/vendor/rustdoc/LICENSE-MIT"),
         ),
         (
+            "licenses/rustdoc-COPYRIGHT.txt",
+            include_str!("../../assets/vendor/rustdoc/COPYRIGHT.txt"),
+        ),
+        (
             "licenses/normalize-MIT.txt",
             include_str!("../../assets/vendor/rustdoc/normalize-LICENSE-MIT"),
         ),
@@ -402,11 +426,10 @@ pub fn render_report(
         .map(|(key, fs)| CountLink {
             link: Link {
                 href: relative_href(index_path, &pages.lint_pages[key], None),
-                text: format!(
-                    "{} · {}",
-                    fs[0].origin,
-                    fs[0].code.as_deref().unwrap_or("General diagnostics")
-                ),
+                text: fs[0]
+                    .code
+                    .clone()
+                    .unwrap_or_else(|| "General diagnostics".into()),
             },
             count: fs.len(),
         })
@@ -419,13 +442,25 @@ pub fn render_report(
         })
         .collect();
     let index = Index {
-        workspace: report
-            .project
-            .workspace_root
-            .file_name()
-            .unwrap_or_default()
-            .to_string_lossy()
-            .into_owned(),
+        workspace: {
+            let members: Vec<_> = report
+                .project
+                .packages
+                .iter()
+                .filter(|p| p.workspace_member)
+                .collect();
+            if members.len() == 1 {
+                members[0].name.clone()
+            } else {
+                report
+                    .project
+                    .workspace_root
+                    .file_name()
+                    .unwrap_or_default()
+                    .to_string_lossy()
+                    .into_owned()
+            }
+        },
         status: if report.execution.code == Some(0) {
             "Succeeded"
         } else {
@@ -505,12 +540,16 @@ pub fn render_report(
         destination,
         index_path,
         Page {
-            title: "Report overview",
+            title: &index.workspace,
             section: "Overview",
             root: String::new(),
             sidebar,
             content: render(&index)?,
             crate_context: crate_context(report, &[]),
+            crates: crate_infos(report, &[]),
+            heading_kind: "Report",
+            source_page: false,
+            source_tree: String::new(),
         },
     )?;
     for (key, fs) in &groups {
@@ -527,8 +566,7 @@ pub fn render_report(
                         .first()
                         .map_or("No source location".into(), |s| format!(
                             "{}:{}",
-                            s.path.display(),
-                            s.line_start
+                            sources[&s.path].display_path, s.line_start
                         ))
                 ),
             })
@@ -545,9 +583,14 @@ pub fn render_report(
                     findings: views(fs, path, sources, pages, &report.project.packages),
                 })?,
                 crate_context: crate_context(report, fs),
+                crates: crate_infos(report, fs),
+                heading_kind: "Lint",
+                source_page: false,
+                source_tree: String::new(),
             },
         )?;
     }
+    let source_counts = super::navigation::source_counts(&report.findings);
     for (key, source) in sources {
         let path = &pages.source_pages[key];
         let fs: Vec<_> = report
@@ -557,8 +600,8 @@ pub fn render_report(
             .collect();
         let rows = source_rows(source, key, path, &fs, pages, &span_matches);
         let mut content = render(&SourceView {
-            path: source.display_path.clone(),
             reason: source.reason.clone().unwrap_or_default(),
+            digits: rows.len().max(1).to_string().len(),
             rows,
         })?;
         content.push_str(&render(&Lint {
@@ -566,13 +609,28 @@ pub fn render_report(
         })?);
         let sidebar = fs
             .iter()
-            .map(|f| Link {
-                href: format!("#finding-{}", f.id),
-                text: format!(
-                    "{} · {}",
-                    f.level,
-                    f.code.as_deref().unwrap_or("diagnostic")
-                ),
+            .map(|f| {
+                let spans = display_spans(f);
+                let span = spans
+                    .iter()
+                    .find(|s| s.path == *key && s.primary)
+                    .or_else(|| spans.iter().find(|s| s.path == *key));
+                let href = span.filter(|s| span_matches(source, s)).map_or_else(
+                    || format!("#finding-{}", f.id),
+                    |s| format!("#L{}", s.line_start),
+                );
+                Link {
+                    href,
+                    text: format!(
+                        "{} · {}{}",
+                        f.level,
+                        f.code.as_deref().unwrap_or("diagnostic"),
+                        span.map_or_else(String::new, |s| format!(
+                            " · {}:{}",
+                            s.line_start, s.column_start
+                        ))
+                    ),
+                }
             })
             .collect();
         write_page(
@@ -581,10 +639,21 @@ pub fn render_report(
             Page {
                 title: &source.display_path,
                 section: "File findings",
-                root: "../".into(),
+                root: relative_href(path, Path::new(""), None),
                 sidebar,
                 content,
                 crate_context: crate_context(report, &fs),
+                crates: crate_infos(report, &fs),
+                heading_kind: "Source",
+                source_page: true,
+                source_tree: super::navigation::source_tree(
+                    sources,
+                    pages,
+                    &source_counts,
+                    &report.project.workspace_root,
+                    key,
+                    path,
+                )?,
             },
         )?;
     }
@@ -603,10 +672,13 @@ fn attributes<'a>(html: &'a str, name: &str) -> Vec<&'a str> {
 pub fn validate_report(destination: &Path) -> Result<(), String> {
     let root = destination.canonicalize().map_err(|e| e.to_string())?;
     let mut docs = BTreeMap::new();
-    for dir in [PathBuf::new(), "lint".into(), "src".into()] {
-        for entry in std::fs::read_dir(root.join(dir)).map_err(|e| e.to_string())? {
+    let mut directories = vec![root.clone()];
+    while let Some(dir) = directories.pop() {
+        for entry in std::fs::read_dir(dir).map_err(|e| e.to_string())? {
             let path = entry.map_err(|e| e.to_string())?.path();
-            if path.extension().is_some_and(|x| x == "html") {
+            if path.is_dir() {
+                directories.push(path);
+            } else if path.extension().is_some_and(|x| x == "html") {
                 let html = std::fs::read_to_string(&path).map_err(|e| e.to_string())?;
                 let ids = attributes(&html, "id");
                 let unique: std::collections::BTreeSet<_> = ids.iter().collect();
@@ -648,6 +720,22 @@ pub fn validate_report(destination: &Path) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn validates_links_inside_nested_source_pages() {
+        let t = tempfile::tempdir().unwrap();
+        std::fs::create_dir_all(t.path().join("src/one/src")).unwrap();
+        std::fs::write(t.path().join("index.html"), "<h1>Report</h1>").unwrap();
+        std::fs::write(
+            t.path().join("src/one/src/lib.rs.html"),
+            "<a href=\"#missing\">broken</a>",
+        )
+        .unwrap();
+        assert!(
+            validate_report(t.path())
+                .unwrap_err()
+                .contains("Missing anchor")
+        );
+    }
     #[test]
     fn diagnostic_document_links_keep_version_and_reject_unsafe_schemes() {
         let make_note = |text: &str| Note {
@@ -777,7 +865,10 @@ mod tests {
         );
         assert_eq!(
             doc.select(
-                &scraper::Selector::parse("main .main-heading .rustdoc-breadcrumbs").unwrap()
+                &scraper::Selector::parse(
+                    "main > .width-limiter > section#main-content > .main-heading"
+                )
+                .unwrap()
             )
             .count(),
             1
@@ -793,6 +884,7 @@ mod tests {
         };
         let mut f = crate::diagnostic::normalize::normalize(&m, Path::new("/demo"));
         f.message = "<script>alert('bad')</script> & \"quoted\"".into();
+        f.spans[0].path = PathBuf::from("/demo/src/<script>&#.rs");
         let mut second = f.clone();
         second.level = "error".into();
         second.spans.push(second.spans[0].clone());
@@ -841,5 +933,19 @@ mod tests {
                 .collect::<String>()
                 .contains("<script>alert('bad')</script>")
         );
+        let source =
+            std::fs::read_to_string(t.path().join(pages.source_pages.values().next().unwrap()))
+                .unwrap();
+        let doc = scraper::Html::parse_document(&source);
+        assert_eq!(
+            doc.select(&scraper::Selector::parse("script,[onclick],[onerror]").unwrap())
+                .count(),
+            0
+        );
+        let active = doc
+            .select(&scraper::Selector::parse(".source-tree [aria-current=\"page\"]").unwrap())
+            .next()
+            .unwrap();
+        assert!(active.text().collect::<String>().contains("<script>&#.rs"));
     }
 }

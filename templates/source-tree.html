@@ -1,0 +1,1 @@
+<li>{% if let Some(link) = file %}<a href="{{ link.href }}"{% if link.current %} aria-current="page"{% endif %}>{{ name }} <span class="source-count" aria-label="{{ link.count }} findings">({{ link.count }})</span></a>{% endif %}{% if children.len() > 0 %}<details{% if open %} open{% endif %}><summary>{{ name }}</summary><ul>{{ children|safe }}</ul></details>{% endif %}</li>
