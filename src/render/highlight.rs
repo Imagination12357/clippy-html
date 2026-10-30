@@ -21,7 +21,8 @@ fn trivia(kind: TokenKind) -> bool {
 fn keyword(text: &str, next: Option<&Token<'_>>) -> bool {
     matches!(
         text,
-        "as" | "async"
+        "_" | "as"
+            | "async"
             | "await"
             | "break"
             | "const"
@@ -230,6 +231,20 @@ pub(super) fn lines(source: &str) -> Vec<Vec<Fragment>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn underscore_patterns_and_inferred_types_use_rustdoc_keyword_class() {
+        let source = "let _: Option<_> = None; let _name = 1; let s = \"_\"; // _\n";
+        assert_eq!(
+            classified(source, "kw")
+                .iter()
+                .filter(|text| text.as_str() == "_")
+                .count(),
+            2
+        );
+        assert!(!classified(source, "kw").contains(&"_name".into()));
+        assert_eq!(classified(source, "string"), ["\"_\""]);
+        assert_eq!(classified(source, "comment"), ["// _"]);
+    }
     #[test]
     fn pointer_modifiers_and_logical_operators_keep_rustdoc_categories() {
         let source = "let p: *const u8; let r: &mut u8; if !true {} let x = a != b; let union = 1;";

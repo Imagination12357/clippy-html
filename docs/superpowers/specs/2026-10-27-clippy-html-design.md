@@ -1,7 +1,7 @@
 # Clippy HTML 설계안
 
 작성일: 2026-10-27
-상태: 2026-10-27 사용자 승인. 제품 코드 구현 및 의존성 설치는 아직 시작하지 않는다.
+상태: 2026-10-27 사용자 승인 후 기능 코어 및 여러 후속 작업 구현. 2026-10-30 재평가한 현재 상태와 작업 순서는 [ROADMAP.md](../../../ROADMAP.md)를 기준으로 한다. 이 문서는 설계 계약과 당시 결정의 기록이다.
 기준 명세: 저장소 루트의 `DETAILS.md`.
 
 ## 1. 목적과 합의
@@ -14,7 +14,7 @@ Rust 개발자가 실제 Clippy 진단을 rustdoc과 익숙한 외형의 정적 
 - rustdoc CSS를 직접 재사용하며, 첫 보고서부터 해당 스타일을 적용한다.
 - 2026-10-28 폰트 도입 결정: 고정한 rustdoc의 기본 WOFF2 12개와 원본 OFL-1.1 고지를 동봉한다. 자체 코드와 Cargo의 MIT OR Apache-2.0 표기는 유지한다.
 - 기본 결과물은 서버 없는 정적 멀티페이지 HTML이다. 진단마다 별도 페이지는 만들지 않는다.
-- Phase 1 기능 코어, Phase 2 탐색과 상호작용, Phase 3 배포와 CI 순서를 유지한다.
+- 기능 코어 → 탐색과 진단 이해 → 배포라는 큰 순서를 유지한다. 인터페이스 일부와 폰트 도입은 앞당겨 구현했고, 현재는 공식 category → 검색을 우선한다. 기본 플랫폼 CI는 배포 직전까지 미루지 않는다. 자세한 순서와 완료 기준은 ROADMAP.md에 기록한다.
 
 DETAILS.md의 1절, 6절, 19절을 승인된 방향으로 동기화했다: rustdoc 전체를 fork하지 않으며, 특정 버전의 CSS와 그에 필요한 HTML 구조를 재사용한다. upstream 버전 간 호환성은 보장하지 않는다. 명세의 나머지 제품 목표는 유지한다.
 
@@ -169,9 +169,9 @@ OS가 숫자 코드를 제공하지 않는 비정상 종료는 비영 fallback�
 
 ## 11. 후속 Phase와 완료 조건
 
-Phase 2: 공식 category 테이블과 버전/출처 관리, Unknown fallback, category 페이지, 파일/lint/message/category 검색, contextual sidebar 보완, Light/Dark/Auto, Rust 구문 강조, 정밀 primary/secondary span, suggestion diff와 copy, 키보드와 작은 화면 접근성. 복합 수정은 같은 suggestion 단위로 diff를 만들며 적용 불가/겹침/소스 불일치 시 replacement 목록으로 대체한다.
+Phase 2 원래 범위: 공식 category 테이블과 버전/출처 관리, Unknown fallback, category 페이지, 파일/lint/message/category 검색, contextual sidebar 보완, Light/Dark/Auto, Rust 구문 강조, 정밀 primary/secondary span, suggestion diff와 copy, 키보드와 작은 화면 접근성. 현재 contextual source sidebar와 Rust 구문 색칠은 구현했다. 남은 작업 순서는 ROADMAP.md를 따른다. 복합 수정은 같은 suggestion 단위로 diff를 만들며 적용 불가/겹침/소스 불일치 시 replacement 목록으로 대체한다.
 
-Phase 3: --metadata <FILE>와 schema_version 1의 최소 schema, 지정 경로 처리 및 출력 충돌 방지, rustdoc 폰트 검토, Windows/Linux/macOS CI, 설치 검증, file:// 및 repository subpath 정적 호스팅 검증, GitHub Actions artifact 예제와 Pages 가이드, crates.io 배포 준비. GitHub API나 인증은 제품에 넣지 않는다. 실제 공개 배포는 별도 승인 범위이다.
+Phase 3 원래 범위: --metadata <FILE>와 schema_version 1의 최소 schema, 지정 경로 처리 및 출력 충돌 방지, rustdoc 폰트 검토, Windows/Linux/macOS CI, 설치 검증, file:// 및 repository subpath 정적 호스팅 검증, GitHub Actions artifact 예제와 Pages 가이드, crates.io 배포 준비. 현재 폰트 도입/고지는 구현했고 로컬 설치 smoke는 수행했다. 기본 플랫폼 CI는 앞당긴다. GitHub API나 인증은 제품에 넣지 않는다. 실제 공개 배포는 별도 승인 범위이다.
 
 각 단계 완료 시 파일 목적, 입력/출력, 의존성, 검증 결과와 미검증 항목을 설명한다. 모든 Phase가 끝나야 DETAILS.md의 초기 안정 버전 acceptance 전체를 달성했다고 주장할 수 있다.
 

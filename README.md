@@ -2,7 +2,7 @@
 
 Clippy의 구조화된 진단을 rustdoc 스타일의 정적 HTML 문서로 탐색하는 Cargo 서브커맨드입니다.
 
-현재 구현 범위는 **Phase 1**입니다. 실제 Clippy 진단 수집, 중복 병합, 홈·진단 종류·전체 소스 페이지, 줄 anchor, child 진단과 suggestion replacement 표시를 제공합니다. 검색, category 페이지, 테마 선택, 정밀 span/구문 강조, suggestion diff/copy, metadata export는 후속 단계입니다.
+**기능 코어와 일부 후속 인터페이스가 구현되어 있습니다.** 실제 Clippy 진단 수집, 중복 병합, 홈·진단 종류·전체 소스 페이지, 파일 트리, 구문 색칠, 줄 anchor, child 진단과 suggestion replacement 표시를 제공합니다. 다음 목표는 공식 category와 검색이며, 정밀 진단 span, suggestion diff/copy, 테마 선택, metadata export는 남아 있습니다. 현재 상태·완료 기준·검증 과제는 [로드맵](ROADMAP.md)을 기준으로 봅니다.
 
 ## 설치와 실행
 
@@ -88,4 +88,4 @@ cargo doc --no-deps --document-private-items
 cargo run --locked -- --output target/rustdoc-style-preview -- --all-targets -- -W clippy::pedantic
 ```
 
-`target/doc/cargo_clippy_html/index.html`과 `target/rustdoc-style-preview/index.html`을 나란히 엽니다. 비교용 Clippy 실행에만 pedantic을 전달하여 lint·소스 화면을 살펴볼 진단을 확보합니다. 도구의 기본 lint 설정을 바꾸지는 않습니다. 비교 범위와 의도적인 차이는 [비교 기록](docs/validation/2026-10-27-rustdoc-style.md)에 있습니다.
+`target/doc/cargo_clippy_html/index.html`과 `target/rustdoc-style-preview/index.html`을 나란히 엽니다. 비교용 Clippy 실행에만 pedantic을 전달하여 lint·소스 화면을 살펴볼 진단을 확보합니다. 도구의 기본 lint 설정을 바꾸지는 않습니다. 최신 요소별 대조와 유지한 차이는 [2026-10-30 비교 기록](docs/validation/2026-10-30-rustdoc-audit.md)에 있습니다.

@@ -1,5 +1,7 @@
 # SDD ledger — plan: docs/superpowers/plans/2026-10-27-phase-1.md
 
+Historical execution ledger. Later entries can supersede earlier snapshots; the current status and remaining milestones are in [ROADMAP.md](../../../ROADMAP.md). See docs/validation/2026-10-30-rustdoc-audit.md for the latest generated-output comparison.
+
 - Baseline: cargo test passed, 0 tests. User selected in-place codex/phase-1 branch.
 - Pre-flight: Task 1 -> 4: RunOptions/CargoContext match collection inputs.
 - Pre-flight: Task 2 -> 3/4: normalized findings and raw messages remain separate.

@@ -4,7 +4,6 @@
 .report-footer { margin-top: 3em; color: var(--right-side-color); font-size: .75rem; }
 .finding-meta { color: var(--right-side-color); font-size: .875rem; }
 .sidebar-crate .crate-info { display: block; margin-top: .5rem; }
-.sidebar-crate h2 .crate-version { color: var(--right-side-color); font-size: .875rem; }
 .finding { margin-bottom: 2em; scroll-margin-top: 20px; }
 .severity { font: 500 .75rem var(--font-family-code); border: 1px solid var(--border-color); border-radius: 3px; padding: 2px 6px; margin-right: 6px; }
 .severity.warning { color: #805500; border-color: #b99540; }
@@ -15,7 +14,6 @@
 .run-issues, .source-unavailable { background: var(--stab-background-color); padding: 12px 16px; border-left: 2px solid var(--warning-border-color); }
 .source-scroll { overflow: auto; }
 .example-wrap pre code .code-line { display: block; min-height: 1.5em; scroll-margin-top: 24px; }
-.source-code .line-text { white-space: pre; }
 .source-code .diagnostic-line { background: var(--src-line-number-highlighted-background-color); }
 .diagnostic-marker { font-size: .8rem; margin-left: 1ch; }
 .source-files, .source-findings { margin-bottom: 1.5em; }
