@@ -77,6 +77,8 @@ CLI → Cargo 수집 → 진단 정규화/병합 → 소스 로드 → HTML 생�
 
 출처와 변경은 [UPSTREAM.md](assets/vendor/rustdoc/UPSTREAM.md)에 기록합니다. 필요한 고지는 생성 보고서의 `licenses/`에도 함께 배포됩니다. rustdoc의 버전 간 DOM/API 호환성은 보장하지 않습니다.
 
+보고서의 favicon은 Rust 기어 안에 클립을 넣은 별도 수정 자산입니다. SVG와 16·32·48px ICO를 동봉하며, 원본 Rust 로고의 CC BY 4.0 출처·변경 고지는 [favicon 안내](assets/favicon/README.md)에 기록합니다. Clippy HTML은 Rust Project/Rust Foundation의 공식 제품이 아닙니다.
+
 ## rustdoc 스타일 비교
 
 외부 예제 대신 이 프로젝트의 문서를 비교 기준으로 사용합니다.
