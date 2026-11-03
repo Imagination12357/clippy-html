@@ -30,7 +30,7 @@ Phase 1 functional implementation is complete. This is not a claim that every br
 
 ### 1. Official categories
 
-Use a bundled static table from official Clippy data, with its source/version recorded. Do not guess from lint names. Preserve Unknown for missing/version-mismatched entries; keep category independent from severity. Provide category lists/pages and navigation to lint/source findings.
+2026-11-03 policy revision: fetch version-appropriate official Clippy category data online by default. Explicit tool --offline, or online retrieval failure, uses a bundled static table by lint name even if versions differ; record its source/version and fallback reason. Unknown remains for absent/unsupported entries, and category stays independent from severity. Generated reports still work offline. Provide category lists/pages and navigation to lint/source findings. See [category design and research](docs/superpowers/specs/2026-11-03-categories-design.md); product implementation is pending.
 
 **Done when:** known representative lints map to verified categories, unknown entries stay reachable, and category-to-lint-to-source navigation works offline with validated relative links.
 
