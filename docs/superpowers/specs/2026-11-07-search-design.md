@@ -43,7 +43,9 @@ HTML would miss most of the interface.
 The existing vendored stylesheet already contains the input, tab, count, row,
 responsive and magnifier rules. Do not recreate their colors, spacing or fonts.
 Native result containers are ul with direct anchor children; use div with the
-same classes/direct anchors to avoid invalid list markup without changing CSS.
+same classes/direct anchors, and span.path inside span.result-name, to avoid
+invalid content models without changing CSS. Initially choose the first nonempty
+report tab so a file-only match is visible without an extra click.
 Add only scoped corrections for omitted toolbar controls and the source input's
 40px offset (the report has a unified sidebar, no rustdoc source-sidebar button).
 No cards, dropdown search overlay, new filter bar, or speculative controls.

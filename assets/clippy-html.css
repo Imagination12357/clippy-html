@@ -21,6 +21,9 @@
 .source-files > summary, .source-findings > summary { font-size: 1.125rem; }
 .source-count { color: var(--right-side-color); font-size: .8em; }
 :focus-visible { outline: 2px solid var(--search-input-focused-border-color); outline-offset: 3px; }
+/* The report omits rustdoc's settings/help controls and separate source toggle. */
+.main-heading .report-toolbar { display: flex; margin-top: 0; }
+.src #search .search-form { margin-left: 0; }
 /* rustdoc toggles mobile navigation with JS. Keep it available without JS here. */
 @media (max-width: 700px) {
     body.rustdoc { display: block; }

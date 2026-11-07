@@ -1032,7 +1032,7 @@ mod tests {
                 .unwrap();
         let doc = scraper::Html::parse_document(&html);
         assert_eq!(
-            doc.select(&scraper::Selector::parse("script,[onclick],[onerror]").unwrap())
+            doc.select(&scraper::Selector::parse("script:not([src]),[onclick],[onerror]").unwrap())
                 .count(),
             0
         );
@@ -1052,7 +1052,7 @@ mod tests {
                 .unwrap();
         let doc = scraper::Html::parse_document(&source);
         assert_eq!(
-            doc.select(&scraper::Selector::parse("script,[onclick],[onerror]").unwrap())
+            doc.select(&scraper::Selector::parse("script:not([src]),[onclick],[onerror]").unwrap())
                 .count(),
             0
         );

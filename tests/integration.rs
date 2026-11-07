@@ -32,6 +32,40 @@ fn search_index_links_all_report_kinds_without_copying_source_bodies() {
             .contains("for further information visit")
     );
     assert!(!script.contains("pub fn copy_number"));
+    for path in html_files(&f.report()) {
+        let html = std::fs::read_to_string(&path).unwrap();
+        let doc = Html::parse_document(&html);
+        let scripts: Vec<_> = doc.select(&Selector::parse("script").unwrap()).collect();
+        assert_eq!(scripts.len(), 3);
+        for (script, name) in
+            scripts
+                .iter()
+                .zip(["search-index.js", "search-engine.js", "search.js"])
+        {
+            assert!(
+                script
+                    .value()
+                    .attr("src")
+                    .unwrap()
+                    .ends_with(&format!("static.files/{name}"))
+            );
+            assert!(script.value().attr("defer").is_some());
+            assert!(script.text().collect::<String>().is_empty());
+        }
+        assert_eq!(
+            doc.select(
+                &Selector::parse(".main-heading > rustdoc-toolbar.hidden #search-button a")
+                    .unwrap()
+            )
+            .count(),
+            1
+        );
+        assert!(
+            doc.select(&Selector::parse("body[data-report-root]").unwrap())
+                .next()
+                .is_some()
+        );
+    }
 }
 #[test]
 fn categories_link_to_lints_sources_and_record_the_bundled_origin() {
@@ -75,7 +109,7 @@ fn multiline_highlighting_preserves_source_text_without_creating_html() {
         .join("\n");
     assert_eq!(text, source);
     assert_eq!(
-        doc.select(&Selector::parse("script,[onclick],[onerror]").unwrap())
+        doc.select(&Selector::parse("script:not([src]),[onclick],[onerror]").unwrap())
             .count(),
         0
     );
@@ -280,7 +314,7 @@ fn warning_source_and_suggestion_are_escaped() {
         .expect("finding line navigation");
     assert_eq!(finding.value().attr("href"), Some("#L3"));
     assert_eq!(
-        doc.select(&Selector::parse("script,[onclick],[onerror]").unwrap())
+        doc.select(&Selector::parse("script:not([src]),[onclick],[onerror]").unwrap())
             .count(),
         0
     );

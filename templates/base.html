@@ -10,8 +10,11 @@
 <link rel="stylesheet" href="{{ root }}static.files/fonts.css">
 <link rel="stylesheet" href="{{ root }}static.files/rustdoc.css">
 <link rel="stylesheet" href="{{ root }}static.files/clippy-html.css">
+<script defer src="{{ root }}static.files/search-index.js"></script>
+<script defer src="{{ root }}static.files/search-engine.js"></script>
+<script defer src="{{ root }}static.files/search.js"></script>
 </head>
-<body class="rustdoc{% if source_page %} src{% else %} mod{% endif %}">
+<body class="rustdoc{% if source_page %} src{% else %} mod{% endif %}" data-report-root="{{ root }}">
 <a class="skip-main-content" href="#main-content">Skip to main content</a>
 <nav class="sidebar" aria-label="Report navigation">
 <div class="sidebar-crate"><h2><a href="{{ root }}index.html">Clippy HTML</a>{% for item in crates %}<span class="crate-info"><span class="version crate-context">{{ item.name }}</span><span class="version crate-version">{{ item.version }}</span></span>{% endfor %}{% if crates.len() == 0 %}<span class="version crate-context">{{ crate_context }}</span>{% endif %}</h2></div>
@@ -24,7 +27,7 @@
 {% endif %}
 </nav>
 <main>{% if !source_page %}<div class="width-limiter">{% endif %}<section id="main-content" class="content" tabindex="-1">
-<div class="main-heading">{% if root.len() > 0 %}<div class="rustdoc-breadcrumbs"><a href="{{ root }}index.html">{{ crate_context }}</a><span aria-hidden="true"> ::</span></div>{% endif %}<h1>{{ heading_kind }} <span>{{ title }}</span></h1></div>
+<div class="main-heading">{% if root.len() > 0 %}<div class="rustdoc-breadcrumbs"><a href="{{ root }}index.html">{{ crate_context }}</a><span aria-hidden="true"> ::</span></div>{% endif %}<h1>{{ heading_kind }} <span>{{ title }}</span></h1><rustdoc-toolbar class="report-toolbar hidden"><span id="search-button"><a href="?search=" title="Search this report"><span class="label">Search</span></a></span></rustdoc-toolbar></div>
 {{ content|safe }}</section>
 <footer class="report-footer"><a href="{{ root }}licenses/index.html">Licenses and third-party notices</a></footer>
 {% if !source_page %}</div>{% endif %}</main>

@@ -1,6 +1,6 @@
 # Current roadmap
 
-Updated 2026-11-07 after official category implementation. This document is the current milestone/status index. DETAILS.md remains the full product specification with later approved design decisions applied; older plans and ledgers preserve execution history rather than current status.
+Updated 2026-11-07 after official category and search implementation. This document is the current milestone/status index. DETAILS.md remains the full product specification with later approved design decisions applied; older plans and ledgers preserve execution history rather than current status.
 
 ## Product boundary
 
@@ -11,7 +11,7 @@ Clippy's structured diagnostics become portable, offline static HTML with rustdo
 | Area | Implemented | Remaining |
 |---|---|---|
 | Functional core | CLI, Cargo/Clippy collection, normalization, target deduplication, deterministic IDs, failure status, safe staged output | Continue regression coverage as features change |
-| Report navigation | Overview/category/lint/source pages, online and bundled category data, readable URLs, file tree and finding links | Search |
+| Report navigation | Overview/category/lint/source pages, online and bundled category data, readable URLs, file tree, finding links and report-local search | Browser acceptance of search |
 | Source and diagnostics | Whole-source lexical syntax colors, line anchors/highlights, notes and grouped replacements | Precise primary/secondary ranges, suggestion diff/copy |
 | Familiar presentation | Pinned rustdoc CSS/DOM, bundled fonts/notices, favicon | Light/Dark/Auto selection, keyboard and small-screen acceptance |
 | Distribution | Local install smoke, packaged assets and notices, Rust 1.94 locked compile check | Cross-platform CI, browser/static-host checks, metadata export, release preparation |
@@ -34,9 +34,15 @@ Phase 1 functional implementation is complete. This is not a claim that every br
 
 **Done when:** known representative lints map to verified categories, unknown entries stay reachable, and category-to-lint-to-source navigation works offline with validated relative links.
 
-### 2. Search — next product milestone
+### 2. Search — implemented; browser acceptance pending
 
 Search lint names, file paths, diagnostic messages and categories using report-local data. Use classic JavaScript without runtime fetch/module/CDN dependencies; preserve basic navigation when JS is unavailable. Escape generated data and create results with safe text/local links.
+
+2026-11-07: statically analyzed this project's pinned rustdoc output and adapted
+its toolbar, in-place search screen, tabs, result rows and keyboard flow. The
+report owns matching and its four-kind index. Rust/Node/DOM validation is in
+[the search record](docs/validation/2026-11-07-search.md); actual file:// and
+narrow-screen browser acceptance remain manual.
 
 **Done when:** the user can find each supported result kind and reach its lint/source/category location from a file:// report, including Unicode inputs and empty/no-match cases.
 

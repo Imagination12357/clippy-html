@@ -2,7 +2,7 @@
 
 Clippy의 구조화된 진단을 rustdoc 스타일의 정적 HTML 문서로 탐색하는 Cargo 서브커맨드입니다.
 
-**기능 코어와 일부 후속 인터페이스가 구현되어 있습니다.** 실제 Clippy 진단 수집, 중복 병합, 홈·category·진단 종류·전체 소스 페이지, 파일 트리, 구문 색칠, 줄 anchor, child 진단과 suggestion replacement 표시를 제공합니다. 다음 목표는 검색이며, 정밀 진단 span, suggestion diff/copy, 테마 선택, metadata export는 남아 있습니다. 현재 상태·완료 기준·검증 과제는 [로드맵](ROADMAP.md)을 기준으로 봅니다.
+**기능 코어와 일부 후속 인터페이스가 구현되어 있습니다.** 실제 Clippy 진단 수집, 중복 병합, 홈·category·진단 종류·전체 소스 페이지, 파일 트리, 검색, 구문 색칠, 줄 anchor, child 진단과 suggestion replacement 표시를 제공합니다. 정밀 진단 span, suggestion diff/copy, 테마 선택, metadata export는 남아 있습니다. 현재 상태·완료 기준·검증 과제는 [로드맵](ROADMAP.md)을 기준으로 봅니다.
 
 ## 설치와 실행
 
@@ -35,6 +35,8 @@ Category는 기본적으로 진단의 공식 문서 링크에 해당하는 Clipp
 
 생성한 `index.html`을 브라우저에서 직접 엽니다. 서버나 인터넷 연결, JavaScript가 없어도 기본 탐색이 가능합니다.
 
+Search 버튼 또는 `S`·`/`로 rustdoc처럼 본문 자리에 검색 화면을 엽니다. lint 이름·파일 경로·진단 메시지(하위 note/help 포함)·category를 검색하며, Lints / Files / Findings / Categories 탭으로 결과를 나눕니다. 여러 검색어는 모두 포함되어야 하고 대소문자를 구별하지 않습니다. 폼의 Enter는 즉시 검색하고, 아래 화살표는 결과로 이동하며, 결과의 좌우 화살표는 탭을 바꿉니다. Escape나 Exit로 원래 문서에 돌아옵니다. 검색만 JavaScript가 필요하며, 모든 데이터와 스크립트는 보고서에 동봉합니다. 각 탭은 최대 100개를 표시하고 전체 일치 수와 제한 여부를 알립니다.
+
 - 홈에는 검사 종료 상태, 수집 완전성, 원본 진단 수와 병합 후 finding 수를 별도로 표시합니다.
 - 진단 종류 페이지에는 code, 실제 severity, target, primary/secondary 위치, note/help, suggestion 묶음과 applicability를 표시합니다.
 - 진단 URL은 `lint/clippy/clone_on_copy.html`, `lint/rustc/E0308.html`처럼 출처와 코드를 사용합니다. 코드 없는 진단은 `lint/general.html`에 모읍니다. 기존 해시 URL은 보고서를 재생성하면 변경됩니다.
@@ -66,6 +68,17 @@ cargo clippy --all-targets --locked -- -D warnings
 ```
 
 process 테스트는 먼저 빌드한 `cargo_probe` helper를 사용해 양쪽 pipe의 대량 출력을 검증합니다. 통합 테스트는 fixture를 임시 폴더에 복사하므로 저장소의 fixture 소스를 수정하지 않습니다. fixture 자체는 외부 의존성을 사용하지 않습니다.
+
+검색 엔진은 Node의 기본 테스트 runner로 검증합니다. DOM 동작 검증에만 테스트용 jsdom을 사용하며, 제품 생성·실행에는 Node/npm이 필요하지 않습니다.
+
+```powershell
+node --test tests/search-engine.test.cjs
+npm install --prefix target/search-qa --no-save --ignore-scripts jsdom@29.1.1
+$env:NODE_PATH = (Resolve-Path target/search-qa/node_modules).Path
+node --test tests/search-engine.test.cjs tests/search-ui.test.cjs
+```
+
+DOM 테스트는 실제 브라우저의 배치나 로컬 파일 정책 검증을 대신하지 않습니다. 검색 UI의 고정 rustdoc 대조와 남은 수동 확인은 [검색 검증 기록](docs/validation/2026-11-07-search.md)에 기록합니다.
 
 Rust 1.94에서 locked compile check를 확인했습니다. 현재 실행 환경과 검증 범위는 [검증 기록](docs/validation/2026-10-27-phase-1.md)에 남깁니다.
 

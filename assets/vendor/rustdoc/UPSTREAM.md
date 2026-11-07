@@ -22,8 +22,10 @@ WOFF2 files and their original OFL-1.1 notices are in fonts/. See FONTS.md
 for the exact file inventory, source details and hashes. Report-specific
 rules live in assets/clippy-html.css. The remaining upstream styles are retained.
 
-No rustdoc JavaScript, logo or Fira Mono assets are included. Upstream API and DOM
-compatibility across releases are not promised.
+No complete rustdoc JavaScript, logo or Fira Mono assets are included. The search
+interface adapts pinned JavaScript behavior and DOM under the MIT option; see
+SEARCH.md. The report's matching/index engine is independent. Upstream API and
+DOM compatibility across releases are not promised.
 
 The upstream COPYRIGHT.txt is preserved unmodified as a reference, including
 its entries for resources not shipped here. The actual included-resource
