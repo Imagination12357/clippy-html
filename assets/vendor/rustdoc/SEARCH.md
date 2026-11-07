@@ -22,7 +22,7 @@ JavaScript files, Stringdex and rustdoc API search index are not distributed.
 
 Changes for this report:
 
-- Lints, Files, Findings and Categories replace API name/parameter/return tabs.
+- In Lints, In Files, In Findings and In Categories replace API name/parameter/return tabs.
 - Classic ordered local scripts replace upstream lazy script/engine loading.
 - Report-owned search-engine.js performs NFC/case-normalized AND substring
   matching and deterministic ranking; it is not rustdoc's query/type engine.
@@ -37,6 +37,11 @@ Changes for this report:
 - Navigation remains available without scripts; toolbar activates after setup.
 - Same-document main-content anchors close search before native navigation, so
   the unified report sidebar and same-page finding results reveal their targets.
+- Empty/no-match panels reuse .search-failed and its centered layout, the native
+  Example searches: list and No results :( text. Examples come from report lint,
+  file and category names (representative queries for empty reports). External
+  web-search/language-documentation suggestions are omitted; examples execute
+  the report-owned search and preserve ordinary modified-click link behavior.
 
 Detailed static-analysis mapping and verification limits are in the repository's
 docs/superpowers/specs/2026-11-07-search-design.md and

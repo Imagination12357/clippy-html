@@ -32,7 +32,7 @@ HTML would miss most of the interface.
 | Display | #main-content hidden; #alternative-display.content shown | Same in-place sibling section; original DOM remains intact |
 | Input | .main-heading.search-results-main-heading > nav.sub > form.search-form > span + input.search-input | Same classes/structure; accessible report-specific label, no unsupported '?' hint |
 | Heading | .search-switcher contains Search results | Same text; no API crate selector |
-| Results | .search-out > #search-tabs + #results; selected buttons and counts | Same components, tabs Lints / Files / Findings / Categories |
+| Results | .search-out > #search-tabs + #results; selected buttons and counts | Same components, tabs In Lints / In Files / In Findings / In Categories |
 | Row | direct anchor > span.result-name (span.typename + div.path), div.desc | Same visual structure; plain report kind/name/description |
 | Submit | prevent default; execute current query | Same; Enter does not unexpectedly navigate |
 | Keyboard | Down from input; Up/Down between rows; Left/Right switches tabs | Same; standard Tab and Enter on links remain available |
@@ -68,8 +68,12 @@ existing lint-page finding anchors. Do not change IDs or normalization.
 Use NFC and lower case, split whitespace, require every term to occur across
 entry fields. Rank exact name/path first, then prefix, substring, context-only;
 ties keep deterministic generator order. No API type syntax or typo engine.
-Empty input renders zero counts and a short prompt; unmatched input gets an
-explicit no-results message. Show at most 100 rows per tab, retain total counts,
+Empty input renders zero counts and a centered .search-failed panel with
+Example searches: and a linked list. Unmatched input adds No results :( above
+the same examples. Use report lint/file/category names; for an empty report use
+representative supported queries. Reuse pinned CSS, including the centered
+list container with left-aligned text; omit external web-search suggestions.
+Show at most 100 rows per tab, retain total counts,
 and say when the list is truncated. Never silently omit matching entries.
 
 ## Safety, portability and degradation

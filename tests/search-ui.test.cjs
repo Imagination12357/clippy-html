@@ -95,7 +95,7 @@ test("missing data leaves toolbar hidden and basic document intact", () => {
 test("input waits 500ms, IME text waits for completion, Exit cancels pending work", async () => {
     const { dom, doc, w, open } = setup(); open();
     const input = doc.querySelector(".search-input");
-    assert.ok(doc.querySelector(".search-results.active").textContent.includes("Enter a search term"));
+    assert.ok(doc.querySelector(".search-failed.active").textContent.includes("Example searches:"));
     input.dispatchEvent(new w.CompositionEvent("compositionstart", { bubbles: true }));
     input.value = "copy"; input.dispatchEvent(new w.Event("input", { bubbles: true }));
     await new Promise(resolve => setTimeout(resolve, 520));
@@ -141,5 +141,22 @@ test("same-document handling preserves modified clicks and search skip link", ()
     assert.ok(doc.querySelector("#main-content").classList.contains("hidden"));
     const skip = doc.createElement("a"); skip.href = "#alternative-display"; doc.body.append(skip); skip.click();
     assert.ok(doc.querySelector("#main-content").classList.contains("hidden"));
+    dom.window.close();
+});
+test("native empty and no-result states offer safe, usable report search examples", () => {
+    const { dom, doc, open, submit } = setup(); open();
+    assert.deepEqual(Array.from(doc.querySelectorAll("#search-tabs button"), button => button.firstChild.textContent),
+        ["In Lints", "In Files", "In Findings", "In Categories"]);
+    let panel = doc.querySelector(".search-failed.active");
+    assert.ok(panel, "empty search reuses rustdoc's centered search-failed panel");
+    assert.ok(panel.textContent.includes("Example searches:"));
+    assert.ok(!panel.textContent.includes("No results"));
+    assert.equal(panel.querySelector("ul > li > a").textContent, "copy");
+    submit("absent"); panel = doc.querySelector(".search-failed.active");
+    assert.ok(panel.textContent.includes("No results :("));
+    assert.ok(panel.textContent.includes("Example searches:"));
+    panel.querySelector("ul > li > a").click();
+    assert.equal(doc.querySelector(".search-input").value, "copy");
+    assert.equal(doc.querySelectorAll(".search-results.active > a").length, 1);
     dom.window.close();
 });

@@ -5,7 +5,7 @@
     const data = globalThis.CLIPPY_HTML_SEARCH_DATA;
     const engine = globalThis.ClippyHtmlSearch;
     const kinds = ["lint", "file", "finding", "category"];
-    const labels = ["Lints", "Files", "Findings", "Categories"];
+    const labels = ["In Lints", "In Files", "In Findings", "In Categories"];
     const types = ["Lint", "File", "Finding", "Category"];
     const main = document.getElementById("main-content");
     const toolbar = document.querySelector("rustdoc-toolbar.report-toolbar");
@@ -83,11 +83,29 @@
     function historyUpdate(method, url) {
         try { window.history[method](null, "", url.href); } catch (_) { /* file:// history may be unavailable. */ }
     }
+    const examples = ["lint", "file", "category"].map(kind => data.find(entry => entry.kind === kind)?.name).filter(Boolean);
+    if (!examples.length) examples.push("clippy::clone_on_copy", "src/", "complexity");
+    function emptyState(panel) {
+        if (input.value.trim()) panel.append(document.createTextNode("No results :("), element("br"), element("br"));
+        panel.append(document.createTextNode("Example searches:"));
+        const list = element("ul");
+        for (const example of examples) {
+            const item = element("li"), link = element("a", "", example);
+            const url = new URL(window.location.href); url.searchParams.set("search", example); link.href = url.href;
+            link.addEventListener("click", event => {
+                if (event.button !== 0 || event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) return;
+                event.preventDefault(); input.value = example; render(); input.focus();
+            });
+            item.append(link); list.append(item);
+        }
+        panel.append(list);
+    }
     function render(updateHistory = true) {
         clearTimeoutInput();
         const matches = engine.query(index, input.value);
         for (let i = 0; i < kinds.length; i++) {
             const entries = matches[kinds[i]], panel = panels[i]; panel.replaceChildren();
+            panel.className = entries.length ? "search-results" : "search-failed";
             buttons[i].querySelector(".count").textContent = ` (${entries.length})`;
             for (const entry of entries.slice(0, 100)) {
                 const link = element("a"); link.href = localHref(entry.href);
@@ -96,7 +114,7 @@
                 const desc = element("div", "desc", entry.description); desc.title = entry.description;
                 link.append(name, desc); panel.append(link);
             }
-            if (!entries.length) panel.append(element("p", "", input.value.trim() ? "No results found." : "Enter a search term."));
+            if (!entries.length) emptyState(panel);
             if (entries.length > 100) panel.append(element("p", "", `Showing 100 of ${entries.length} results. Refine your search to see fewer results.`));
         }
         if (!matches[kinds[currentTab]].length) {
