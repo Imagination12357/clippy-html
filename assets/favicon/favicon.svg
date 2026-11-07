@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <title>Clippy HTML favicon draft — Rust-style gear with five mounts and paperclip</title>
-  <metadata>Adapted from the Rust Project logo, owned by the Rust Foundation. CC BY 4.0: https://creativecommons.org/licenses/by/4.0/ . Source: https://github.com/rust-lang/rust-artwork/tree/main/logo . Changes: R replaced with a paperclip, recolored #D34516, scaled. See licenses/FAVICON.md in generated reports. Independent tool; no Rust Project or Rust Foundation endorsement.</metadata>
-  <g transform="translate(16 16) scale(.29)" stroke="#D34516" stroke-linejoin="round">
+  <metadata>Adapted from the Rust Project logo, owned by the Rust Foundation. CC BY 4.0: https://creativecommons.org/licenses/by/4.0/ . Source: https://github.com/rust-lang/rust-artwork/tree/main/logo . Changes: R replaced with a paperclip, recolored #000000, scaled. See licenses/FAVICON.md in generated reports. Independent tool; no Rust Project or Rust Foundation endorsement.</metadata>
+  <g transform="translate(16 16) scale(.29)" stroke="#000000" stroke-linejoin="round">
     <defs>
       <mask id="mount-holes" maskUnits="userSpaceOnUse" x="-60" y="-60" width="120" height="120">
         <rect x="-60" y="-60" width="120" height="120" fill="white" stroke="none"/>
@@ -14,7 +14,7 @@
     </defs>
     <g mask="url(#mount-holes)">
     <circle r="43" fill="none" stroke-width="9"/>
-    <g fill="#D34516" stroke-width="3">
+    <g fill="#000000" stroke-width="3">
     <path d="M46 3L51 0L46 -3Z" transform="rotate(0)"/>
     <path d="M46 3L51 0L46 -3Z" transform="rotate(11.25)"/>
     <path d="M46 3L51 0L46 -3Z" transform="rotate(22.5)"/>
@@ -48,12 +48,12 @@
     <path d="M46 3L51 0L46 -3Z" transform="rotate(337.5)"/>
     <path d="M46 3L51 0L46 -3Z" transform="rotate(348.75)"/>
     </g>
-    <g fill="#D34516" stroke-width="6"><path d="M-7 -42L0 -35L7 -42Z" transform="rotate(0)"/>
+    <g fill="#000000" stroke-width="6"><path d="M-7 -42L0 -35L7 -42Z" transform="rotate(0)"/>
     <path d="M-7 -42L0 -35L7 -42Z" transform="rotate(72)"/>
     <path d="M-7 -42L0 -35L7 -42Z" transform="rotate(144)"/>
     <path d="M-7 -42L0 -35L7 -42Z" transform="rotate(216)"/>
     <path d="M-7 -42L0 -35L7 -42Z" transform="rotate(288)"/></g>
     </g>
   </g>
-  <path d="M14 12V20C14 23 18 23 18 20V10C18 6 11 6 11 10V20C11 27 21 27 21 20V12" transform="translate(16 16) scale(.85) translate(-16 -16) rotate(35 16 16)" fill="none" stroke="#D34516" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M14 12V20C14 23 18 23 18 20V10C18 6 11 6 11 10V20C11 27 21 27 21 20V12" transform="translate(16 16) scale(.85) translate(-16 -16) rotate(35 16 16)" fill="none" stroke="#000000" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
