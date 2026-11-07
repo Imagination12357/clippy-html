@@ -396,6 +396,7 @@ pub fn render_report(
     destination: &Path,
 ) -> Result<(), String> {
     super::assets::write_assets(destination)?;
+    super::search::write_index(report, sources, pages, destination)?;
     for dir in ["lint", "src"] {
         std::fs::create_dir_all(destination.join(dir)).map_err(|e| e.to_string())?;
     }
@@ -712,8 +713,18 @@ pub fn validate_report(destination: &Path) -> Result<(), String> {
     }
     for (path, html) in &docs {
         let base = url::Url::from_file_path(path).map_err(|_| "Invalid report URL")?;
-        for href in attributes(html, "href") {
-            if href.starts_with("https://") {
+        let search_hrefs = if path == &root.join("index.html") {
+            super::search::read_hrefs(&root)?
+        } else {
+            vec![]
+        };
+        let references = attributes(html, "href")
+            .into_iter()
+            .map(|s| (s, true))
+            .chain(attributes(html, "src").into_iter().map(|s| (s, false)))
+            .chain(search_hrefs.iter().map(|s| (s.as_str(), false)));
+        for (href, external_allowed) in references {
+            if external_allowed && href.starts_with("https://") {
                 continue;
             }
             let linked = base.join(href).map_err(|e| e.to_string())?;
@@ -738,6 +749,35 @@ pub fn validate_report(destination: &Path) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn missing_or_nonlocal_search_scripts_are_rejected() {
+        let t = tempfile::tempdir().unwrap();
+        for src in [
+            "static.files/missing.js",
+            "https://example.com/search.js",
+            "../outside.js",
+        ] {
+            std::fs::write(
+                t.path().join("index.html"),
+                format!("<script src=\"{src}\"></script>"),
+            )
+            .unwrap();
+            assert!(validate_report(t.path()).is_err(), "must reject {src}");
+        }
+    }
+    #[test]
+    fn missing_search_destination_anchor_is_rejected() {
+        let t = tempfile::tempdir().unwrap();
+        std::fs::create_dir(t.path().join("static.files")).unwrap();
+        std::fs::write(
+            t.path().join("index.html"),
+            "<h1 id=\"existing\">Report</h1>",
+        )
+        .unwrap();
+        std::fs::write(t.path().join("static.files/search-index.js"),
+            "globalThis.CLIPPY_HTML_SEARCH_DATA=[{\"kind\":\"finding\",\"name\":\"message\",\"context\":\"\",\"description\":\"\",\"href\":\"index.html#absent\"}];\n").unwrap();
+        assert!(validate_report(t.path()).is_err());
+    }
     #[test]
     fn missing_css_font_resource_is_rejected() {
         let t = tempfile::tempdir().unwrap();

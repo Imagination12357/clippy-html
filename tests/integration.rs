@@ -2,6 +2,38 @@ mod support;
 use scraper::{Html, Selector};
 use support::*;
 #[test]
+fn search_index_links_all_report_kinds_without_copying_source_bodies() {
+    let f = Fixture::new("warning");
+    assert_success(&f.run(&[]));
+    let script = f.html("static.files/search-index.js");
+    let json = script
+        .strip_prefix("globalThis.CLIPPY_HTML_SEARCH_DATA=")
+        .unwrap()
+        .trim_end()
+        .strip_suffix(';')
+        .unwrap();
+    let entries: Vec<serde_json::Value> = serde_json::from_str(json).unwrap();
+    for kind in ["lint", "file", "finding", "category"] {
+        assert!(entries.iter().any(|e| e["kind"] == kind), "missing {kind}");
+    }
+    assert_eq!(entries.iter().filter(|e| e["kind"] == "finding").count(), 1);
+    let finding = entries.iter().find(|e| e["kind"] == "finding").unwrap();
+    assert!(
+        finding["href"]
+            .as_str()
+            .unwrap()
+            .starts_with("lint/clippy/clone_on_copy.html#finding-")
+    );
+    assert!(finding["context"].as_str().unwrap().contains("src/lib.rs"));
+    assert!(
+        finding["description"]
+            .as_str()
+            .unwrap()
+            .contains("for further information visit")
+    );
+    assert!(!script.contains("pub fn copy_number"));
+}
+#[test]
 fn categories_link_to_lints_sources_and_record_the_bundled_origin() {
     let f = Fixture::new("warning");
     assert_success(&f.run(&[]));
