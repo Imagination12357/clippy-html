@@ -2,7 +2,7 @@
 <section class="finding" id="finding-{{ f.id }}">
 <h2 class="section-header"><span class="severity {{ f.level }}">{{ f.level }}</span> <code>{{ f.code }}</code> <a class="anchor" href="#finding-{{ f.id }}" aria-label="Link to finding">§</a></h2>
 <p class="finding-message">{{ f.message }}</p>
-<p class="finding-meta">{{ f.origin }} · {{ f.category }} · <code>{{ f.package }}</code></p>
+<p class="finding-meta">{{ f.origin }} · {% if f.category_href.len() > 0 %}<a href="{{ f.category_href }}">{{ f.category }}</a>{% else %}{{ f.category }}{% endif %} · <code>{{ f.package }}</code></p>
 {% if f.docs.len() > 0 %}<p><a href="{{ f.docs }}" rel="noopener noreferrer">Official Clippy documentation</a></p>{% endif %}
 <details><summary>Targets ({{ f.targets.len() }})</summary><ul>{% for target in f.targets %}<li><code>{{ target }}</code></li>{% endfor %}</ul></details>
 {% for loc in f.locations %}<div class="diagnostic-location"><p><strong>{{ loc.kind }}</strong>: <a href="{{ loc.href }}"><code>{{ loc.label }}</code></a></p>{% if loc.note.len() > 0 %}<p>{{ loc.note }}</p>{% endif %}<div class="example-wrap hide-lines"><pre class="rust"><code>{{ loc.snippet }}</code></pre></div></div>{% endfor %}

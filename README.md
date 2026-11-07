@@ -2,7 +2,7 @@
 
 Clippy의 구조화된 진단을 rustdoc 스타일의 정적 HTML 문서로 탐색하는 Cargo 서브커맨드입니다.
 
-**기능 코어와 일부 후속 인터페이스가 구현되어 있습니다.** 실제 Clippy 진단 수집, 중복 병합, 홈·진단 종류·전체 소스 페이지, 파일 트리, 구문 색칠, 줄 anchor, child 진단과 suggestion replacement 표시를 제공합니다. 다음 목표는 공식 category와 검색이며, 정밀 진단 span, suggestion diff/copy, 테마 선택, metadata export는 남아 있습니다. 현재 상태·완료 기준·검증 과제는 [로드맵](ROADMAP.md)을 기준으로 봅니다.
+**기능 코어와 일부 후속 인터페이스가 구현되어 있습니다.** 실제 Clippy 진단 수집, 중복 병합, 홈·category·진단 종류·전체 소스 페이지, 파일 트리, 구문 색칠, 줄 anchor, child 진단과 suggestion replacement 표시를 제공합니다. 다음 목표는 검색이며, 정밀 진단 span, suggestion diff/copy, 테마 선택, metadata export는 남아 있습니다. 현재 상태·완료 기준·검증 과제는 [로드맵](ROADMAP.md)을 기준으로 봅니다.
 
 ## 설치와 실행
 
@@ -19,6 +19,8 @@ cargo install --path . --locked
 cargo clippy-html
 cargo clippy-html --open
 cargo clippy-html --output report
+cargo clippy-html --offline
+cargo clippy-html --offline -- --offline
 cargo clippy-html -- --all-targets --all-features
 cargo clippy-html -- --workspace --all-targets -- -W clippy::pedantic
 ```
@@ -26,6 +28,8 @@ cargo clippy-html -- --workspace --all-targets -- -W clippy::pedantic
 기본 결과물은 Cargo target directory 아래의 `clippy-html/index.html`입니다. `--output`을 지정하면 그 경로를 사용합니다. 상대경로는 명령을 실행한 폴더 기준입니다. 전달한 `--target-dir`도 기본 보고서 위치에 반영됩니다.
 
 첫 `--` 이후는 Cargo Clippy에 전달합니다. 그 안의 두 번째 `--` 이후는 rustc/Clippy 인자입니다. `--all-targets`와 `--all-features`는 기본 강제하지 않습니다. 출력 형식을 변경하는 `--message-format`과 소스를 수정하는 `--fix`는 Cargo 인자 영역에서 거부합니다. Phase 1의 `--metadata`는 미지원 옵션 오류이며 공개 metadata JSON을 자동 생성하지 않습니다.
+
+Category는 기본적으로 진단의 공식 문서 링크에 해당하는 Clippy 버전의 분류표를 온라인으로 한 번 조회합니다. 최대 10초 안에 조회하지 못하거나 형식 검증에 실패하면 동봉 표(rust-1.97.0, 활성 lint 815개)를 이름으로 적용합니다. `cargo clippy-html --offline`은 이 조회만 생략하며 Cargo의 네트워크 사용을 막지는 않습니다. `cargo clippy-html -- --offline`은 Cargo에만 전달됩니다. 양쪽 모두 offline으로 쓰려면 위 예시처럼 두 위치에 지정합니다. Clippy 진단이 없으면 분류표를 조회하지 않습니다.
 
 ## 보고서 읽기
 
@@ -37,7 +41,7 @@ cargo clippy-html -- --workspace --all-targets -- -W clippy::pedantic
 - 소스 페이지에는 관련 workspace 파일의 전체 코드, 줄 번호, 줄 단위 진단 표시, finding 링크를 표시합니다.
 - 소스 화면은 생성 시 Rust 토큰을 분류하여 rustdoc CSS로 키워드·문자열·주석·숫자·lifetime·매크로 등을 색칠합니다. 여러 줄 문자열과 중첩 주석의 문맥을 보존하며 JavaScript는 필요하지 않습니다. 타입 의미 분석이나 정의 이동은 제공하지 않습니다. [구현 출처와 범위](assets/vendor/rustdoc/HIGHLIGHTING.md)
 - 소스 HTML은 `src/diagnostic/normalize.rs.html`처럼 원래 경로를 알아볼 수 있는 이름을 사용합니다. 위험한 파일명 문자는 인코딩하고 충돌 시 식별자를 붙입니다. 소스 사이드바의 Files 트리에는 진단에 포함된 파일과 진단 수를 표시하며, 현재 파일의 경로를 펼칩니다. Findings in this file 목록에서 해당 줄로 이동할 수 있습니다.
-- Clippy category는 Phase 1에서 Unknown입니다. 공식 테이블을 도입하기 전에는 이름으로 추측하지 않습니다.
+- 홈에서 category별 finding 수와 lint 종류 수를 확인하고 category → lint → 소스로 이동할 수 있습니다. 분류 출처·기준 버전·fallback 사유는 홈의 Category data에서 확인합니다. 동봉 표는 실행한 Clippy와 버전이 달라도 이름으로 적용하므로 분류가 다를 수 있습니다. 선택한 표에 없는 이름은 Unknown으로 남기고, rustc/general 진단은 Clippy category에 포함하지 않습니다. Category 정보는 severity나 finding ID를 바꾸지 않습니다.
 - 동일한 위치라도 package, severity, 관련 span 또는 suggestion이 다르면 별 진단입니다. 같은 진단이 여러 target에서 발생하면 target 목록을 합칩니다.
 
 소스의 실제 내용과 진단 위치가 맞지 않거나 파일을 읽을 수 없으면 진단 snippet과 사유를 표시합니다. 외부 dependency와 생성 코드의 전체 파일은 기본 복사하지 않습니다. 자동 수정은 하지 않습니다.
@@ -70,6 +74,8 @@ Rust 1.94에서 locked compile check를 확인했습니다. 현재 실행 환경
 CLI → Cargo 수집 → 진단 정규화/병합 → 소스 로드 → HTML 생성 → 출력 교체 순서입니다. parser와 renderer는 독립적으로 테스트할 수 있습니다. 파일별 책임은 [설계 문서](docs/superpowers/specs/2026-10-27-clippy-html-design.md)에 있습니다.
 
 프로젝트 코드와 Cargo 라이선스 표기는 MIT 또는 Apache-2.0을 유지합니다. rustdoc CSS는 이 프로젝트의 비교용 문서를 생성한 Rust 1.97.1, 커밋 `8bab26f4f68e0e26f0bb7960be334d5b520ea452`을 기준으로 MIT 조건으로 재사용했습니다. normalize.css의 별도 MIT 라이선스와 rustdoc 저작권 고지도 포함합니다.
+
+동봉 Clippy category 표는 공식 문서에서 이름과 분류만 추출했습니다. MIT 원본 고지와 출처·변경·재생성 방법은 [분류 데이터 안내](assets/vendor/clippy/README.md)에 있습니다. 분류표 갱신 도구는 로컬 HTML 입력으로 실행하며, 런타임 조회 실패가 Clippy의 성공/실패나 진단 수집 완전성을 바꾸지는 않습니다.
 
 기본 폰트는 Fira Sans(UI), Source Serif 4(본문), Source Code Pro(코드), NanumBarunGothic(한글 보완)입니다. rustdoc의 WOFF2 12개를 수정 없이 동봉하며 폰트에는 각각 OFL-1.1이 적용됩니다. 원본 저작권·예약 이름·라이선스 전문을 함께 배포합니다. [실제 동봉 자산과 고지](THIRD-PARTY-NOTICES.md), [폰트 출처와 해시](assets/vendor/rustdoc/FONTS.md)를 확인할 수 있습니다. 생성 보고서에서도 footer의 라이선스 안내를 통해 같은 고지에 접근할 수 있습니다. 이 조건이 검사 대상 소스의 라이선스를 바꾸지는 않습니다.
 

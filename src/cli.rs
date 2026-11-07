@@ -16,6 +16,9 @@ pub struct RunOptions {
     pub output: Option<PathBuf>,
     #[arg(long)]
     pub open: bool,
+    /// Use bundled category data without fetching it (Cargo flags go after --).
+    #[arg(long)]
+    pub offline: bool,
     #[arg(last = true, value_name = "CLIPPY_ARGS")]
     pub clippy_args: Vec<OsString>,
 }
@@ -98,6 +101,32 @@ pub fn cargo_context(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn tool_and_cargo_offline_flags_are_independent() {
+        for command in [
+            vec!["cargo-clippy-html"],
+            vec!["cargo-clippy-html", "--offline"],
+            vec!["cargo-clippy-html", "--", "--offline"],
+            vec!["cargo-clippy-html", "--offline", "--", "--offline"],
+        ] {
+            let opts = parse_args(args(&command)).unwrap();
+            assert_eq!(opts.offline, command.get(1) == Some(&"--offline"));
+            let forwarded = command.contains(&"--");
+            assert_eq!(
+                opts.clippy_args,
+                if forwarded {
+                    vec![OsString::from("--offline")]
+                } else {
+                    vec![]
+                }
+            );
+            let context = cargo_context(&opts, Path::new("/demo"), "cargo".into()).unwrap();
+            assert_eq!(
+                context.metadata_args.contains(&OsString::from("--offline")),
+                forwarded
+            );
+        }
+    }
     fn args(s: &[&str]) -> Vec<OsString> {
         s.iter().map(OsString::from).collect()
     }

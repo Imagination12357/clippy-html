@@ -19,6 +19,14 @@ macro_rules! font_license {
 }
 const FILES: &[(&str, &[u8])] = &[
     (
+        "licenses/CLIPPY-CATEGORIES.md",
+        include_bytes!("../../assets/vendor/clippy/README.md"),
+    ),
+    (
+        "licenses/clippy-MIT.txt",
+        include_bytes!("../../assets/vendor/clippy/LICENSE-MIT"),
+    ),
+    (
         "static.files/favicon.svg",
         include_bytes!("../../assets/favicon/favicon.svg"),
     ),

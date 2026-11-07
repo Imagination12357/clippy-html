@@ -33,6 +33,7 @@ impl Fixture {
     pub fn run(&self, args: &[&str]) -> Output {
         Command::new(env!("CARGO_BIN_EXE_cargo-clippy-html"))
             .current_dir(&self.root)
+            .arg("--offline")
             .args(args)
             .output()
             .unwrap()

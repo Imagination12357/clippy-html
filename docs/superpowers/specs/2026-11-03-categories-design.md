@@ -1,6 +1,6 @@
 # Official Clippy categories — design and research
 
-Date: 2026-11-03. Status: online/offline policy approved in conversation; this concrete design awaits review before product implementation.
+Date: 2026-11-03. Status: user approved the concrete design on 2026-11-07; implemented through the 2026-11-07 category plan. See its validation record for evidence and limitations.
 
 ## Goal and approved policy
 
@@ -104,4 +104,4 @@ Store source mode (online/bundled/not-needed), official selector/URL, source/tab
 
 Independent builder check: no important unanswered decisions before implementation planning. This does not substitute for user review of the concrete design.
 
-Review this design, then write the concrete implementation plan and implement the metadata/category slice. This research step changes no CLI behavior, dependency, diagnostic ID or generated report.
+Historical research checkpoint: this document initially changed no product behavior. User approved implementation on 2026-11-07; see ../plans/2026-11-07-categories.md and ../../validation/2026-11-07-categories.md for the implementation and results.

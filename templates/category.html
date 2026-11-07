@@ -1,0 +1,3 @@
+<div class="docblock"><p>{{ count }} unique Clippy findings in this category. Counts include each finding once across targets and locations.</p></div>
+<h2 id="lints" class="section-header">Diagnostic kinds<a href="#lints" class="anchor">§</a></h2>
+<dl class="item-table">{% for row in lints %}<dt><a href="{{ row.link.href }}">{{ row.link.text }}</a></dt><dd>{{ row.count }} occurrences</dd>{% endfor %}</dl>

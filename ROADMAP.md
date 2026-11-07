@@ -1,6 +1,6 @@
 # Current roadmap
 
-Updated 2026-10-30 after review with the user. This document is the current milestone/status index. DETAILS.md remains the full product specification; older plans and ledgers preserve execution history rather than current status.
+Updated 2026-11-07 after official category implementation. This document is the current milestone/status index. DETAILS.md remains the full product specification with later approved design decisions applied; older plans and ledgers preserve execution history rather than current status.
 
 ## Product boundary
 
@@ -11,7 +11,7 @@ Clippy's structured diagnostics become portable, offline static HTML with rustdo
 | Area | Implemented | Remaining |
 |---|---|---|
 | Functional core | CLI, Cargo/Clippy collection, normalization, target deduplication, deterministic IDs, failure status, safe staged output | Continue regression coverage as features change |
-| Report navigation | Overview/lint/source pages, readable URLs, file tree and finding links | Official category data/pages and search |
+| Report navigation | Overview/category/lint/source pages, online and bundled category data, readable URLs, file tree and finding links | Search |
 | Source and diagnostics | Whole-source lexical syntax colors, line anchors/highlights, notes and grouped replacements | Precise primary/secondary ranges, suggestion diff/copy |
 | Familiar presentation | Pinned rustdoc CSS/DOM, bundled fonts/notices, favicon | Light/Dark/Auto selection, keyboard and small-screen acceptance |
 | Distribution | Local install smoke, packaged assets and notices, Rust 1.94 locked compile check | Cross-platform CI, browser/static-host checks, metadata export, release preparation |
@@ -20,7 +20,7 @@ Phase 1 functional implementation is complete. This is not a claim that every br
 
 ## Next milestones
 
-### 0. Reconcile and compare — current checkpoint
+### 0. Reconcile and compare — recorded checkpoint
 
 - Synchronize current status in README/design and preserve older execution records as history.
 - Compare this project's own rustdoc overview/item/source output against corresponding report output.
@@ -28,13 +28,13 @@ Phase 1 functional implementation is complete. This is not a claim that every br
 - Keep diagnostic-specific UI, unified source sidebar/inset, readable report URLs and JS-free basic navigation.
 - Record remaining visual/browser checks honestly; no continuing cosmetic work without a concrete problem.
 
-### 1. Official categories
+### 1. Official categories — implemented
 
-2026-11-03 policy revision: fetch version-appropriate official Clippy category data online by default. Explicit tool --offline, or online retrieval failure, uses a bundled static table by lint name even if versions differ; record its source/version and fallback reason. Unknown remains for absent/unsupported entries, and category stays independent from severity. Generated reports still work offline. Provide category lists/pages and navigation to lint/source findings. See [category design and research](docs/superpowers/specs/2026-11-03-categories-design.md); product implementation is pending.
+2026-11-03 policy, implemented 2026-11-07: fetch version-appropriate official Clippy category data online by default. Explicit tool --offline, or online retrieval failure, uses a bundled static table by lint name even if versions differ; record its source/version and fallback reason. Unknown remains for absent/unsupported entries, and category stays independent from severity. Generated reports still work offline. Category lists/pages and navigation to lint/source findings are implemented. See [category design and research](docs/superpowers/specs/2026-11-03-categories-design.md) and [validation](docs/validation/2026-11-07-categories.md). Actual browser acceptance remains manual.
 
 **Done when:** known representative lints map to verified categories, unknown entries stay reachable, and category-to-lint-to-source navigation works offline with validated relative links.
 
-### 2. Search
+### 2. Search — next product milestone
 
 Search lint names, file paths, diagnostic messages and categories using report-local data. Use classic JavaScript without runtime fetch/module/CDN dependencies; preserve basic navigation when JS is unavailable. Escape generated data and create results with safe text/local links.
 

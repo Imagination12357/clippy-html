@@ -98,7 +98,17 @@ impl Execution {
         }
     }
 }
+#[derive(Debug, Clone)]
+pub struct CategoryMetadata {
+    pub mode: String,
+    pub selector: String,
+    pub url: String,
+    pub source_hash: String,
+    pub table_hash: String,
+    pub reason: Option<String>,
+}
 pub struct Report {
+    pub category_metadata: Option<CategoryMetadata>,
     pub project: ProjectInfo,
     pub execution: Execution,
     pub raw_count: usize,

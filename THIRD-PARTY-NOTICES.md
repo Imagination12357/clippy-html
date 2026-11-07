@@ -4,6 +4,7 @@ The generator's own code remains MIT OR Apache-2.0; see LICENSE-MIT and LICENSE-
 
 | Included component | License | Original notice in this repository | Notice in generated reports |
 |---|---|---|---|
+| Extracted official Clippy category mappings | MIT option | assets/vendor/clippy/LICENSE-MIT and README.md | licenses/clippy-MIT.txt and licenses/CLIPPY-CATEGORIES.md |
 | Clippy HTML favicon, adapted from the Rust logo | CC-BY-4.0 | assets/favicon/README.md and CC-BY-4.0.txt | licenses/FAVICON.md and licenses/favicon-CC-BY-4.0.txt |
 | rustdoc CSS and derived font declarations | MIT option | assets/vendor/rustdoc/LICENSE-MIT | licenses/rustdoc-MIT.txt |
 | Adapted rustdoc lexical highlighting rules | MIT option | assets/vendor/rustdoc/LICENSE-MIT and HIGHLIGHTING.md | licenses/rustdoc-MIT.txt and licenses/HIGHLIGHTING.md |

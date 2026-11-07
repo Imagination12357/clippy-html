@@ -1,6 +1,7 @@
 mod cargo;
 mod cli;
 mod diagnostic;
+mod lint;
 mod output;
 mod render;
 mod source;
@@ -20,14 +21,25 @@ fn run(opts: cli::RunOptions) -> Result<i32, String> {
     let target = output::prepare_target(&output, &project)?;
     let collected = cargo::collect(&ctx, &opts)?;
     let raw_count = collected.messages.len();
-    let findings = diagnostic::dedup::merge_findings(
+    let mut findings = diagnostic::dedup::merge_findings(
         collected
             .messages
             .iter()
             .map(|m| diagnostic::normalize::normalize(m, &project.workspace_root))
             .collect(),
     );
+    let category_metadata = lint::metadata::resolve(&mut findings, opts.offline);
+    if let Some(metadata) = &category_metadata
+        && let Some(reason) = &metadata.reason
+        && !opts.offline
+    {
+        eprintln!(
+            "Warning: category metadata uses bundled {} data: {reason}",
+            metadata.selector
+        );
+    }
     let report = Report {
+        category_metadata,
         project,
         execution: collected.execution,
         raw_count,

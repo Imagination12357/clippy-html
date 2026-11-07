@@ -2,6 +2,33 @@ mod support;
 use scraper::{Html, Selector};
 use support::*;
 #[test]
+fn categories_link_to_lints_sources_and_record_the_bundled_origin() {
+    let f = Fixture::new("warning");
+    assert_success(&f.run(&[]));
+    let category = f.report().join("category/complexity.html");
+    assert!(
+        category.is_file(),
+        "known Clippy category should have a page"
+    );
+    let doc = Html::parse_document(&f.html("category/complexity.html"));
+    assert!(
+        doc.select(&Selector::parse("a").unwrap())
+            .any(|a| a.value().attr("href") == Some("../lint/clippy/clone_on_copy.html"))
+    );
+    let lint = Html::parse_document(&f.html("lint/clippy/clone_on_copy.html"));
+    assert!(
+        lint.select(&Selector::parse("a").unwrap())
+            .any(|a| a.value().attr("href") == Some("../../category/complexity.html"))
+    );
+    let index = f.html("index.html");
+    assert!(index.contains("category/complexity.html"));
+    assert!(index.contains("bundled"));
+    assert!(index.contains("rust-1.97.0"));
+    assert!(index.contains("Explicit tool --offline"));
+    assert!(!f.report().join("category/unknown.html").exists());
+    assert!(f.html("licenses/index.html").contains("Clippy category"));
+}
+#[test]
 fn multiline_highlighting_preserves_source_text_without_creating_html() {
     let f = Fixture::new("warning");
     let source = "#![warn(clippy::clone_on_copy)]\n#[allow(dead_code)]\npub fn copy_number(value: i32) -> i32 {\n    let _ = r##\"</span><script>alert('bad')</script>&\nfn fake() {}\"##;\n    /* outer /* nested */\n       still a comment */\n    value.clone()\n}\n";

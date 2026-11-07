@@ -149,6 +149,7 @@ mod tests {
     #[test]
     fn external_and_workspace_paths_keep_distinct_tree_entries() {
         let report = Report {
+            category_metadata: None,
             project: ProjectInfo {
                 workspace_root: "/demo".into(),
                 target_dir: "/demo/target".into(),

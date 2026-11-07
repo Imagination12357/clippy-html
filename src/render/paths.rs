@@ -5,8 +5,18 @@ use std::{
     path::{Path, PathBuf},
 };
 pub struct PageMap {
+    pub category_pages: BTreeMap<String, PathBuf>,
     pub lint_pages: BTreeMap<String, PathBuf>,
     pub source_pages: BTreeMap<PathBuf, PathBuf>,
+}
+pub fn category_key(finding: &crate::diagnostic::model::Finding) -> Option<&str> {
+    (finding.origin == "Clippy").then(|| {
+        finding
+            .category
+            .as_deref()
+            .filter(|c| crate::lint::metadata::CATEGORIES.contains(c))
+            .unwrap_or("unknown")
+    })
 }
 fn assigned_paths<K: Ord>(
     candidates: BTreeMap<K, PathBuf>,
@@ -175,6 +185,17 @@ pub fn build_page_map(report: &Report, sources: &BTreeMap<PathBuf, SourceFile>) 
             .to_string()
     });
     PageMap {
+        category_pages: report
+            .findings
+            .iter()
+            .filter_map(category_key)
+            .map(|name| {
+                (
+                    name.to_owned(),
+                    PathBuf::from(format!("category/{name}.html")),
+                )
+            })
+            .collect(),
         lint_pages,
         source_pages,
     }
@@ -228,6 +249,7 @@ mod tests {
             Some("clippy::foo"),
         ];
         let mut report = Report {
+            category_metadata: None,
             project: ProjectInfo {
                 workspace_root: "/demo".into(),
                 target_dir: "/demo/target".into(),
@@ -304,6 +326,7 @@ mod tests {
     fn source_names_preserve_hierarchy_without_unsafe_or_colliding_paths() {
         use crate::diagnostic::model::*;
         let report = Report {
+            category_metadata: None,
             project: ProjectInfo {
                 workspace_root: "/demo".into(),
                 target_dir: "/demo/target".into(),

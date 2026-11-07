@@ -1,3 +1,5 @@
+#[path = "categories.rs"]
+mod categories;
 use super::paths::PageMap;
 use super::paths::{group_key, relative_href};
 use crate::source::{all_spans, span_matches};
@@ -40,6 +42,8 @@ struct Page<'a> {
 #[derive(Template)]
 #[template(path = "index.html")]
 struct Index<'a> {
+    categories: Vec<categories::CategoryRow>,
+    category_metadata: Option<&'a CategoryMetadata>,
     workspace: String,
     status: &'static str,
     exit: String,
@@ -106,6 +110,7 @@ struct SuggestionView {
     replacements: Vec<ReplacementView>,
 }
 struct FindingView {
+    category_href: String,
     id: String,
     level: String,
     code: String,
@@ -337,12 +342,19 @@ fn views(
                     .unwrap_or_else(|| "General diagnostic".into()),
                 message: f.message.clone(),
                 origin: f.origin.clone(),
-                category: if f.origin == "Clippy" {
-                    "Category: Unknown"
-                } else {
-                    "Category: not applicable"
-                }
-                .into(),
+                category: super::paths::category_key(f).map_or_else(
+                    || "Category: not applicable".into(),
+                    |key| {
+                        format!(
+                            "Category: {}",
+                            if key == "unknown" { "Unknown" } else { key }
+                        )
+                    },
+                ),
+                category_href: super::paths::category_key(f)
+                    .and_then(|key| pages.category_pages.get(key))
+                    .map(|target| relative_href(from, target, None))
+                    .unwrap_or_default(),
                 package: packages
                     .iter()
                     .find(|p| p.id == f.package_id)
@@ -414,6 +426,8 @@ pub fn render_report(
         })
         .collect();
     let index = Index {
+        categories: categories::rows(report, pages, index_path),
+        category_metadata: report.category_metadata.as_ref(),
         workspace: {
             let members: Vec<_> = report
                 .project
@@ -494,7 +508,7 @@ pub fn render_report(
         stdout: &report.execution.text_stdout,
         stdout_truncated: report.execution.stdout_truncated,
     };
-    let sidebar = vec![
+    let mut sidebar = vec![
         Link {
             href: "#packages".into(),
             text: "Workspace packages".into(),
@@ -508,6 +522,12 @@ pub fn render_report(
             text: "Source files".into(),
         },
     ];
+    if !index.categories.is_empty() {
+        sidebar.push(Link {
+            href: "#categories".into(),
+            text: "Categories".into(),
+        });
+    }
     write_page(
         destination,
         index_path,
@@ -587,6 +607,7 @@ pub fn render_report(
             },
         )?;
     }
+    categories::write(report, pages, destination)?;
     let source_counts = super::navigation::source_counts(&report.findings);
     for (key, source) in sources {
         let path = &pages.source_pages[key];
@@ -816,6 +837,7 @@ mod tests {
             reason: None,
         };
         let pages = PageMap {
+            category_pages: BTreeMap::new(),
             lint_pages: BTreeMap::from([(group_key(&f), PathBuf::from("lint/a.html"))]),
             source_pages: BTreeMap::new(),
         };
@@ -861,6 +883,7 @@ mod tests {
             },
         )]);
         let pages = PageMap {
+            category_pages: BTreeMap::new(),
             lint_pages: BTreeMap::new(),
             source_pages: BTreeMap::from([(f.spans[0].path.clone(), PathBuf::from("src/a.html"))]),
         };
@@ -874,6 +897,7 @@ mod tests {
     fn empty_report_has_success_status_and_valid_license_links() {
         let t = tempfile::tempdir().unwrap();
         let report = Report {
+            category_metadata: None,
             project: ProjectInfo {
                 workspace_root: PathBuf::from("/demo"),
                 target_dir: PathBuf::from("/demo/target"),
@@ -938,6 +962,7 @@ mod tests {
         second.level = "error".into();
         second.spans.push(second.spans[0].clone());
         let report = Report {
+            category_metadata: None,
             project: ProjectInfo {
                 workspace_root: PathBuf::from("/demo"),
                 target_dir: PathBuf::from("/demo/target"),
