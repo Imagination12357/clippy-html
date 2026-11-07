@@ -55,6 +55,12 @@ have row context rather than fabricated character ranges. Settings remains next.
 
 ## Browser boundary
 
+User follow-up: the actual preview's 15 source pages have no secondary ranges,
+so no dashed-range location exists to link. Static comparison confirmed the
+primary/secondary underline scheme is report-specific, not part of the pinned
+rustdoc stylesheet. The user found 2px underlines too heavy; reduced underline
+thickness to 1px, retaining solid/dashed distinction and the insertion caret.
+
 No browser was launched and no local-file policy workaround was used. Parsed
 HTML proves text/classes/links, not the underline's pixel appearance, copy/paste
 behavior, font metrics or screen-reader announcements. Manual checks should cover
