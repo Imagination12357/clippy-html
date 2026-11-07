@@ -57,11 +57,22 @@ have row context rather than fabricated character ranges. Settings remains next.
 
 Current presentation after user review: preserve rustdoc's pale whole-line
 background and replace underlines with a stronger exact-range background.
-Primary reuses the pinned --scrape-example-code-line-highlight-focus variable
-(#f6fdb0 in light); secondary mixes it 60% with the existing whole-line highlight.
+Primary initially reused --scrape-example-code-line-highlight-focus (#f6fdb0
+in light). Following the user's request for stronger yellow, the range background
+mixes that variable 65% with #ffd43b; secondary mixes this stronger result 60%
+with the existing whole-line highlight.
 No pinned stylesheet or token foreground changes. Carets and range ownership
 titles remain; the legend describes the new background treatment. This
 supersedes the initial solid/dashed and 1px underline decisions below.
+
+Indentation follow-up: omit leading ASCII spaces/tabs from the stronger range
+background when they are ordinary layout whitespace and the validated diagnostic
+span contains non-whitespace. Keep whitespace-only diagnostic spans, insertion
+points and leading text inside multiline strings/comments. No lint-name guessing;
+original source, coordinates, labels, row context and links remain unchanged.
+The regression failed with highlighted indentation before the fix; it passes for
+CRLF/Unicode/tab layout, explicit whitespace-only spans and multiline literal/
+comment content afterward. Full Rust suite: 65 unit + 11 integration pass.
 
 User follow-up: the actual preview's 15 source pages have no secondary ranges,
 so no dashed-range location exists to link. Static comparison confirmed the

@@ -179,6 +179,9 @@ fn source_rows(
             if !validate(source, span) {
                 continue;
             }
+            let whitespace_only = text[span.byte_start..span.byte_end]
+                .chars()
+                .all(char::is_whitespace);
             for number in span.line_start..=span.line_end {
                 let insertion = span.byte_start == span.byte_end;
                 if !insertion
@@ -194,7 +197,7 @@ fn source_rows(
                         .nth(column - 1)
                         .map_or(line.len(), |(byte, _)| byte)
                 };
-                let start = if number == span.line_start {
+                let mut start = if number == span.line_start {
                     offset(span.column_start)
                 } else {
                     0
@@ -204,6 +207,16 @@ fn source_rows(
                 } else {
                     line.len()
                 };
+                // Hide layout indentation only; literal/comment whitespace and
+                // diagnostics explicitly targeting whitespace retain their range.
+                if !whitespace_only
+                    && lexical[number - 1]
+                        .first()
+                        .is_some_and(|f| f.class.is_none())
+                {
+                    let indent = line.len() - line.trim_start_matches([' ', '\t']).len();
+                    start = start.max(indent);
+                }
                 if start < end || insertion {
                     let kind = if span.primary { "Primary" } else { "Secondary" };
                     annotations[number - 1].push(super::ranges::Range {
@@ -911,6 +924,66 @@ mod tests {
             text.replace("\r\n", "\n")
         );
         assert!(rows.iter().all(|r| r.links.len() == 1));
+    }
+    #[test]
+    fn range_background_omits_layout_indent_but_preserves_whitespace_targets_and_literals() {
+        fn marked(text: &str, positions: &[(usize, usize, usize, usize, bool)]) -> Vec<String> {
+            let finding = positioned_finding(text, positions);
+            let source = SourceFile {
+                display_path: "a.rs".into(),
+                text: Some(text.into()),
+                reason: None,
+            };
+            let pages = PageMap {
+                category_pages: BTreeMap::new(),
+                source_pages: BTreeMap::new(),
+                lint_pages: BTreeMap::from([(group_key(&finding), "lint/a.html".into())]),
+            };
+            let rows = source_rows(
+                &source,
+                &finding.spans[0].path,
+                Path::new("src/a.rs.html"),
+                &[&finding],
+                &pages,
+                &span_matches,
+            );
+            assert_eq!(
+                rows.iter()
+                    .map(|r| r
+                        .fragments
+                        .iter()
+                        .map(|f| f.text.as_str())
+                        .collect::<String>())
+                    .collect::<Vec<_>>()
+                    .join("\n"),
+                text.replace("\r\n", "\n")
+            );
+            rows.iter()
+                .map(|r| {
+                    r.fragments
+                        .iter()
+                        .filter(|f| f.class.contains("primary"))
+                        .map(|f| f.text.as_str())
+                        .collect()
+                })
+                .collect()
+        }
+        assert_eq!(
+            marked("\t  한글\r\n    next", &[(1, 1, 2, 9, true)]),
+            ["한글", "next"]
+        );
+        assert_eq!(marked("\t  value", &[(1, 1, 1, 4, true)]), ["\t  "]);
+        assert_eq!(
+            marked(
+                "let s = r#\"first\n  literal\nlast\"#;",
+                &[(2, 1, 2, 10, true)]
+            ),
+            ["", "  literal", ""]
+        );
+        assert_eq!(
+            marked("/* first\n  comment\n*/", &[(2, 1, 2, 10, true)]),
+            ["", "  comment", ""]
+        );
     }
     #[test]
     fn repeated_location_promotes_primary_and_keeps_labels() {

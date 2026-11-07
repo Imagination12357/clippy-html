@@ -15,8 +15,9 @@
 .source-scroll { overflow: auto; }
 .example-wrap pre code .code-line { display: block; min-height: 1.5em; scroll-margin-top: 24px; }
 .source-code .diagnostic-line { background: var(--src-line-number-highlighted-background-color); }
-.source-code .diagnostic-span:not(.insertion) { background-color: var(--scrape-example-code-line-highlight-focus); }
-.source-code .diagnostic-span.secondary:not(.insertion) { background-color: color-mix(in srgb, var(--scrape-example-code-line-highlight-focus) 60%, var(--src-line-number-highlighted-background-color)); }
+.source-code { --diagnostic-range-background: color-mix(in srgb, var(--scrape-example-code-line-highlight-focus) 65%, #ffd43b); }
+.source-code .diagnostic-span:not(.insertion) { background-color: var(--diagnostic-range-background); }
+.source-code .diagnostic-span.secondary:not(.insertion) { background-color: color-mix(in srgb, var(--diagnostic-range-background) 60%, var(--src-line-number-highlighted-background-color)); }
 .source-code .diagnostic-span.insertion { display: inline-block; position: relative; width: 0; height: 1em; vertical-align: text-bottom; }
 .source-code .diagnostic-span.insertion::before { content: ""; position: absolute; left: 0; height: 1em; border-left: 2px solid var(--main-color); }
 .source-code .diagnostic-span.insertion.secondary::before { border-left-style: dashed; }
