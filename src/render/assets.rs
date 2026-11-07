@@ -19,6 +19,10 @@ macro_rules! font_license {
 }
 const FILES: &[(&str, &[u8])] = &[
     (
+        "static.files/search-engine.js",
+        include_bytes!("../../assets/search-engine.js"),
+    ),
+    (
         "licenses/CLIPPY-CATEGORIES.md",
         include_bytes!("../../assets/vendor/clippy/README.md"),
     ),
