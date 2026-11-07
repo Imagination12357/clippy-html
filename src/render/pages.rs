@@ -517,10 +517,6 @@ pub fn render_report(
             href: "#lints".into(),
             text: "Diagnostic kinds".into(),
         },
-        Link {
-            href: "#files".into(),
-            text: "Source files".into(),
-        },
     ];
     if !index.categories.is_empty() {
         sidebar.push(Link {
@@ -528,6 +524,10 @@ pub fn render_report(
             text: "Categories".into(),
         });
     }
+    sidebar.push(Link {
+        href: "#files".into(),
+        text: "Source files".into(),
+    });
     write_page(
         destination,
         index_path,
