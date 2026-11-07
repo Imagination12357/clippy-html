@@ -2,7 +2,7 @@
 
 Clippy의 구조화된 진단을 rustdoc 스타일의 정적 HTML 문서로 탐색하는 Cargo 서브커맨드입니다.
 
-**기능 코어와 일부 후속 인터페이스가 구현되어 있습니다.** 실제 Clippy 진단 수집, 중복 병합, 홈·category·진단 종류·전체 소스 페이지, 파일 트리, 검색, 구문 색칠, 줄 anchor, child 진단과 suggestion replacement 표시를 제공합니다. 정밀 진단 span, suggestion diff/copy, 테마 선택, metadata export는 남아 있습니다. 현재 상태·완료 기준·검증 과제는 [로드맵](ROADMAP.md)을 기준으로 봅니다.
+**기능 코어와 일부 후속 인터페이스가 구현되어 있습니다.** 실제 Clippy 진단 수집, 중복 병합, 홈·category·진단 종류·전체 소스 페이지, 파일 트리, 검색, 구문 색칠, 정밀 primary/secondary 범위, 줄 anchor, child 진단과 suggestion replacement 표시를 제공합니다. suggestion diff/copy, 테마 선택, metadata export는 남아 있습니다. 현재 상태·완료 기준·검증 과제는 [로드맵](ROADMAP.md)을 기준으로 봅니다.
 
 ## 설치와 실행
 
@@ -41,6 +41,7 @@ Search 버튼 또는 `S`·`/`로 rustdoc처럼 본문 자리에 검색 화면을
 - 진단 종류 페이지에는 code, 실제 severity, target, primary/secondary 위치, note/help, suggestion 묶음과 applicability를 표시합니다.
 - 진단 URL은 `lint/clippy/clone_on_copy.html`, `lint/rustc/E0308.html`처럼 출처와 코드를 사용합니다. 코드 없는 진단은 `lint/general.html`에 모읍니다. 기존 해시 URL은 보고서를 재생성하면 변경됩니다.
 - 소스 페이지에는 관련 workspace 파일의 전체 코드, 줄 번호, 줄 단위 진단 표시, finding 링크를 표시합니다.
+- 전체 소스의 정확한 진단 범위는 primary 실선·secondary 점선 밑줄로 구분합니다. 삽입 위치는 caret으로 표시하고, 범위의 tooltip에 lint와 위치 설명을 보존합니다. 기존 구문 색칠은 유지하며 소스가 진단 좌표와 맞지 않으면 정밀 표시 없이 원본 snippet을 제공합니다.
 - 소스 화면은 생성 시 Rust 토큰을 분류하여 rustdoc CSS로 키워드·문자열·주석·숫자·lifetime·매크로 등을 색칠합니다. 여러 줄 문자열과 중첩 주석의 문맥을 보존하며 JavaScript는 필요하지 않습니다. 타입 의미 분석이나 정의 이동은 제공하지 않습니다. [구현 출처와 범위](assets/vendor/rustdoc/HIGHLIGHTING.md)
 - 소스 HTML은 `src/diagnostic/normalize.rs.html`처럼 원래 경로를 알아볼 수 있는 이름을 사용합니다. 위험한 파일명 문자는 인코딩하고 충돌 시 식별자를 붙입니다. 소스 사이드바의 Files 트리에는 진단에 포함된 파일과 진단 수를 표시하며, 현재 파일의 경로를 펼칩니다. Findings in this file 목록에서 해당 줄로 이동할 수 있습니다.
 - 홈에서 category별 finding 수와 lint 종류 수를 확인하고 category → lint → 소스로 이동할 수 있습니다. 분류 출처·기준 버전·fallback 사유는 홈의 Category data에서 확인합니다. 동봉 표는 실행한 Clippy와 버전이 달라도 이름으로 적용하므로 분류가 다를 수 있습니다. 선택한 표에 없는 이름은 Unknown으로 남기고, rustc/general 진단은 Clippy category에 포함하지 않습니다. Category 정보는 severity나 finding ID를 바꾸지 않습니다.

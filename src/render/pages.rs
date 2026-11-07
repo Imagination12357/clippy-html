@@ -135,7 +135,7 @@ struct Lint {
 struct Licenses;
 struct SourceRow {
     number: usize,
-    fragments: Vec<super::highlight::Fragment>,
+    fragments: Vec<super::ranges::Fragment>,
     marked: bool,
     links: Vec<Link>,
 }
@@ -145,6 +145,7 @@ struct SourceView {
     reason: String,
     rows: Vec<SourceRow>,
     digits: usize,
+    has_ranges: bool,
 }
 
 fn source_rows(
@@ -158,12 +159,16 @@ fn source_rows(
     let Some(text) = source.text.as_deref() else {
         return vec![];
     };
-    let mut rows: Vec<_> = super::highlight::lines(text)
-        .into_iter()
+    let lexical = super::highlight::lines(text);
+    let lines: Vec<_> = text.split('\n').map(|s| s.trim_end_matches('\r')).collect();
+    let mut annotations: Vec<Vec<super::ranges::Range>> =
+        (0..lexical.len()).map(|_| vec![]).collect();
+    let mut rows: Vec<_> = lexical
+        .iter()
         .enumerate()
-        .map(|(i, fragments)| SourceRow {
+        .map(|(i, _)| SourceRow {
             number: i + 1,
-            fragments,
+            fragments: vec![],
             marked: false,
             links: vec![],
         })
@@ -175,6 +180,44 @@ fn source_rows(
                 continue;
             }
             for number in span.line_start..=span.line_end {
+                let insertion = span.byte_start == span.byte_end;
+                if !insertion
+                    && number == span.line_end
+                    && number > span.line_start
+                    && span.column_end == 1
+                {
+                    continue;
+                }
+                let line = lines[number - 1];
+                let offset = |column: usize| {
+                    line.char_indices()
+                        .nth(column - 1)
+                        .map_or(line.len(), |(byte, _)| byte)
+                };
+                let start = if number == span.line_start {
+                    offset(span.column_start)
+                } else {
+                    0
+                };
+                let end = if number == span.line_end {
+                    offset(span.column_end)
+                } else {
+                    line.len()
+                };
+                if start < end || insertion {
+                    let kind = if span.primary { "Primary" } else { "Secondary" };
+                    annotations[number - 1].push(super::ranges::Range {
+                        start,
+                        end,
+                        primary: span.primary,
+                        title: format!(
+                            "{kind} · {}{}{}",
+                            finding.code.as_deref().unwrap_or("diagnostic"),
+                            if span.label.is_some() { ": " } else { "" },
+                            span.label.as_deref().unwrap_or("")
+                        ),
+                    });
+                }
                 if let Some(row) = rows.get_mut(number - 1)
                     && assigned.insert((number, &finding.id))
                 {
@@ -194,6 +237,9 @@ fn source_rows(
                 }
             }
         }
+    }
+    for ((row, fragments), ranges) in rows.iter_mut().zip(lexical).zip(annotations) {
+        row.fragments = super::ranges::annotate(fragments, &ranges);
     }
     rows
 }
@@ -247,6 +293,7 @@ fn display_spans(f: &Finding) -> Vec<Span> {
     for span in all_spans(f) {
         let key = (span.path.clone(), span.byte_start, span.byte_end);
         if let Some(&index) = seen.get(&key) {
+            result[index].primary |= span.primary;
             if let Some(label) = &span.label {
                 let existing = &mut result[index].label;
                 if existing.as_deref() != Some(label) {
@@ -621,6 +668,9 @@ pub fn render_report(
         let mut content = render(&SourceView {
             reason: source.reason.clone().unwrap_or_default(),
             digits: rows.len().max(1).to_string().len(),
+            has_ranges: rows
+                .iter()
+                .any(|row| row.fragments.iter().any(|f| !f.title.is_empty())),
             rows,
         })?;
         content.push_str(&render(&Lint {
@@ -749,6 +799,232 @@ pub fn validate_report(destination: &Path) -> Result<(), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    fn positioned_finding(text: &str, positions: &[(usize, usize, usize, usize, bool)]) -> Finding {
+        let cargo_metadata::Message::CompilerMessage(message) =
+            serde_json::from_value(crate::diagnostic::sample()).unwrap()
+        else {
+            panic!()
+        };
+        let mut finding = crate::diagnostic::normalize::normalize(&message, Path::new("/demo"));
+        finding.id = "range-test".into();
+        let original = finding.spans[0].clone();
+        let lines: Vec<_> = text.split('\n').collect();
+        let offset = |line: usize, column: usize| {
+            lines
+                .iter()
+                .take(line - 1)
+                .map(|s| s.len() + 1)
+                .sum::<usize>()
+                + lines[line - 1]
+                    .trim_end_matches('\r')
+                    .char_indices()
+                    .nth(column - 1)
+                    .map_or(lines[line - 1].trim_end_matches('\r').len(), |(i, _)| i)
+        };
+        finding.spans = positions
+            .iter()
+            .map(
+                |&(line_start, column_start, line_end, column_end, primary)| {
+                    let mut span = original.clone();
+                    span.line_start = line_start;
+                    span.line_end = line_end;
+                    span.column_start = column_start;
+                    span.column_end = column_end;
+                    span.byte_start = offset(line_start, column_start);
+                    span.byte_end = offset(line_end, column_end);
+                    span.primary = primary;
+                    span.text = lines[line_start - 1..line_end]
+                        .iter()
+                        .map(|s| SnippetLine {
+                            text: s.trim_end_matches('\r').into(),
+                            highlight_start: 1,
+                            highlight_end: 1,
+                        })
+                        .collect();
+                    span
+                },
+            )
+            .collect();
+        finding.children.clear();
+        finding.suggestions.clear();
+        finding
+    }
+    #[test]
+    fn source_ranges_project_multiline_crlf_unicode_tabs_and_eof() {
+        let text = "\t한글 + value\r\nnext(\"<&>\");\r\n";
+        let finding = positioned_finding(
+            text,
+            &[(1, 2, 2, 1, true), (2, 1, 2, 5, false), (3, 1, 3, 1, true)],
+        );
+        let key = &finding.spans[0].path;
+        let source = SourceFile {
+            display_path: "a.rs".into(),
+            text: Some(text.into()),
+            reason: None,
+        };
+        let pages = PageMap {
+            category_pages: BTreeMap::new(),
+            source_pages: BTreeMap::new(),
+            lint_pages: BTreeMap::from([(group_key(&finding), "lint/a.html".into())]),
+        };
+        let rows = source_rows(
+            &source,
+            key,
+            Path::new("src/a.rs.html"),
+            &[&finding],
+            &pages,
+            &span_matches,
+        );
+        let primary: String = rows[0]
+            .fragments
+            .iter()
+            .filter(|f| f.class.contains("primary"))
+            .map(|f| f.text.as_str())
+            .collect();
+        assert_eq!(primary, "한글 + value");
+        assert!(
+            !rows[1]
+                .fragments
+                .iter()
+                .any(|f| f.class.contains("primary")),
+            "end is exclusive at next-line column 1"
+        );
+        assert_eq!(
+            rows[1]
+                .fragments
+                .iter()
+                .filter(|f| f.class.contains("secondary"))
+                .map(|f| f.text.as_str())
+                .collect::<String>(),
+            "next"
+        );
+        assert_eq!(rows[2].fragments.iter().filter(|f| f.insertion).count(), 1);
+        assert_eq!(
+            rows.iter()
+                .map(|r| r
+                    .fragments
+                    .iter()
+                    .map(|f| f.text.as_str())
+                    .collect::<String>())
+                .collect::<Vec<_>>()
+                .join("\n"),
+            text.replace("\r\n", "\n")
+        );
+        assert!(rows.iter().all(|r| r.links.len() == 1));
+    }
+    #[test]
+    fn repeated_location_promotes_primary_and_keeps_labels() {
+        let mut finding = positioned_finding("value", &[(1, 1, 1, 6, false), (1, 1, 1, 6, true)]);
+        finding.spans[0].label = Some("related".into());
+        finding.spans[1].label = Some("problem".into());
+        let spans = display_spans(&finding);
+        assert_eq!(spans.len(), 1);
+        assert!(spans[0].primary);
+        assert_eq!(spans[0].label.as_deref(), Some("related; problem"));
+    }
+    #[test]
+    fn changed_source_keeps_snippet_fallback_without_precise_annotations() {
+        let finding = positioned_finding("before", &[(1, 1, 1, 4, true)]);
+        let key = &finding.spans[0].path;
+        let source = SourceFile {
+            display_path: "a.rs".into(),
+            text: Some("after!".into()),
+            reason: None,
+        };
+        let pages = PageMap {
+            category_pages: BTreeMap::new(),
+            source_pages: BTreeMap::from([(key.clone(), "src/a.rs.html".into())]),
+            lint_pages: BTreeMap::from([(group_key(&finding), "lint/a.html".into())]),
+        };
+        let rows = source_rows(
+            &source,
+            key,
+            Path::new("src/a.rs.html"),
+            &[&finding],
+            &pages,
+            &span_matches,
+        );
+        assert!(
+            rows.iter()
+                .all(|r| !r.marked && r.fragments.iter().all(|f| f.title.is_empty()))
+        );
+        let sources = BTreeMap::from([(key.clone(), source)]);
+        let rendered = views(&[&finding], Path::new("lint/a.html"), &sources, &pages, &[]);
+        assert!(
+            rendered[0].locations[0]
+                .href
+                .ends_with("#finding-range-test")
+        );
+        assert!(
+            rendered[0].locations[0]
+                .note
+                .contains("source unavailable or changed")
+        );
+        assert_eq!(rendered[0].locations[0].snippet, "before");
+    }
+    #[test]
+    fn precise_range_markup_preserves_escaped_source_and_caret_labels() {
+        let text = "<script>한글";
+        let ranges = [
+            super::super::ranges::Range {
+                start: 0,
+                end: 8,
+                primary: true,
+                title: "Primary: <img onerror=bad>".into(),
+            },
+            super::super::ranges::Range {
+                start: 8,
+                end: text.len(),
+                primary: false,
+                title: "Secondary: related".into(),
+            },
+            super::super::ranges::Range {
+                start: text.len(),
+                end: text.len(),
+                primary: true,
+                title: "Primary: insert".into(),
+            },
+        ];
+        let fragments =
+            super::super::ranges::annotate(super::super::highlight::lines(text).remove(0), &ranges);
+        let html = render(&SourceView {
+            reason: String::new(),
+            digits: 1,
+            has_ranges: true,
+            rows: vec![SourceRow {
+                number: 1,
+                fragments,
+                marked: true,
+                links: vec![],
+            }],
+        })
+        .unwrap();
+        let doc = scraper::Html::parse_fragment(&html);
+        let select = |s| scraper::Selector::parse(s).unwrap();
+        assert_eq!(
+            doc.select(&select(".line-text"))
+                .next()
+                .unwrap()
+                .text()
+                .collect::<String>(),
+            text
+        );
+        assert_eq!(doc.select(&select("script,img,[onerror]")).count(), 0);
+        assert_eq!(
+            doc.select(&select(".diagnostic-span.primary:not(.insertion)"))
+                .flat_map(|e| e.text())
+                .collect::<String>(),
+            "<script>"
+        );
+        assert_eq!(
+            doc.select(&select(".diagnostic-span.secondary"))
+                .flat_map(|e| e.text())
+                .collect::<String>(),
+            "한글"
+        );
+        let caret = doc.select(&select(".insertion[role=img]")).next().unwrap();
+        assert_eq!(caret.value().attr("aria-label"), Some("Primary: insert"));
+    }
     #[test]
     fn missing_or_nonlocal_search_scripts_are_rejected() {
         let t = tempfile::tempdir().unwrap();

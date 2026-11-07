@@ -1,6 +1,6 @@
 # Current roadmap
 
-Updated 2026-11-07 after official category and search implementation. This document is the current milestone/status index. DETAILS.md remains the full product specification with later approved design decisions applied; older plans and ledgers preserve execution history rather than current status.
+Updated 2026-11-07 after official category, search and precise source-range implementation. This document is the current milestone/status index. DETAILS.md remains the full product specification with later approved design decisions applied; older plans and ledgers preserve execution history rather than current status.
 
 ## Product boundary
 
@@ -12,7 +12,7 @@ Clippy's structured diagnostics become portable, offline static HTML with rustdo
 |---|---|---|
 | Functional core | CLI, Cargo/Clippy collection, normalization, target deduplication, deterministic IDs, failure status, safe staged output | Continue regression coverage as features change |
 | Report navigation | Overview/category/lint/source pages, online and bundled category data, readable URLs, file tree, finding links and report-local search | Browser acceptance of search |
-| Source and diagnostics | Whole-source lexical syntax colors, line anchors/highlights, notes and grouped replacements | Precise primary/secondary ranges, suggestion diff/copy |
+| Source and diagnostics | Whole-source lexical syntax colors, precise primary/secondary ranges and insertion carets, line anchors/highlights, notes and grouped replacements | Suggestion diff/copy |
 | Familiar presentation | Pinned rustdoc CSS/DOM, bundled fonts/notices, favicon | Light/Dark/Auto selection, keyboard and small-screen acceptance |
 | Distribution | Local install smoke, packaged assets and notices, Rust 1.94 locked compile check | Cross-platform CI, browser/static-host checks, metadata export, release preparation |
 
@@ -47,6 +47,11 @@ narrow-screen browser acceptance remain manual.
 **Done when:** the user can find each supported result kind and reach its lint/source/category location from a file:// report, including Unicode inputs and empty/no-match cases.
 
 ### 3. Diagnostic understanding
+
+Precise full-source ranges implemented 2026-11-07: solid/dashed underlines,
+insertion carets, overlap labels and unchanged-source validation. See
+[range validation](docs/validation/2026-11-07-source-ranges.md). The user selected
+Settings/theme work next, ahead of the remaining suggestion diff/copy work.
 
 Precise primary/secondary span presentation, then grouped suggestion before/after diff and copy. Preserve multipart suggestions as a unit; do not synthesize misleading diffs for stale source, invalid coordinates or overlapping edits. Keep original snippets/replacements as fallback; never modify the user's code.
 

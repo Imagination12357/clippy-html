@@ -136,6 +136,12 @@ fn multiline_highlighting_preserves_source_text_without_creating_html() {
                 .collect::<String>()
                 .contains("clippy::clone_on_copy"))
     );
+    let marked = doc
+        .select(&Selector::parse("#L8 .diagnostic-span.primary").unwrap())
+        .flat_map(|span| span.text())
+        .collect::<String>();
+    assert!(marked.contains("clone"));
+    assert!(!marked.contains("pub fn"));
 }
 #[test]
 fn reports_bundle_original_fonts_and_separate_licenses() {

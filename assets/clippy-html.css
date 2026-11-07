@@ -15,6 +15,12 @@
 .source-scroll { overflow: auto; }
 .example-wrap pre code .code-line { display: block; min-height: 1.5em; scroll-margin-top: 24px; }
 .source-code .diagnostic-line { background: var(--src-line-number-highlighted-background-color); }
+.source-code .diagnostic-span { text-decoration-line: underline; text-decoration-color: var(--main-color); text-decoration-thickness: 2px; text-underline-offset: .2em; text-decoration-skip-ink: none; }
+.source-code .diagnostic-span.secondary { text-decoration-style: dashed; }
+.source-code .diagnostic-span.insertion { display: inline-block; position: relative; width: 0; height: 1em; vertical-align: text-bottom; }
+.source-code .diagnostic-span.insertion::before { content: ""; position: absolute; left: 0; height: 1em; border-left: 2px solid var(--main-color); }
+.source-code .diagnostic-span.insertion.secondary::before { border-left-style: dashed; }
+.range-legend { color: var(--right-side-color); font-size: .875rem; }
 .diagnostic-marker { font-size: .8rem; margin-left: 1ch; }
 .source-files, .source-findings { margin-bottom: 1.5em; }
 .source-files { padding-left: var(--sidebar-elems-left-padding); }
