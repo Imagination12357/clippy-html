@@ -89,6 +89,25 @@ test("native popover toggles, dismisses, restores focus and preserves modified l
     button.click(); panel.querySelector("input").focus(); s.doc.getElementById("main-content").focus();
     await Promise.resolve(); assert.equal(panel.style.display, "none"); s.dom.window.close();
 });
+test("internal pointer focus transitions keep the popup open during the body-focus interval", async () => {
+    for (const selector of ['#word-wrap-source-code', 'input[name="theme"][value="ayu"]', '.setting-radio-name']) {
+        const s = setup({ ui: true }), button = s.doc.querySelector(".settings-menu > a"), panel = s.doc.getElementById("settings");
+        button.focus(); button.click();
+        const target = panel.querySelector(selector);
+        const nextFocus = target instanceof s.w.HTMLInputElement ? target : panel;
+        // Browsers may run microtasks between focusout and the next focus event.
+        // jsdom's .focus() completes both synchronously, so expose that interval.
+        Object.defineProperty(s.doc, "activeElement", { configurable: true, get: () => s.doc.body });
+        button.dispatchEvent(new s.w.FocusEvent("focusout", { bubbles: true, relatedTarget: nextFocus }));
+        await Promise.resolve();
+        assert.equal(panel.style.display, "", `${selector}: focus is moving inside the popup`);
+        delete s.doc.activeElement;
+        nextFocus.focus(); target.click(); await Promise.resolve();
+        assert.equal(panel.style.display, "", `${selector}: internal activation must not dismiss`);
+        assert.equal(button.getAttribute("aria-expanded"), "true");
+        s.dom.window.close();
+    }
+});
 test("standalone settings uses native section structure and applies preferences", () => {
     const s = setup({ ui: true, page: true }); const panel = s.doc.getElementById("settings");
     assert.ok(panel, "standalone settings section exists"); assert.equal(panel.tagName, "SECTION");

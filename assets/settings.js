@@ -94,7 +94,12 @@
         else { sync(); opened = true; panel.style.display = ""; button.setAttribute("aria-expanded", "true"); }
     });
     document.addEventListener("click", event => { if (!menu.contains(event.target)) close(); });
-    menu.addEventListener("focusout", () => { queueMicrotask(() => { if (!menu.contains(document.activeElement)) close(); }); });
+    menu.addEventListener("focusout", event => {
+        // During focusout activeElement can briefly be body. Native rustdoc also
+        // checks relatedTarget so moving between popup controls does not dismiss it.
+        if (menu.contains(event.relatedTarget)) return;
+        queueMicrotask(() => { if (!menu.contains(document.activeElement)) close(); });
+    });
     document.addEventListener("keydown", event => {
         if (event.key === "Escape" && !event.isComposing && !event.ctrlKey && !event.altKey && !event.metaKey && api.get("disable-shortcuts") !== "true" && opened) {
             event.preventDefault(); close(true);
