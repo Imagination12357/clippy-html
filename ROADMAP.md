@@ -14,7 +14,7 @@ Clippy's structured diagnostics become portable, offline static HTML with rustdo
 | Report navigation | Overview/category/lint/source pages, online and bundled category data, readable URLs, file tree, finding links and report-local search | Browser acceptance of search |
 | Source and diagnostics | Whole-source lexical syntax colors, precise primary/secondary ranges and insertion carets, line anchors/highlights, notes and grouped replacements | Suggestion diff/copy |
 | Familiar presentation | Pinned rustdoc CSS/DOM, bundled fonts/notices, favicon, native Settings structure and light/dark/ayu/system preference | Browser theme/keyboard/small-screen acceptance |
-| Distribution | Local install smoke, packaged assets and notices, Rust 1.88 all-target locked check and full tests on Windows | Cross-platform CI, browser/static-host checks, metadata export, release preparation |
+| Distribution | Local install smoke, packaged assets and notices, Rust 1.88 all-target locked check and full tests on Windows; cross-platform CI and online self-report/Pages workflow configured | Hosted CI/Pages first run, browser/static-host checks, metadata export, release preparation |
 
 Phase 1 functional implementation is complete. This is not a claim that every browser/platform acceptance check has passed. Interface work from Phase 2 and font/license work originally in Phase 3 were intentionally brought forward in user-directed follow-ups.
 
@@ -78,7 +78,7 @@ Add opt-in --metadata <FILE>, schema/version and safe output-path handling. Veri
 
 ## Verification throughout
 
-- Bring the baseline Windows/Linux/macOS test matrix forward from the original final phase as an early follow-up, rather than discovering platform defects at release time. No cross-platform pass is claimed until CI actually runs.
+- The Windows/Linux/macOS stable test matrix, Linux 1.88 compile check, quality/DOM checks and online self-report/Pages workflow were configured on 2026-11-10. No hosted cross-platform or Pages pass is claimed until CI actually runs. See [CI validation](docs/validation/2026-11-10-ci.md).
 - Run relevant tests at each feature checkpoint; preserve forwarding, exit status, escaping, stable IDs, source boundaries and safe output replacement.
 - Compare meaningful UI changes to the same pinned rustdoc version and record why deviations remain.
 - Browser review still needs actual Chrome/Edge and Firefox coverage of file://, long files, keyboard, narrow screens and static subpath hosting. Existing local-file automation restrictions do not count as a pass.

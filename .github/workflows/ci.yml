@@ -1,0 +1,139 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: Rust ${{ matrix.toolchain }} / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            toolchain: stable
+          - os: windows-latest
+            toolchain: stable
+          - os: macos-latest
+            toolchain: stable
+          - os: ubuntu-latest
+            toolchain: 1.88.0
+    env:
+      RUSTUP_TOOLCHAIN: ${{ matrix.toolchain }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install Rust
+        run: rustup toolchain install "$RUSTUP_TOOLCHAIN" --profile minimal --component clippy
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          shared-key: ${{ matrix.toolchain }}
+      - name: Build process test helper
+        if: matrix.toolchain == 'stable'
+        run: cargo build --example cargo_probe --locked
+      - name: Test
+        if: matrix.toolchain == 'stable'
+        run: cargo test --locked
+      - name: Check MSRV
+        if: matrix.toolchain == '1.88.0'
+        run: cargo check --all-targets --locked
+
+  quality:
+    name: Quality and PR report
+    runs-on: ubuntu-latest
+    env:
+      RUSTUP_TOOLCHAIN: stable
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install Rust
+        run: rustup toolchain install stable --profile minimal --component clippy --component rustfmt
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          shared-key: stable
+      - run: cargo fmt --check
+      - run: cargo clippy --all-targets --locked -- -D warnings
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm test
+      - name: Test dogfood failure handling
+        run: bash tests/ci-dogfood.test.sh
+      - name: Generate PR or non-main manual report
+        if: ${{ !cancelled() && (github.event_name == 'pull_request' || github.ref != 'refs/heads/main') }}
+        run: bash .github/scripts/dogfood.sh "$RUNNER_TEMP/clippy-html-dogfood"
+      - name: Preserve report and logs
+        if: ${{ always() && (github.event_name == 'pull_request' || github.ref != 'refs/heads/main') }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dogfood-report
+          path: |
+            ${{ runner.temp }}/clippy-html-dogfood/report
+            ${{ runner.temp }}/clippy-html-dogfood/logs
+          retention-days: 14
+
+  report-pages:
+    name: Online self-report and Pages
+    needs: [test, quality]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    env:
+      RUSTUP_TOOLCHAIN: stable
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install Rust
+        run: rustup toolchain install stable --profile minimal --component clippy
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        with:
+          shared-key: stable
+      - name: Generate online self-report
+        run: bash .github/scripts/dogfood.sh "$RUNNER_TEMP/clippy-html-dogfood"
+      - name: Preserve report and logs
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dogfood-report
+          path: |
+            ${{ runner.temp }}/clippy-html-dogfood/report
+            ${{ runner.temp }}/clippy-html-dogfood/logs
+          retention-days: 14
+      - uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: ${{ runner.temp }}/clippy-html-dogfood/report
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
