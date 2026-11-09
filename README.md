@@ -69,6 +69,7 @@ cargo build --example cargo_probe --locked
 cargo test --locked
 cargo fmt --check
 cargo clippy --all-targets --locked -- -D warnings
+cargo +1.88.0 check --all-targets --locked
 ```
 
 process 테스트는 먼저 빌드한 `cargo_probe` helper를 사용해 양쪽 pipe의 대량 출력을 검증합니다. 통합 테스트는 fixture를 임시 폴더에 복사하므로 저장소의 fixture 소스를 수정하지 않습니다. fixture 자체는 외부 의존성을 사용하지 않습니다.
@@ -84,7 +85,7 @@ node --test tests/search-engine.test.cjs tests/search-ui.test.cjs tests/settings
 
 DOM 테스트는 실제 브라우저의 배치나 로컬 파일 정책 검증을 대신하지 않습니다. 검색 UI의 고정 rustdoc 대조와 남은 수동 확인은 [검색 검증 기록](docs/validation/2026-11-07-search.md)에 기록합니다.
 
-Rust 1.94에서 locked compile check를 확인했습니다. 현재 실행 환경과 검증 범위는 [검증 기록](docs/validation/2026-10-27-phase-1.md)에 남깁니다.
+MSRV는 Rust 1.88입니다. Windows에서 Rust 1.88.0 전체 target 컴파일과 단위·통합 테스트를 검증했고, 현재 stable 1.99.1에서도 같은 테스트가 통과했습니다. `cargo-platform`은 lockfile에서 0.3.2를 사용하며, 다른 의존성은 변경하지 않았습니다. 근거와 재현 명령은 [MSRV 검증 기록](docs/validation/2026-11-10-msrv-1.88.md)에 있습니다. 이전 1.94 검증 기록은 당시 이력으로 보존합니다.
 
 ## 구조와 라이선스
 

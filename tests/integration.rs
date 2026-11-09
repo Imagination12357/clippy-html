@@ -319,11 +319,12 @@ fn warning_source_and_suggestion_are_escaped() {
         doc.select(&Selector::parse(".diagnostic-note a").unwrap())
             .any(|link| {
                 link.value().attr("href").is_some_and(|href| {
-                    href.starts_with("https://rust-lang.github.io/rust-clippy/rust-")
+                    href.starts_with("https://rust-lang.github.io/rust-clippy/")
                         && href.ends_with("/index.html#clone_on_copy")
+                        && href == link.text().collect::<String>()
                 })
             }),
-        "Clippy's version-specific further-information URL must be clickable"
+        "Clippy's emitted further-information URL must remain clickable and unchanged"
     );
     let src = html_files(&f.report().join("src"));
     assert_eq!(src.len(), 1);

@@ -1,6 +1,6 @@
 # Current roadmap
 
-Updated 2026-11-09 after the pinned rustdoc Settings port, including Ayu. This document is the current milestone/status index. DETAILS.md remains the full product specification with later approved design decisions applied; older plans and ledgers preserve execution history rather than current status.
+Updated 2026-11-10 after validating MSRV 1.88. This document is the current milestone/status index. DETAILS.md remains the full product specification with later approved design decisions applied; older plans and ledgers preserve execution history rather than current status.
 
 ## Product boundary
 
@@ -14,7 +14,7 @@ Clippy's structured diagnostics become portable, offline static HTML with rustdo
 | Report navigation | Overview/category/lint/source pages, online and bundled category data, readable URLs, file tree, finding links and report-local search | Browser acceptance of search |
 | Source and diagnostics | Whole-source lexical syntax colors, precise primary/secondary ranges and insertion carets, line anchors/highlights, notes and grouped replacements | Suggestion diff/copy |
 | Familiar presentation | Pinned rustdoc CSS/DOM, bundled fonts/notices, favicon, native Settings structure and light/dark/ayu/system preference | Browser theme/keyboard/small-screen acceptance |
-| Distribution | Local install smoke, packaged assets and notices, Rust 1.94 locked compile check | Cross-platform CI, browser/static-host checks, metadata export, release preparation |
+| Distribution | Local install smoke, packaged assets and notices, Rust 1.88 all-target locked check and full tests on Windows | Cross-platform CI, browser/static-host checks, metadata export, release preparation |
 
 Phase 1 functional implementation is complete. This is not a claim that every browser/platform acceptance check has passed. Interface work from Phase 2 and font/license work originally in Phase 3 were intentionally brought forward in user-directed follow-ups.
 
