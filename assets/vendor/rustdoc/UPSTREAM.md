@@ -28,6 +28,11 @@ SEARCH.md. Settings/theme behavior is adapted under the same option; see
 SETTINGS.md. The report's matching/index engine is independent. Upstream API and
 DOM compatibility across releases are not promised.
 
+Settings tabs are a scoped backport from rustdoc 1.102.0-nightly as served by
+docs.rs, added after the user clarified their reference. settings-tabs.css and
+the grouped Settings DOM follow that artifact; global styles remain this pinned
+1.97.1 snapshot. Exact URLs/hashes and changes are in SETTINGS.md.
+
 The upstream COPYRIGHT.txt is preserved unmodified as a reference, including
 its entries for resources not shipped here. The actual included-resource
 inventory is THIRD-PARTY-NOTICES.md at the repository root and under licenses/

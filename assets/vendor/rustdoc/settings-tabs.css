@@ -1,0 +1,16 @@
+/* Settings rules extracted from rustdoc 1.102.0-nightly (f5cedb83a 2026-11-07).
+ * Rust Project Contributors, MIT option; see LICENSE-MIT and SETTINGS.md.
+ * Shared search selectors were removed; declarations are unchanged. */
+#settings.popover::before { background-color: var(--search-tab-button-not-selected-background); }
+.settings-menu #settings { width: min(456px,calc(100vw - 2px)); }
+#settings.popover { --popover-arrow-offset: 196px; top: calc(100% - 16px); right: 1px; }
+#settings .settings { height: 100%; display: flex; flex-direction: column; }
+#settings .tabs { display: flex; flex-direction: row; gap: 1px; }
+#settings .tabs button.tab { text-align: center; font-size: 1.125rem; border: 0; border-top: 2px solid; flex: 1; line-height: 1.5; color: inherit; }
+#settings .tabs button.tab:not(.selected) { background-color: var(--search-tab-button-not-selected-background); border-top-color: var(--search-tab-button-not-selected-border-top-color); }
+#settings .tabs button.tab:hover, #settings .tabs button.tab.selected { background-color: var(--search-tab-button-selected-background); border-top-color: var(--search-tab-button-selected-border-top-color); }
+#settings .settings .setting { display: none; }
+#settings .settings .setting.selected { display: block; }
+@media (max-width: 700px) {
+    #settings.popover .settings .setting { overflow-y: scroll; }
+}

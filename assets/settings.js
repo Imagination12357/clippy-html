@@ -1,4 +1,4 @@
-// Settings form/popup adapter from pinned rustdoc settings.js (MIT option).
+// Tabbed form: rustdoc 1.102 nightly; theme state: pinned 1.97.1 (MIT option).
 // Rust Project Contributors; see licenses/rustdoc-MIT.txt and licenses/SETTINGS.md.
 "use strict";
 (() => {
@@ -9,16 +9,22 @@
     const menu = document.querySelector(".settings-menu");
     if (!main || (!standalone && !menu)) return;
     const themes = ["light", "dark", "ayu"];
-    const settings = [
-        ["theme", "Theme", [...themes, "system preference"]],
-        ["preferred-light-theme", "Preferred light theme", themes],
-        ["preferred-dark-theme", "Preferred dark theme", themes],
-        ["go-to-only-result", "Directly go to item in search if there is only one result"],
-        ["hide-sidebar", "Hide persistent navigation bar"],
-        ["hide-toc", "Hide table of contents"],
-        ["disable-shortcuts", "Disable keyboard shortcuts"],
-        ["sans-serif-fonts", "Use sans serif fonts"],
-        ["word-wrap-source-code", "Word wrap source code"],
+    const tabs = [
+        ["Appearance", [
+            ["theme", "Theme", [...themes, "system preference"]],
+            ["preferred-light-theme", "Preferred light theme", themes],
+            ["preferred-dark-theme", "Preferred dark theme", themes],
+            ["sans-serif-fonts", "Use sans serif fonts"],
+        ]],
+        ["Interface", [
+            ["hide-sidebar", "Hide persistent navigation bar"],
+            ["hide-toc", "Hide table of contents"],
+            ["disable-shortcuts", "Disable keyboard shortcuts"],
+            ["go-to-only-result", "Directly go to item in search if there is only one result"],
+        ]],
+        ["Content", [
+            ["word-wrap-source-code", "Word wrap source code"],
+        ]],
     ];
     const element = (tag, className, text) => {
         const node = document.createElement(tag);
@@ -29,24 +35,38 @@
     const panel = element(standalone ? "section" : "div", standalone ? "" : "popover");
     panel.id = "settings";
     const form = element("div", "settings");
-    for (const [name, label, options] of settings) {
-        const row = element("div", "setting-line");
-        if (options) {
-            row.id = name; row.append(element("div", "setting-radio-name", label));
-            const choices = element("div", "setting-radio-choices");
-            for (const value of options) {
-                const choice = element("label", "setting-radio");
-                const input = element("input"); input.type = "radio"; input.name = name; input.value = value;
-                input.id = `${name}-${value.replace(/ /g, "-")}`; choice.htmlFor = input.id;
-                choice.append(input, element("span", "", value)); choices.append(choice);
+    const tabBar = element("div", "tabs"); form.append(tabBar);
+    for (const [index, [tabName, settings]] of tabs.entries()) {
+        const tab = element("button", index === 0 ? "tab selected" : "tab", tabName);
+        const group = element("div", index === 0 ? "setting selected" : "setting");
+        tab.dataset.name = group.dataset.name = tabName;
+        tab.addEventListener("click", () => {
+            if (tab.classList.contains("selected")) return;
+            form.querySelector(".tab.selected")?.classList.remove("selected");
+            form.querySelector(".setting.selected")?.classList.remove("selected");
+            tab.classList.add("selected"); group.classList.add("selected");
+        });
+        tabBar.append(tab);
+        for (const [name, label, options] of settings) {
+            const row = element("div", "setting-line");
+            if (options) {
+                row.id = name; row.append(element("div", "setting-radio-name", label));
+                const choices = element("div", "setting-radio-choices");
+                for (const value of options) {
+                    const choice = element("label", "setting-radio");
+                    const input = element("input"); input.type = "radio"; input.name = name; input.value = value;
+                    input.id = `${name}-${value.replace(/ /g, "-")}`; choice.htmlFor = input.id;
+                    choice.append(input, element("span", "", value)); choices.append(choice);
+                }
+                row.append(choices);
+            } else {
+                const choice = element("label", "setting-check"), input = element("input");
+                input.type = "checkbox"; input.id = name;
+                choice.append(input, element("span", "", label)); row.append(choice);
             }
-            row.append(choices);
-        } else {
-            const choice = element("label", "setting-check"), input = element("input");
-            input.type = "checkbox"; input.id = name;
-            choice.append(input, element("span", "", label)); row.append(choice);
+            group.append(row);
         }
-        form.append(row);
+        form.append(group);
     }
     panel.append(form);
     function sync() {

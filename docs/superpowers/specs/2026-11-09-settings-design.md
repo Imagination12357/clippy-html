@@ -1,5 +1,13 @@
 # Pinned rustdoc Settings port
 
+Current correction: the user compared docs.rs (rustdoc 1.102 nightly), which has
+Appearance / Interface / Content tabs and a different checkbox order. Settings
+alone now follows that actual grouped DOM and its extracted CSS; global CSS and
+theme state stay at the prior reference. See SETTINGS.md for exact version/hashes.
+The original 1.97.1 mapping below records the initial implementation, not a claim
+that all rustdoc versions share that layout. Impeccable is prohibited for this
+project by the user's instruction, recorded in root AGENTS.md.
+
 User direction: include Ayu, port the pinned rustdoc structure as closely as
 possible, add no speculative controls. Local main and autonomous commits remain
 approved. No remote operation or browser-policy workaround.

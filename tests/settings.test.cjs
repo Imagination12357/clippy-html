@@ -60,10 +60,10 @@ test("denied storage still applies current-page themes and boolean classes", () 
 test("native settings rows, theme choices and preferred visibility are preserved", () => {
     const s = setup({ ui: true });
     const panel = s.doc.getElementById("settings"); assert.ok(panel, "settings form must be built");
-    assert.equal(panel.querySelectorAll(".settings > .setting-line").length, 9);
+    assert.equal(panel.querySelectorAll(".settings > .setting > .setting-line").length, 9);
     assert.deepEqual(Array.from(panel.querySelectorAll('input[name="theme"]'), i => i.value), ["light", "dark", "ayu", "system preference"]);
     assert.deepEqual(Array.from(panel.querySelectorAll('input[type="checkbox"]'), i => i.id),
-        ["go-to-only-result", "hide-sidebar", "hide-toc", "disable-shortcuts", "sans-serif-fonts", "word-wrap-source-code"]);
+        ["sans-serif-fonts", "hide-sidebar", "hide-toc", "disable-shortcuts", "go-to-only-result", "word-wrap-source-code"]);
     assert.equal(panel.querySelector('input[name="theme"]:checked').value, "system preference");
     panel.querySelector('input[name="theme"][value="ayu"]').click();
     assert.equal(s.doc.documentElement.dataset.theme, "ayu");
@@ -72,8 +72,9 @@ test("native settings rows, theme choices and preferred visibility are preserved
     assert.ok(!panel.querySelector("#preferred-dark-theme").classList.contains("hidden"));
     panel.querySelector('input[name="preferred-dark-theme"][value="ayu"]').click(); s.changeDark(true);
     assert.equal(s.doc.documentElement.dataset.theme, "ayu");
+    panel.querySelector('.tab[data-name="Interface"]').click();
     panel.querySelector("#hide-sidebar").click(); assert.ok(s.doc.documentElement.classList.contains("hide-sidebar"));
-    assert.equal(panel.querySelector(".setting-check > input + span").textContent, "Directly go to item in search if there is only one result");
+    assert.equal(panel.querySelector(".setting-check > input + span").textContent, "Use sans serif fonts");
     s.dom.window.close();
 });
 test("native popover toggles, dismisses, restores focus and preserves modified links", async () => {
@@ -90,11 +91,12 @@ test("native popover toggles, dismisses, restores focus and preserves modified l
     await Promise.resolve(); assert.equal(panel.style.display, "none"); s.dom.window.close();
 });
 test("internal pointer focus transitions keep the popup open during the body-focus interval", async () => {
-    for (const selector of ['#word-wrap-source-code', 'input[name="theme"][value="ayu"]', '.setting-radio-name']) {
+    for (const selector of ['#word-wrap-source-code', 'input[name="theme"][value="ayu"]', '.setting-radio-name', '.tab[data-name="Interface"]']) {
         const s = setup({ ui: true }), button = s.doc.querySelector(".settings-menu > a"), panel = s.doc.getElementById("settings");
         button.focus(); button.click();
         const target = panel.querySelector(selector);
-        const nextFocus = target instanceof s.w.HTMLInputElement ? target : panel;
+        if (selector === '#word-wrap-source-code') panel.querySelector('.tab[data-name="Content"]').click();
+        const nextFocus = target instanceof s.w.HTMLInputElement || target instanceof s.w.HTMLButtonElement ? target : panel;
         // Browsers may run microtasks between focusout and the next focus event.
         // jsdom's .focus() completes both synchronously, so expose that interval.
         Object.defineProperty(s.doc, "activeElement", { configurable: true, get: () => s.doc.body });
@@ -112,6 +114,7 @@ test("standalone settings uses native section structure and applies preferences"
     const s = setup({ ui: true, page: true }); const panel = s.doc.getElementById("settings");
     assert.ok(panel, "standalone settings section exists"); assert.equal(panel.tagName, "SECTION");
     assert.ok(!panel.classList.contains("popover"));
+    panel.querySelector('.tab[data-name="Content"]').click();
     panel.querySelector("#word-wrap-source-code").click(); assert.ok(s.doc.documentElement.classList.contains("word-wrap-source-code"));
     assert.equal(s.doc.querySelector("#back").getAttribute("href"), "index.html"); s.dom.window.close();
 });
@@ -160,4 +163,23 @@ test("settings activates independently of search data and handles persisted page
     s.w.dispatchEvent(new s.w.PageTransitionEvent("pageshow", { persisted: true }));
     assert.equal(s.doc.documentElement.dataset.theme, "dark");
     assert.equal(s.doc.querySelector('input[name="theme"]:checked').value, "dark"); s.dom.window.close();
+});
+test("docs.rs rustdoc tabs preserve grouping, checkbox order and selection in popup and page", () => {
+    for (const page of [false, true]) {
+        const s = setup({ ui: true, page }); const panel = s.doc.getElementById("settings");
+        if (!page) s.doc.querySelector('.settings-menu > a').click();
+        const tabs = Array.from(panel.querySelectorAll('.settings > .tabs > button.tab'));
+        assert.deepEqual(tabs.map(tab => tab.textContent), ['Appearance', 'Interface', 'Content']);
+        const expected = { Appearance: ['sans-serif-fonts'], Interface: ['hide-sidebar', 'hide-toc', 'disable-shortcuts', 'go-to-only-result'], Content: ['word-wrap-source-code'] };
+        assert.equal(panel.querySelector('.setting.selected').dataset.name, 'Appearance');
+        for (const tab of tabs) {
+            const group = panel.querySelector(`.setting[data-name="${tab.dataset.name}"]`);
+            assert.deepEqual(Array.from(group.querySelectorAll('input[type="checkbox"]'), input => input.id), expected[tab.dataset.name]);
+            tab.click(); assert.equal(panel.querySelectorAll('.tab.selected').length, 1);
+            assert.equal(panel.querySelectorAll('.setting.selected').length, 1);
+            assert.ok(group.classList.contains('selected'));
+            if (!page) assert.equal(panel.style.display, '');
+        }
+        s.dom.window.close();
+    }
 });

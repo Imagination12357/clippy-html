@@ -37,7 +37,7 @@ Category는 기본적으로 진단의 공식 문서 링크에 해당하는 Clipp
 
 Search 버튼 또는 `S`·`/`로 rustdoc처럼 본문 자리에 검색 화면을 엽니다. lint 이름·파일 경로·진단 메시지(하위 note/help 포함)·category를 검색하며, In Lints / In Files / In Findings / In Categories 탭으로 결과를 나눕니다. 여러 검색어는 모두 포함되어야 하고 대소문자를 구별하지 않습니다. 폼의 Enter는 즉시 검색하고, 아래 화살표는 결과로 이동하며, 결과의 좌우 화살표는 탭을 바꿉니다. Escape나 Exit로 원래 문서에 돌아옵니다. 검색과 Settings에는 JavaScript가 필요하며, 모든 데이터와 스크립트는 보고서에 동봉합니다. 각 탭은 최대 100개를 표시하고 전체 일치 수와 제한 여부를 알립니다.
 
-Settings는 고정한 rustdoc의 팝오버와 별도 `settings.html` 구조를 사용합니다. `light`·`dark`·`ayu`·`system preference`를 고르고, 시스템 밝기별 선호 테마도 지정할 수 있습니다. 탐색창/목차 숨김, sans-serif 본문, 소스 줄바꿈, 단축키 비활성화, 검색 단일 결과로 바로 이동을 제공합니다. 테마는 스타일 적용 전에 복원하며 저장소가 차단되어도 현재 페이지의 설정 변경은 동작합니다. `file://`에서 페이지 사이의 저장 공유는 브라우저에 따라 다릅니다. 이식 항목과 제외 이유는 [Settings 출처 기록](assets/vendor/rustdoc/SETTINGS.md)에 있습니다.
+Settings는 rustdoc의 팝오버와 별도 `settings.html` 구조를 사용하며, 탭 구성은 docs.rs의 rustdoc 1.102 nightly에서 Appearance / Interface / Content와 항목 순서를 가져왔습니다. 전역 스타일은 기존 1.97.1을 유지합니다. `light`·`dark`·`ayu`·`system preference`를 고르고, 시스템 밝기별 선호 테마도 지정할 수 있습니다. 탐색창/목차 숨김, sans-serif 본문, 소스 줄바꿈, 단축키 비활성화, 검색 단일 결과로 바로 이동을 제공합니다. 테마는 스타일 적용 전에 복원하며 저장소가 차단되어도 현재 페이지의 설정 변경은 동작합니다. `file://`에서 페이지 사이의 저장 공유는 브라우저에 따라 다릅니다. 이식 항목과 제외 이유는 [Settings 출처 기록](assets/vendor/rustdoc/SETTINGS.md)에 있습니다.
 
 - 홈에는 검사 종료 상태, 수집 완전성, 원본 진단 수와 병합 후 finding 수를 별도로 표시합니다.
 - 진단 종류 페이지에는 code, 실제 severity, target, primary/secondary 위치, note/help, suggestion 묶음과 applicability를 표시합니다.
