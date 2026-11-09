@@ -22,6 +22,7 @@
             ? themes.includes(value) : value === "true" || value === "false";
     }
     function get(name) {
+        if (!Object.hasOwn(defaults, name)) return null;
         const value = read(name);
         return valid(name, value) ? value : defaults[name] ?? null;
     }

@@ -2,6 +2,47 @@ mod support;
 use scraper::{Html, Selector};
 use support::*;
 #[test]
+fn settings_page_has_local_bootstrap_and_valid_report_navigation() {
+    let f = Fixture::new("clean");
+    assert_success(&f.run(&[]));
+    let html = f.html("settings.html");
+    let doc = Html::parse_document(&html);
+    assert!(
+        doc.select(&Selector::parse("noscript").unwrap())
+            .next()
+            .is_some()
+    );
+    assert_eq!(
+        doc.select(&Selector::parse("#back").unwrap())
+            .next()
+            .unwrap()
+            .value()
+            .attr("href"),
+        Some("index.html")
+    );
+    assert!(html.contains("Clippy HTML settings"));
+    assert!(f.html("licenses/index.html").contains("SETTINGS.md"));
+    for path in html_files(&f.report()) {
+        let html = std::fs::read_to_string(path).unwrap();
+        let doc = Html::parse_document(&html);
+        let boot = doc
+            .select(&Selector::parse("head script").unwrap())
+            .next()
+            .unwrap();
+        assert!(
+            boot.value()
+                .attr("src")
+                .unwrap()
+                .ends_with("static.files/settings-storage.js")
+        );
+        assert!(boot.value().attr("defer").is_none());
+        assert!(
+            html.find("settings-storage.js").unwrap()
+                < html.find("static.files/normalize.css").unwrap()
+        );
+    }
+}
+#[test]
 fn search_index_links_all_report_kinds_without_copying_source_bodies() {
     let f = Fixture::new("warning");
     assert_success(&f.run(&[]));
@@ -36,12 +77,14 @@ fn search_index_links_all_report_kinds_without_copying_source_bodies() {
         let html = std::fs::read_to_string(&path).unwrap();
         let doc = Html::parse_document(&html);
         let scripts: Vec<_> = doc.select(&Selector::parse("script").unwrap()).collect();
-        assert_eq!(scripts.len(), 3);
-        for (script, name) in
-            scripts
-                .iter()
-                .zip(["search-index.js", "search-engine.js", "search.js"])
-        {
+        assert_eq!(scripts.len(), 5);
+        for (script, name) in scripts.iter().zip([
+            "settings-storage.js",
+            "search-index.js",
+            "search-engine.js",
+            "search.js",
+            "settings.js",
+        ]) {
             assert!(
                 script
                     .value()
@@ -49,7 +92,10 @@ fn search_index_links_all_report_kinds_without_copying_source_bodies() {
                     .unwrap()
                     .ends_with(&format!("static.files/{name}"))
             );
-            assert!(script.value().attr("defer").is_some());
+            assert_eq!(
+                script.value().attr("defer").is_some(),
+                name != "settings-storage.js"
+            );
             assert!(script.text().collect::<String>().is_empty());
         }
         assert_eq!(
@@ -58,7 +104,7 @@ fn search_index_links_all_report_kinds_without_copying_source_bodies() {
                     .unwrap()
             )
             .count(),
-            1
+            if html.contains("id=\"back\"") { 0 } else { 1 }
         );
         assert!(
             doc.select(&Selector::parse("body[data-report-root]").unwrap())

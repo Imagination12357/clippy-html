@@ -3,8 +3,8 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const { JSDOM } = require("jsdom");
-function setup({ stored = {}, store = new Map(Object.entries(stored).map(([k, v]) => [`clippy-html-${k}`, v])), denied = false, dark = false, page = false, ui = false } = {}) {
-    const dom = new JSDOM(`<!doctype html><html data-theme="light"><head><title>Report</title></head><body class="rustdoc mod" data-report-root="${page ? "" : "../../"}"><a class="skip-main-content" href="#main-content">Skip</a><nav class="sidebar"><section id="rustdoc-toc">Contents</section></nav><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1>Report</h1>${page ? '<a id="back" href="index.html">Back</a>' : '<rustdoc-toolbar class="report-toolbar hidden"><span id="search-button" class="hidden"><a href="?search="><span class="label">Search</span></a></span><div class="settings-menu hidden" tabindex="-1"><a href="../../settings.html"><span class="label">Settings</span></a></div></rustdoc-toolbar>'}</div></section></main></body></html>`, { url: page ? "https://example.test/report/settings.html" : "https://example.test/report/src/nested/file.rs.html", runScripts: "outside-only" });
+function setup({ stored = {}, store = new Map(Object.entries(stored).map(([k, v]) => [`clippy-html-${k}`, v])), denied = false, dark = false, page = false, ui = false, url = null } = {}) {
+    const dom = new JSDOM(`<!doctype html><html data-theme="light"><head><title>Report</title></head><body class="rustdoc mod" data-report-root="${page ? "" : "../../"}"><a class="skip-main-content" href="#main-content">Skip</a><nav class="sidebar"><section id="rustdoc-toc">Contents</section></nav><main><section id="main-content" class="content" tabindex="-1"><div class="main-heading"><h1>Report</h1>${page ? '<a id="back" href="index.html">Back</a>' : '<rustdoc-toolbar class="report-toolbar hidden"><span id="search-button" class="hidden"><a href="?search="><span class="label">Search</span></a></span><div class="settings-menu hidden" tabindex="-1"><a href="../../settings.html"><span class="label">Settings</span></a></div></rustdoc-toolbar>'}</div></section></main></body></html>`, { url: url || (page ? "https://example.test/report/settings.html" : "https://example.test/report/src/nested/file.rs.html"), runScripts: "outside-only" });
     const w = dom.window, doc = w.document;
     Object.defineProperty(w, "localStorage", { get() {
         if (denied) throw new w.DOMException("Denied", "SecurityError");
@@ -56,4 +56,89 @@ test("denied storage still applies current-page themes and boolean classes", () 
         s.api.set(name, "false"); assert.ok(!s.doc.documentElement.classList.contains(name));
     }
     s.dom.window.close();
+});
+test("native settings rows, theme choices and preferred visibility are preserved", () => {
+    const s = setup({ ui: true });
+    const panel = s.doc.getElementById("settings"); assert.ok(panel, "settings form must be built");
+    assert.equal(panel.querySelectorAll(".settings > .setting-line").length, 9);
+    assert.deepEqual(Array.from(panel.querySelectorAll('input[name="theme"]'), i => i.value), ["light", "dark", "ayu", "system preference"]);
+    assert.deepEqual(Array.from(panel.querySelectorAll('input[type="checkbox"]'), i => i.id),
+        ["go-to-only-result", "hide-sidebar", "hide-toc", "disable-shortcuts", "sans-serif-fonts", "word-wrap-source-code"]);
+    assert.equal(panel.querySelector('input[name="theme"]:checked').value, "system preference");
+    panel.querySelector('input[name="theme"][value="ayu"]').click();
+    assert.equal(s.doc.documentElement.dataset.theme, "ayu");
+    assert.ok(panel.querySelector("#preferred-light-theme").classList.contains("hidden"));
+    panel.querySelector('input[name="theme"][value="system preference"]').click();
+    assert.ok(!panel.querySelector("#preferred-dark-theme").classList.contains("hidden"));
+    panel.querySelector('input[name="preferred-dark-theme"][value="ayu"]').click(); s.changeDark(true);
+    assert.equal(s.doc.documentElement.dataset.theme, "ayu");
+    panel.querySelector("#hide-sidebar").click(); assert.ok(s.doc.documentElement.classList.contains("hide-sidebar"));
+    assert.equal(panel.querySelector(".setting-check > input + span").textContent, "Directly go to item in search if there is only one result");
+    s.dom.window.close();
+});
+test("native popover toggles, dismisses, restores focus and preserves modified links", async () => {
+    const s = setup({ ui: true }), button = s.doc.querySelector(".settings-menu > a"), panel = s.doc.getElementById("settings");
+    button.click(); assert.equal(panel.style.display, ""); assert.ok(panel.classList.contains("popover"));
+    button.click(); assert.equal(panel.style.display, "none");
+    const modified = new s.w.MouseEvent("click", { button: 0, ctrlKey: true, bubbles: true, cancelable: true });
+    button.dispatchEvent(modified); assert.ok(!modified.defaultPrevented); assert.equal(panel.style.display, "none");
+    button.click(); panel.querySelector("input").focus();
+    s.doc.dispatchEvent(new s.w.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+    assert.equal(panel.style.display, "none"); assert.equal(s.doc.activeElement, button);
+    button.click(); s.doc.body.click(); assert.equal(panel.style.display, "none");
+    button.click(); panel.querySelector("input").focus(); s.doc.getElementById("main-content").focus();
+    await Promise.resolve(); assert.equal(panel.style.display, "none"); s.dom.window.close();
+});
+test("standalone settings uses native section structure and applies preferences", () => {
+    const s = setup({ ui: true, page: true }); const panel = s.doc.getElementById("settings");
+    assert.ok(panel, "standalone settings section exists"); assert.equal(panel.tagName, "SECTION");
+    assert.ok(!panel.classList.contains("popover"));
+    panel.querySelector("#word-wrap-source-code").click(); assert.ok(s.doc.documentElement.classList.contains("word-wrap-source-code"));
+    assert.equal(s.doc.querySelector("#back").getAttribute("href"), "index.html"); s.dom.window.close();
+});
+test("settings and search share the toolbar; disable shortcuts and single-result navigation work", () => {
+    const s = setup({ ui: true });
+    s.w.CLIPPY_HTML_SEARCH_DATA = [{ kind: "lint", name: "copy", context: "", description: "", href: "lint/clippy/copy.html" }];
+    s.load("search-engine"); s.load("search");
+    const key = name => s.doc.body.dispatchEvent(new s.w.KeyboardEvent("keydown", { key: name, bubbles: true, cancelable: true }));
+    s.api.set("disable-shortcuts", "true"); key("/");
+    assert.ok(!s.doc.getElementById("main-content").classList.contains("hidden"));
+    s.api.set("disable-shortcuts", "false");
+    s.doc.querySelector(".settings-menu > a").click(); key("/");
+    assert.equal(s.doc.getElementById("settings").style.display, "none");
+    assert.ok(s.doc.querySelector("#search .main-heading .settings-menu"));
+    s.doc.querySelector(".settings-menu > a").click();
+    s.doc.getElementById("settings").querySelector('input[name="theme"][value="ayu"]').click();
+    assert.equal(s.doc.documentElement.dataset.theme, "ayu");
+    key("Escape"); assert.ok(!s.doc.getElementById("main-content").classList.contains("hidden"));
+    s.api.set("go-to-only-result", "true"); key("/");
+    let navigated = null;
+    s.doc.addEventListener("click", e => { const a = e.target.closest("#results .search-results > a"); if (a) { e.preventDefault(); navigated = a.href; } });
+    const input = s.doc.querySelector(".search-input"); input.value = "copy";
+    input.form.dispatchEvent(new s.w.Event("submit", { cancelable: true }));
+    assert.equal(navigated, "https://example.test/report/lint/clippy/copy.html");
+    assert.ok(!new URL(s.w.location.href).searchParams.has("search")); s.dom.window.close();
+});
+test("single-result setting also applies to deep queries, but not multiple report kinds", () => {
+    for (const count of [1, 2]) {
+        const s = setup({ ui: true, stored: { "go-to-only-result": "true" }, url: "https://example.test/report/src/nested/file.rs.html?search=copy#L4" });
+        s.w.CLIPPY_HTML_SEARCH_DATA = [{ kind: "lint", name: "copy", context: "", description: "", href: "lint/clippy/copy.html" }];
+        if (count === 2) s.w.CLIPPY_HTML_SEARCH_DATA.push({ kind: "finding", name: "copy", context: "", description: "", href: "lint/clippy/copy.html#finding-one" });
+        let navigations = 0;
+        s.doc.addEventListener("click", e => { if (e.target.closest("#results .search-results > a")) { e.preventDefault(); navigations++; } });
+        s.load("search-engine"); s.load("search");
+        assert.equal(navigations, count === 1 ? 1 : 0);
+        assert.equal(new URL(s.w.location.href).searchParams.has("search"), count !== 1);
+        assert.equal(s.w.location.hash, "#L4"); s.dom.window.close();
+    }
+});
+test("settings activates independently of search data and handles persisted pages", () => {
+    const s = setup({ ui: true });
+    assert.ok(!s.doc.querySelector("rustdoc-toolbar").classList.contains("hidden"));
+    assert.ok(s.doc.getElementById("search-button").classList.contains("hidden"));
+    s.api.set("theme", "ayu");
+    s.store.set("clippy-html-theme", "dark");
+    s.w.dispatchEvent(new s.w.PageTransitionEvent("pageshow", { persisted: true }));
+    assert.equal(s.doc.documentElement.dataset.theme, "dark");
+    assert.equal(s.doc.querySelector('input[name="theme"]:checked').value, "dark"); s.dom.window.close();
 });

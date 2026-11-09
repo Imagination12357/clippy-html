@@ -85,6 +85,7 @@ pub(super) fn write(report: &Report, pages: &PageMap, destination: &Path) -> Res
                 crates: crate_infos(report, &findings),
                 heading_kind: "Category",
                 source_page: false,
+                settings_page: false,
                 source_tree: String::new(),
             },
         )?;

@@ -37,6 +37,7 @@ struct Page<'a> {
     crates: Vec<CrateInfo>,
     heading_kind: &'a str,
     source_page: bool,
+    settings_page: bool,
     source_tree: String,
 }
 #[derive(Template)]
@@ -133,6 +134,9 @@ struct Lint {
 #[derive(Template)]
 #[template(path = "licenses.html")]
 struct Licenses;
+#[derive(Template)]
+#[template(path = "settings.html")]
+struct Settings;
 struct SourceRow {
     number: usize,
     fragments: Vec<super::ranges::Fragment>,
@@ -602,6 +606,7 @@ pub fn render_report(
             crates: crate_infos(report, &[]),
             heading_kind: "Report",
             source_page: false,
+            settings_page: false,
             source_tree: String::new(),
         },
     )?;
@@ -627,6 +632,24 @@ pub fn render_report(
             crates: crate_infos(report, &[]),
             heading_kind: "Report",
             source_page: false,
+            settings_page: false,
+            source_tree: String::new(),
+        },
+    )?;
+    write_page(
+        destination,
+        Path::new("settings.html"),
+        Page {
+            title: "Clippy HTML settings",
+            section: "Settings",
+            root: String::new(),
+            sidebar: vec![],
+            content: render(&Settings)?,
+            crate_context: crate_context(report, &[]),
+            crates: crate_infos(report, &[]),
+            heading_kind: "",
+            source_page: false,
+            settings_page: true,
             source_tree: String::new(),
         },
     )?;
@@ -664,6 +687,7 @@ pub fn render_report(
                 crates: crate_infos(report, fs),
                 heading_kind: "Lint",
                 source_page: false,
+                settings_page: false,
                 source_tree: String::new(),
             },
         )?;
@@ -728,6 +752,7 @@ pub fn render_report(
                 crates: crate_infos(report, &fs),
                 heading_kind: "Source",
                 source_page: true,
+                settings_page: false,
                 source_tree: super::navigation::source_tree(
                     sources,
                     pages,

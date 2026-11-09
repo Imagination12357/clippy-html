@@ -2,7 +2,7 @@
 
 Clippy의 구조화된 진단을 rustdoc 스타일의 정적 HTML 문서로 탐색하는 Cargo 서브커맨드입니다.
 
-**기능 코어와 일부 후속 인터페이스가 구현되어 있습니다.** 실제 Clippy 진단 수집, 중복 병합, 홈·category·진단 종류·전체 소스 페이지, 파일 트리, 검색, 구문 색칠, 정밀 primary/secondary 범위, 줄 anchor, child 진단과 suggestion replacement 표시를 제공합니다. suggestion diff/copy, 테마 선택, metadata export는 남아 있습니다. 현재 상태·완료 기준·검증 과제는 [로드맵](ROADMAP.md)을 기준으로 봅니다.
+**기능 코어와 일부 후속 인터페이스가 구현되어 있습니다.** 실제 Clippy 진단 수집, 중복 병합, 홈·category·진단 종류·전체 소스 페이지, 파일 트리, 검색, Settings·테마 선택, 구문 색칠, 정밀 primary/secondary 범위, 줄 anchor, child 진단과 suggestion replacement 표시를 제공합니다. suggestion diff/copy, metadata export는 남아 있습니다. 현재 상태·완료 기준·검증 과제는 [로드맵](ROADMAP.md)을 기준으로 봅니다.
 
 ## 설치와 실행
 
@@ -35,7 +35,9 @@ Category는 기본적으로 진단의 공식 문서 링크에 해당하는 Clipp
 
 생성한 `index.html`을 브라우저에서 직접 엽니다. 서버나 인터넷 연결, JavaScript가 없어도 기본 탐색이 가능합니다.
 
-Search 버튼 또는 `S`·`/`로 rustdoc처럼 본문 자리에 검색 화면을 엽니다. lint 이름·파일 경로·진단 메시지(하위 note/help 포함)·category를 검색하며, In Lints / In Files / In Findings / In Categories 탭으로 결과를 나눕니다. 여러 검색어는 모두 포함되어야 하고 대소문자를 구별하지 않습니다. 폼의 Enter는 즉시 검색하고, 아래 화살표는 결과로 이동하며, 결과의 좌우 화살표는 탭을 바꿉니다. Escape나 Exit로 원래 문서에 돌아옵니다. 검색만 JavaScript가 필요하며, 모든 데이터와 스크립트는 보고서에 동봉합니다. 각 탭은 최대 100개를 표시하고 전체 일치 수와 제한 여부를 알립니다.
+Search 버튼 또는 `S`·`/`로 rustdoc처럼 본문 자리에 검색 화면을 엽니다. lint 이름·파일 경로·진단 메시지(하위 note/help 포함)·category를 검색하며, In Lints / In Files / In Findings / In Categories 탭으로 결과를 나눕니다. 여러 검색어는 모두 포함되어야 하고 대소문자를 구별하지 않습니다. 폼의 Enter는 즉시 검색하고, 아래 화살표는 결과로 이동하며, 결과의 좌우 화살표는 탭을 바꿉니다. Escape나 Exit로 원래 문서에 돌아옵니다. 검색과 Settings에는 JavaScript가 필요하며, 모든 데이터와 스크립트는 보고서에 동봉합니다. 각 탭은 최대 100개를 표시하고 전체 일치 수와 제한 여부를 알립니다.
+
+Settings는 고정한 rustdoc의 팝오버와 별도 `settings.html` 구조를 사용합니다. `light`·`dark`·`ayu`·`system preference`를 고르고, 시스템 밝기별 선호 테마도 지정할 수 있습니다. 탐색창/목차 숨김, sans-serif 본문, 소스 줄바꿈, 단축키 비활성화, 검색 단일 결과로 바로 이동을 제공합니다. 테마는 스타일 적용 전에 복원하며 저장소가 차단되어도 현재 페이지의 설정 변경은 동작합니다. `file://`에서 페이지 사이의 저장 공유는 브라우저에 따라 다릅니다. 이식 항목과 제외 이유는 [Settings 출처 기록](assets/vendor/rustdoc/SETTINGS.md)에 있습니다.
 
 - 홈에는 검사 종료 상태, 수집 완전성, 원본 진단 수와 병합 후 finding 수를 별도로 표시합니다.
 - 진단 종류 페이지에는 code, 실제 severity, target, primary/secondary 위치, note/help, suggestion 묶음과 applicability를 표시합니다.
@@ -77,7 +79,7 @@ process 테스트는 먼저 빌드한 `cargo_probe` helper를 사용해 양쪽 p
 node --test tests/search-engine.test.cjs
 npm install --prefix target/search-qa --no-save --ignore-scripts jsdom@29.1.1
 $env:NODE_PATH = (Resolve-Path target/search-qa/node_modules).Path
-node --test tests/search-engine.test.cjs tests/search-ui.test.cjs
+node --test tests/search-engine.test.cjs tests/search-ui.test.cjs tests/settings.test.cjs
 ```
 
 DOM 테스트는 실제 브라우저의 배치나 로컬 파일 정책 검증을 대신하지 않습니다. 검색 UI의 고정 rustdoc 대조와 남은 수동 확인은 [검색 검증 기록](docs/validation/2026-11-07-search.md)에 기록합니다.

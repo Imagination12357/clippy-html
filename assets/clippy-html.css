@@ -22,15 +22,24 @@
 .source-code .diagnostic-span.insertion::before { content: ""; position: absolute; left: 0; height: 1em; border-left: 2px solid var(--main-color); }
 .source-code .diagnostic-span.insertion.secondary::before { border-left-style: dashed; }
 .range-legend { color: var(--right-side-color); font-size: .875rem; }
+/* Keep diagnostic backgrounds translucent with rustdoc's dark/Ayu palette. */
+:root[data-theme="dark"] .source-code, :root[data-theme="ayu"] .source-code { --diagnostic-range-background: color-mix(in srgb, var(--scrape-example-code-line-highlight-focus) 45%, transparent); }
+:root[data-theme="dark"] .severity, :root[data-theme="ayu"] .severity { color: var(--main-color); }
 .diagnostic-marker { font-size: .8rem; margin-left: 1ch; }
 .source-files, .source-findings { margin-bottom: 1.5em; }
 .source-files { padding-left: var(--sidebar-elems-left-padding); }
 .source-files > summary, .source-findings > summary { font-size: 1.125rem; }
 .source-count { color: var(--right-side-color); font-size: .8em; }
 :focus-visible { outline: 2px solid var(--search-input-focused-border-color); outline-offset: 3px; }
-/* The report omits rustdoc's settings/help controls and separate source toggle. */
+/* The report omits rustdoc's help/summary controls and separate source toggle. */
 .main-heading .report-toolbar { display: flex; margin-top: 0; }
 .src #search .search-form { margin-left: 0; }
+:root.sans-serif-fonts { --font-family-code: "Source Code Pro", monospace; }
+html.hide-sidebar .rustdoc nav.sidebar { display: none; }
+.hide-sidebar #search .search-form { margin-left: 0; }
+/* The Settings arrow follows the last toolbar button; scroll the form inside it. */
+.report-toolbar #settings.popover { --popover-arrow-offset: 36px; max-width: calc(100vw - 30px); }
+.report-toolbar #settings.popover .settings { max-height: 70vh; overflow-y: auto; }
 /* rustdoc toggles mobile navigation with JS. Keep it available without JS here. */
 @media (max-width: 700px) {
     body.rustdoc { display: block; }
@@ -40,4 +49,7 @@
     }
     .src .sidebar > * { visibility: visible; }
     main { padding: 10px 15px 40px; }
+    html:not(.hide-sidebar) .rustdoc:not(.src) .report-toolbar .settings-menu > a { display: flex; }
+    .report-toolbar #settings.popover { --popover-arrow-offset: 13px; top: calc(100% - 16px); height: auto; }
+    .report-toolbar #settings.popover .settings { height: auto; }
 }

@@ -24,7 +24,8 @@ rules live in assets/clippy-html.css. The remaining upstream styles are retained
 
 No complete rustdoc JavaScript, logo or Fira Mono assets are included. The search
 interface adapts pinned JavaScript behavior and DOM under the MIT option; see
-SEARCH.md. The report's matching/index engine is independent. Upstream API and
+SEARCH.md. Settings/theme behavior is adapted under the same option; see
+SETTINGS.md. The report's matching/index engine is independent. Upstream API and
 DOM compatibility across releases are not promised.
 
 The upstream COPYRIGHT.txt is preserved unmodified as a reference, including

@@ -1,6 +1,6 @@
 # Current roadmap
 
-Updated 2026-11-07 after official category, search and precise source-range implementation. This document is the current milestone/status index. DETAILS.md remains the full product specification with later approved design decisions applied; older plans and ledgers preserve execution history rather than current status.
+Updated 2026-11-09 after the pinned rustdoc Settings port, including Ayu. This document is the current milestone/status index. DETAILS.md remains the full product specification with later approved design decisions applied; older plans and ledgers preserve execution history rather than current status.
 
 ## Product boundary
 
@@ -13,7 +13,7 @@ Clippy's structured diagnostics become portable, offline static HTML with rustdo
 | Functional core | CLI, Cargo/Clippy collection, normalization, target deduplication, deterministic IDs, failure status, safe staged output | Continue regression coverage as features change |
 | Report navigation | Overview/category/lint/source pages, online and bundled category data, readable URLs, file tree, finding links and report-local search | Browser acceptance of search |
 | Source and diagnostics | Whole-source lexical syntax colors, precise primary/secondary ranges and insertion carets, line anchors/highlights, notes and grouped replacements | Suggestion diff/copy |
-| Familiar presentation | Pinned rustdoc CSS/DOM, bundled fonts/notices, favicon | Light/Dark/Auto selection, keyboard and small-screen acceptance |
+| Familiar presentation | Pinned rustdoc CSS/DOM, bundled fonts/notices, favicon, native Settings structure and light/dark/ayu/system preference | Browser theme/keyboard/small-screen acceptance |
 | Distribution | Local install smoke, packaged assets and notices, Rust 1.94 locked compile check | Cross-platform CI, browser/static-host checks, metadata export, release preparation |
 
 Phase 1 functional implementation is complete. This is not a claim that every browser/platform acceptance check has passed. Interface work from Phase 2 and font/license work originally in Phase 3 were intentionally brought forward in user-directed follow-ups.
@@ -51,15 +51,22 @@ narrow-screen browser acceptance remain manual.
 Precise full-source ranges implemented 2026-11-07: solid/dashed underlines,
 insertion carets, overlap labels and unchanged-source validation. See
 [range validation](docs/validation/2026-11-07-source-ranges.md). The user selected
-Settings/theme work next, ahead of the remaining suggestion diff/copy work.
+Settings/theme work next, ahead of the remaining suggestion diff/copy work;
+that port was implemented on 2026-11-09.
 
 Precise primary/secondary span presentation, then grouped suggestion before/after diff and copy. Preserve multipart suggestions as a unit; do not synthesize misleading diffs for stale source, invalid coordinates or overlapping edits. Keep original snippets/replacements as fallback; never modify the user's code.
 
 **Done when:** Unicode/CRLF/multiline ranges and multipart suggestions have verified examples, and unsupported cases show an explicit useful fallback.
 
-### 4. Themes and access
+### 4. Settings/themes — implemented; browser acceptance pending
 
-Light/Dark/Auto selection, page-to-page persistence where the browser allows it, keyboard navigation and small-screen review. Reuse appropriate pinned rustdoc styles without copying inactive toolbar controls or unrelated runtime infrastructure.
+Light/Dark/Ayu/system preference selection, preferred light/dark choices and
+applicable native settings are implemented with the pinned radio/checkbox,
+popover and standalone-page structure. Persistence follows browser capabilities;
+storage denial still allows current-page use. No API-only inactive controls.
+See [Settings design](docs/superpowers/specs/2026-11-09-settings-design.md) and
+[validation](docs/validation/2026-11-09-settings.md). Actual browser theme,
+file-URL, keyboard and narrow-screen acceptance remain manual.
 
 **Done when:** representative home/lint/category/source/search flows are usable by keyboard and on small screens in the supported themes; actual browser checks are recorded separately from DOM tests.
 

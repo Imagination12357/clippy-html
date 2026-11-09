@@ -123,7 +123,7 @@ lint 페이지: 동일 code의 occurrence 목록, severity, 메시지, target, �
 
 source 페이지: 전체 코드, 줄 번호, 관련 finding 목록과 상호 링크를 표시한다. 사이드바는 진단에 포함된 파일의 Files 트리와 Findings in this file 목록을 각각 접고 펼칠 수 있게 제공한다. 파일별 finding 수와 현재 파일을 표시하고 현재 경로를 기본으로 펼친다. 줄 단위 진단 위치와 primary/secondary 텍스트 구분을 제공한다. 2026-10-28 후속 구현으로 Rust 토큰 기반 구문 색칠을 추가하며 원본 rustdoc CSS 클래스를 사용한다. 파일 전체를 분석한 뒤 행별 텍스트 fragment를 템플릿에서 escape한다. 정밀 진단 span 강조는 Phase 2 범위로 남긴다.
 
-좌측 탐색, 본문 폭, 제목 계층, 코드 블록 등은 고정한 rustdoc CSS와 맞는 구조를 사용한다. Phase 1은 light 기본 외형, Phase 2는 Light/Dark/Auto 선택과 저장을 제공한다. 아직 없는 검색·category 기능의 동작하지 않는 UI는 노출하지 않는다.
+좌측 탐색, 본문 폭, 제목 계층, 코드 블록 등은 고정한 rustdoc CSS와 맞는 구조를 사용한다. Phase 1은 light 기본 외형, 후속 Settings 이식은 light/dark/ayu/system preference 선택과 저장을 제공한다. Settings는 고정한 rustdoc의 구조와 적용 가능한 항목을 따르며, 동작하지 않는 UI는 노출하지 않는다. 현재 항목·제외 이유는 2026-11-09-settings-design.md와 ROADMAP.md에 기록한다.
 
 가져온 Rust 릴리스와 정확한 커밋은 출처 파일에 기록한다. upstream JS는 초기 의존성이 아니다. 고정된 원본 CSS에서 기본 @font-face 선언 12개를 별도 fonts.css로 가져오고 수정 없는 WOFF2를 동봉한다. 역할별 폰트 스택, 굵기, 기울임, local(), swap, 한글 unicode-range는 원본을 따른다. Fira Mono는 기본 스택에서 사용하지 않아 제외한다. 내장 SVG와 참조 이미지도 라이선스를 확인해 포함하거나 대체한다. 손댄 부분과 고정 기준을 기록한다.
 

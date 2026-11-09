@@ -4,6 +4,7 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="generator" content="cargo-clippy-html">
 <title>{{ title }} — Clippy HTML</title>
+<script src="{{ root }}static.files/settings-storage.js"></script>
 <link rel="icon" type="image/x-icon" href="{{ root }}static.files/favicon.ico" sizes="16x16 32x32 48x48">
 <link rel="icon" type="image/svg+xml" href="{{ root }}static.files/favicon.svg" sizes="any">
 <link rel="stylesheet" href="{{ root }}static.files/normalize.css">
@@ -13,6 +14,7 @@
 <script defer src="{{ root }}static.files/search-index.js"></script>
 <script defer src="{{ root }}static.files/search-engine.js"></script>
 <script defer src="{{ root }}static.files/search.js"></script>
+<script defer src="{{ root }}static.files/settings.js"></script>
 </head>
 <body class="rustdoc{% if source_page %} src{% else %} mod{% endif %}" data-report-root="{{ root }}">
 <a class="skip-main-content" href="#main-content">Skip to main content</a>
@@ -27,7 +29,7 @@
 {% endif %}
 </nav>
 <main>{% if !source_page %}<div class="width-limiter">{% endif %}<section id="main-content" class="content" tabindex="-1">
-<div class="main-heading">{% if root.len() > 0 %}<div class="rustdoc-breadcrumbs"><a href="{{ root }}index.html">{{ crate_context }}</a><span aria-hidden="true"> ::</span></div>{% endif %}<h1>{{ heading_kind }} <span>{{ title }}</span></h1><rustdoc-toolbar class="report-toolbar hidden"><span id="search-button"><a href="?search=" title="Search this report"><span class="label">Search</span></a></span></rustdoc-toolbar></div>
+<div class="main-heading">{% if root.len() > 0 %}<div class="rustdoc-breadcrumbs"><a href="{{ root }}index.html">{{ crate_context }}</a><span aria-hidden="true"> ::</span></div>{% endif %}<h1>{{ heading_kind }} <span>{{ title }}</span></h1>{% if settings_page %}<span class="out-of-band"><a id="back" href="{{ root }}index.html">Back</a></span>{% else %}<rustdoc-toolbar class="report-toolbar hidden"><span id="search-button" class="hidden"><a href="?search=" title="Search this report"><span class="label">Search</span></a></span><div class="settings-menu hidden" tabindex="-1"><a href="{{ root }}settings.html" aria-label="Settings"><span class="label">Settings</span></a></div></rustdoc-toolbar>{% endif %}</div>
 {{ content|safe }}</section>
 <footer class="report-footer"><a href="{{ root }}licenses/index.html">Licenses and third-party notices</a></footer>
 {% if !source_page %}</div>{% endif %}</main>

@@ -125,8 +125,15 @@
         document.title = input.value.trim() ? `Results for ${input.value} — Clippy HTML` : `Search — Clippy HTML`;
         button.href = searchUrl().href;
         if (updateHistory) historyUpdate("replaceState", searchUrl());
+        if (input.value.trim() && globalThis.ClippyHtmlSettings?.get("go-to-only-result") === "true"
+            && kinds.reduce((total, kind) => total + matches[kind].length, 0) === 1) {
+            const url = new URL(window.location.href); url.searchParams.delete("search");
+            historyUpdate("replaceState", url);
+            panels[currentTab].querySelector("a")?.click();
+        }
     }
     function open(updateHistory = true, focus = true) {
+        document.dispatchEvent(new Event("clippy-html-search-open"));
         if (!displayed) {
             previousFocus = document.activeElement; scroll = [window.scrollX, window.scrollY];
             displayed = true; main.classList.add("hidden"); alternative.classList.remove("hidden");
@@ -136,7 +143,7 @@
             window.scrollTo(0, 0);
         }
         render(updateHistory);
-        if (focus) input.focus();
+        if (focus && displayed) input.focus();
     }
     function close(updateHistory = true, restoreFocus = true) {
         clearTimeoutInput();
@@ -201,9 +208,10 @@
         }
     });
     document.addEventListener("keydown", event => {
-        if (event.isComposing || composing || event.ctrlKey || event.altKey || event.metaKey) return;
+        if (event.isComposing || composing || event.ctrlKey || event.altKey || event.metaKey || globalThis.ClippyHtmlSettings?.get("disable-shortcuts") === "true") return;
         if (event.key === "Escape" && displayed) { event.preventDefault(); close(); return; }
-        if (event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])')) return;
+        const editable = event.target instanceof Element ? event.target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])') : null;
+        if (editable && !(editable instanceof HTMLInputElement && ["checkbox", "radio"].includes(editable.type))) return;
         if (event.key === "s" || event.key === "S" || event.key === "/") { event.preventDefault(); open(); }
     });
     function restoreUrl() {
@@ -214,5 +222,5 @@
     window.addEventListener("popstate", restoreUrl);
     window.addEventListener("pageshow", restoreUrl);
     button.setAttribute("aria-controls", "alternative-display"); button.setAttribute("aria-expanded", "false");
-    toolbar.classList.remove("hidden"); restoreUrl();
+    button.parentElement.classList.remove("hidden"); toolbar.classList.remove("hidden"); restoreUrl();
 })();
