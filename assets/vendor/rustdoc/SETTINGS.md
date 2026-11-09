@@ -19,7 +19,9 @@ single-result navigation); Content (source wrapping). Existing unsupported
 API-only settings remain omitted, without changing the order of retained rows.
 
 settings-tabs.css extracts only the relevant Settings rules. Declarations are
-unchanged; shared search selectors were removed and whitespace formatted. Its
+unchanged; shared search selectors were removed and whitespace formatted. The
+new generic .popover::before z-index: -1 is scoped to Settings so the rotated
+arrow square paints behind the tab strip, as in the reference. Its
 700px media rule preserves the upstream breakpoint. It is distributed under
 the same Rust Project Contributors MIT option and existing full MIT notice.
 The global rustdoc.css, theme storage logic and other UI stay at their existing

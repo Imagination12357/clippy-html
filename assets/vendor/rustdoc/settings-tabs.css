@@ -1,7 +1,8 @@
 /* Settings rules extracted from rustdoc 1.102.0-nightly (f5cedb83a 2026-11-07).
  * Rust Project Contributors, MIT option; see LICENSE-MIT and SETTINGS.md.
- * Shared search selectors were removed; declarations are unchanged. */
-#settings.popover::before { background-color: var(--search-tab-button-not-selected-background); }
+ * Shared search selectors were removed; generic arrow stacking is scoped to
+ * Settings. Declaration values are unchanged. */
+#settings.popover::before { background-color: var(--search-tab-button-not-selected-background); z-index: -1; }
 .settings-menu #settings { width: min(456px,calc(100vw - 2px)); }
 #settings.popover { --popover-arrow-offset: 196px; top: calc(100% - 16px); right: 1px; }
 #settings .settings { height: 100%; display: flex; flex-direction: column; }
