@@ -19,6 +19,10 @@ macro_rules! font_license {
 }
 const FILES: &[(&str, &[u8])] = &[
     (
+        "static.files/settings-storage.js",
+        include_bytes!("../../assets/settings-storage.js"),
+    ),
+    (
         "static.files/search.js",
         include_bytes!("../../assets/search.js"),
     ),
