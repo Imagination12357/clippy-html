@@ -89,7 +89,7 @@ MSRV는 Rust 1.88입니다. Windows에서 Rust 1.88.0 전체 target 컴파일과
 
 [CI workflow](.github/workflows/ci.yml)는 PR·main push·수동 실행에서 stable Rust의 Windows/Linux/macOS 테스트, Linux Rust 1.88.0 전체 target 컴파일, fmt·Clippy·Node/DOM 검사를 실행합니다. Node 24 이상을 사용하며 테스트 의존성은 npm lockfile로 고정합니다.
 
-PR에서는 현재 체크아웃을 설치해 온라인 기본 모드의 셀프 보고서를 만들고 `dogfood-report` artifact로 14일 보관합니다. main에서는 모든 검사 통과 후 하나의 job이 같은 보고서를 생성하고 GitHub Pages로 게시합니다. 수동 실행도 main에서만 게시하며, 다른 브랜치에서는 artifact만 만듭니다. pedantic 경고는 보고서에 포함하고, 설치·검사·보고서 생성의 실제 실패는 job 실패로 유지합니다. 실패 시에도 이미 생성된 보고서와 로그를 artifact에 보관하며 Pages 게시 단계는 건너뜁니다.
+PR에서는 현재 체크아웃을 설치해 온라인 기본 모드의 셀프 보고서를 만들고 `dogfood-report` artifact로 14일 보관합니다. main에서는 모든 검사 통과 후 하나의 job이 같은 보고서를 생성하고 GitHub Pages로 게시합니다. main의 `dogfood-report`는 보고서 생성이나 Pages 배포가 실패했을 때만 남은 보고서·로그를 보관하며, 성공 시에는 배포용 `github-pages` artifact만 사용합니다. 수동 실행도 main에서만 게시하며, 다른 브랜치에서는 artifact만 만듭니다. pedantic 경고는 보고서에 포함하고, 설치·검사·보고서 생성의 실제 실패는 job 실패로 유지합니다. 보고서 생성 실패 시 Pages 게시 단계는 건너뜁니다.
 
 최초 게시 전 저장소의 **Settings → Pages → Build and deployment → Source**를 **GitHub Actions**로 설정해야 합니다. [GitHub 공식 설정 안내](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)를 참고하세요. 워크플로 추가만으로 원격 설정이나 push를 수행하지는 않습니다. 로컬 검증과 아직 실행하지 않은 hosted runner/Pages 검증은 [CI 검증 기록](docs/validation/2026-11-10-ci.md)에 구분합니다.
 
