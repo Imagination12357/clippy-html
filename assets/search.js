@@ -122,7 +122,7 @@
             if (first !== -1) currentTab = first;
         }
         selectTab(currentTab);
-        document.title = input.value.trim() ? `Results for ${input.value} — Clippy HTML` : `Search — Clippy HTML`;
+        document.title = input.value.trim() ? `Results for ${input.value} - Clippy HTML` : `Search - Clippy HTML`;
         button.href = searchUrl().href;
         if (updateHistory) historyUpdate("replaceState", searchUrl());
         if (input.value.trim() && globalThis.ClippyHtmlSettings?.get("go-to-only-result") === "true"

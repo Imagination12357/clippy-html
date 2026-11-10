@@ -28,6 +28,10 @@ SEARCH.md. Settings/theme behavior is adapted under the same option; see
 SETTINGS.md. The report's matching/index engine is independent. Upstream API and
 DOM compatibility across releases are not promised.
 
+Browser titles use the reference output's ASCII ` - ` separator (for example,
+`cargo_clippy_html - Rust` and `main.rs - source`), with the report-specific
+`Clippy HTML` suffix retained for normal and search pages.
+
 Settings tabs are a scoped backport from rustdoc 1.102.0-nightly as served by
 docs.rs, added after the user clarified their reference. settings-tabs.css and
 the grouped Settings DOM follow that artifact; global styles remain this pinned
