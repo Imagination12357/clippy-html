@@ -20,7 +20,6 @@
 .source-code .diagnostic-span.secondary:not(.insertion) { background-color: color-mix(in srgb, var(--diagnostic-range-background) 60%, var(--src-line-number-highlighted-background-color)); }
 .source-code .diagnostic-span.insertion { display: inline-block; position: relative; width: 0; height: 1em; vertical-align: text-bottom; }
 .source-code .diagnostic-span.insertion::before { content: ""; position: absolute; left: 0; top: 100%; transform: translateX(-50%); border-left: .25em solid transparent; border-right: .25em solid transparent; border-bottom: .3em solid var(--diagnostic-insertion-color); }
-.range-legend { color: var(--right-side-color); font-size: .875rem; }
 /* Keep diagnostic backgrounds translucent with rustdoc's dark/Ayu palette. */
 :root[data-theme="dark"] .source-code, :root[data-theme="ayu"] .source-code { --diagnostic-range-background: color-mix(in srgb, var(--scrape-example-code-line-highlight-focus) 45%, transparent); }
 :root[data-theme="dark"] .source-code { --diagnostic-insertion-color: #b69aff; }

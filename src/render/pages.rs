@@ -149,7 +149,6 @@ struct SourceView {
     reason: String,
     rows: Vec<SourceRow>,
     digits: usize,
-    has_ranges: bool,
 }
 
 fn source_rows(
@@ -705,9 +704,6 @@ pub fn render_report(
         let mut content = render(&SourceView {
             reason: source.reason.clone().unwrap_or_default(),
             digits: rows.len().max(1).to_string().len(),
-            has_ranges: rows
-                .iter()
-                .any(|row| row.fragments.iter().any(|f| !f.title.is_empty())),
             rows,
         })?;
         content.push_str(&render(&Lint {
@@ -1088,7 +1084,6 @@ mod tests {
         let html = render(&SourceView {
             reason: String::new(),
             digits: 1,
-            has_ranges: true,
             rows: vec![SourceRow {
                 number: 1,
                 fragments,
@@ -1123,7 +1118,7 @@ mod tests {
         let caret = doc.select(&select(".insertion[role=img]")).next().unwrap();
         assert_eq!(caret.value().attr("aria-label"), Some("Primary: insert"));
         assert_eq!(caret.value().attr("title"), None);
-        assert!(html.contains("triangle = insertion point"));
+        assert_eq!(doc.select(&select(".range-legend")).count(), 0);
     }
     #[test]
     fn missing_or_nonlocal_search_scripts_are_rejected() {
