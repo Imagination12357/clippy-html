@@ -43,7 +43,7 @@ Settings는 rustdoc의 팝오버와 별도 `settings.html` 구조를 사용하�
 - 진단 종류 페이지에는 code, 실제 severity, target, primary/secondary 위치, note/help, suggestion 묶음과 applicability를 표시합니다.
 - 진단 URL은 `lint/clippy/clone_on_copy.html`, `lint/rustc/E0308.html`처럼 출처와 코드를 사용합니다. 코드 없는 진단은 `lint/general.html`에 모읍니다. 기존 해시 URL은 보고서를 재생성하면 변경됩니다.
 - 소스 페이지에는 관련 workspace 파일의 전체 코드, 줄 번호, 줄 단위 진단 표시, finding 링크를 표시합니다.
-- 전체 소스의 정확한 진단 범위는 기존의 옅은 줄 배경 위에 primary는 진한 배경·secondary는 조금 옅은 배경으로 표시합니다. 삽입 위치는 caret으로 표시하고, 범위의 tooltip에 lint와 위치 설명을 보존합니다. 기존 구문 색칠은 유지하며 소스가 진단 좌표와 맞지 않으면 정밀 표시 없이 원본 snippet을 제공합니다.
+- 전체 소스의 정확한 진단 범위는 기존의 옅은 줄 배경 위에 primary는 진한 배경·secondary는 조금 옅은 배경으로 표시합니다. 삽입 위치는 글자 아래 보라색 삼각형으로 표시하며 별도 hover 설명은 없습니다. 범위의 tooltip에 lint와 위치 설명을 보존합니다. 기존 구문 색칠은 유지하며 소스가 진단 좌표와 맞지 않으면 정밀 표시 없이 원본 snippet을 제공합니다.
 - 코드 범위에 포함된 줄 앞 스페이스·탭은 진한 배경에서 제외합니다. 공백만 지목한 진단과 문자열·주석 내부의 공백은 강조를 유지하며, 원래 좌표와 소스 텍스트는 바꾸지 않습니다.
 - 소스 화면은 생성 시 Rust 토큰을 분류하여 rustdoc CSS로 키워드·문자열·주석·숫자·lifetime·매크로 등을 색칠합니다. 여러 줄 문자열과 중첩 주석의 문맥을 보존하며 JavaScript는 필요하지 않습니다. 타입 의미 분석이나 정의 이동은 제공하지 않습니다. [구현 출처와 범위](assets/vendor/rustdoc/HIGHLIGHTING.md)
 - 소스 HTML은 `src/diagnostic/normalize.rs.html`처럼 원래 경로를 알아볼 수 있는 이름을 사용합니다. 위험한 파일명 문자는 인코딩하고 충돌 시 식별자를 붙입니다. 소스 사이드바의 Files 트리에는 진단에 포함된 파일과 진단 수를 표시하며, 현재 파일의 경로를 펼칩니다. Findings in this file 목록에서 해당 줄로 이동할 수 있습니다.

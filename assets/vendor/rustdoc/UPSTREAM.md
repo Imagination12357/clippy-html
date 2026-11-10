@@ -22,6 +22,12 @@ WOFF2 files and their original OFL-1.1 notices are in fonts/. See FONTS.md
 for the exact file inventory, source details and hashes. Report-specific
 rules live in assets/clippy-html.css. The remaining upstream styles are retained.
 
+Diagnostic ranges and insertion markers are report-specific additions, not
+rustdoc UI. Insertion markers use an upward triangle below the source and a
+dedicated theme color (light #7c3aed, dark #b69aff, ayu #c4a7ff), independently
+of severity and link colors. They preserve source text and accessible labels
+without a hover tooltip.
+
 No complete rustdoc JavaScript, logo or Fira Mono assets are included. The search
 interface adapts pinned JavaScript behavior and DOM under the MIT option; see
 SEARCH.md. Settings/theme behavior is adapted under the same option; see

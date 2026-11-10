@@ -1122,6 +1122,8 @@ mod tests {
         );
         let caret = doc.select(&select(".insertion[role=img]")).next().unwrap();
         assert_eq!(caret.value().attr("aria-label"), Some("Primary: insert"));
+        assert_eq!(caret.value().attr("title"), None);
+        assert!(html.contains("triangle = insertion point"));
     }
     #[test]
     fn missing_or_nonlocal_search_scripts_are_rejected() {
