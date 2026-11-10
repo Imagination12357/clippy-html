@@ -195,6 +195,11 @@ fn publish_with_rename(
 #[cfg(test)]
 mod tests {
     use super::*;
+    fn tempdir() -> tempfile::TempDir {
+        // macOS's default temp path goes through the /var symlink.
+        let parent = std::env::temp_dir().canonicalize().unwrap();
+        tempfile::tempdir_in(parent).unwrap()
+    }
     fn project(root: &Path) -> ProjectInfo {
         ProjectInfo {
             workspace_root: root.into(),
@@ -204,7 +209,7 @@ mod tests {
     }
     #[test]
     fn build_failure_keeps_old_report() {
-        let t = tempfile::tempdir().unwrap();
+        let t = tempdir();
         let path = t.path().join("report");
         std::fs::create_dir(&path).unwrap();
         std::fs::write(path.join(".clippy-html-owned"), "1\n").unwrap();
@@ -218,7 +223,7 @@ mod tests {
     }
     #[test]
     fn missing_font_assets_keep_old_report() {
-        let t = tempfile::tempdir().unwrap();
+        let t = tempdir();
         let path = t.path().join("report");
         std::fs::create_dir(&path).unwrap();
         std::fs::write(path.join(".clippy-html-owned"), "1\n").unwrap();
@@ -246,7 +251,7 @@ mod tests {
     }
     #[test]
     fn refuses_unowned_or_project_directory() {
-        let t = tempfile::tempdir().unwrap();
+        let t = tempdir();
         let p = project(t.path());
         assert!(prepare_target(t.path(), &p).is_err());
         let other = t.path().join("notes");
@@ -262,7 +267,7 @@ mod tests {
     }
     #[test]
     fn rename_failure_restores_backup() {
-        let t = tempfile::tempdir().unwrap();
+        let t = tempdir();
         let path = t.path().join("report");
         fs::create_dir(&path).unwrap();
         fs::write(path.join(MARKER), "1\n").unwrap();
@@ -282,7 +287,7 @@ mod tests {
     }
     #[test]
     fn rollback_failure_retains_backup() {
-        let t = tempfile::tempdir().unwrap();
+        let t = tempdir();
         let path = t.path().join("report");
         fs::create_dir(&path).unwrap();
         fs::write(path.join(MARKER), "1\n").unwrap();
@@ -311,7 +316,7 @@ mod tests {
     }
     #[test]
     fn concurrent_publish_has_one_owner() {
-        let t = tempfile::tempdir().unwrap();
+        let t = tempdir();
         let target = prepare_target(&t.path().join("report"), &project(t.path())).unwrap();
         let result = publish_report(&target, |dir| {
             assert!(publish_report(&target, simple_report).is_err());
@@ -323,7 +328,7 @@ mod tests {
     }
     #[test]
     fn unexpected_destination_created_during_render_is_preserved() {
-        let t = tempfile::tempdir().unwrap();
+        let t = tempdir();
         let path = t.path().join("report");
         let target = prepare_target(&path, &project(t.path())).unwrap();
         let result = publish_report(&target, |staging| {
@@ -339,7 +344,7 @@ mod tests {
     }
     #[test]
     fn unexpected_object_moved_to_backup_is_never_deleted() {
-        let t = tempfile::tempdir().unwrap();
+        let t = tempdir();
         let path = t.path().join("report");
         fs::create_dir(&path).unwrap();
         fs::write(path.join(MARKER), "1\n").unwrap();
@@ -367,7 +372,7 @@ mod tests {
     #[cfg(windows)]
     #[test]
     fn case_aliases_share_one_publication_lock() {
-        let t = tempfile::tempdir().unwrap();
+        let t = tempdir();
         fs::write(t.path().join("case-probe"), "probe").unwrap();
         if !t.path().join("CASE-PROBE").exists() {
             return;

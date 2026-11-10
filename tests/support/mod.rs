@@ -20,7 +20,9 @@ fn copy(from: &Path, to: &Path) {
 }
 impl Fixture {
     pub fn new(name: &str) -> Self {
-        let temp = tempfile::tempdir().unwrap();
+        // Keep explicit output paths clear of macOS's /var temp-path symlink.
+        let parent = std::env::temp_dir().canonicalize().unwrap();
+        let temp = tempfile::tempdir_in(parent).unwrap();
         let root = temp.path().join("프로젝트 space");
         copy(
             &Path::new(env!("CARGO_MANIFEST_DIR"))
