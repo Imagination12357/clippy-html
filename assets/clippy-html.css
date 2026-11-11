@@ -11,6 +11,15 @@
 .diagnostic-location { margin: 1em 0; }
 .diagnostic-note { margin: .5em 0; }
 .suggestion { margin: 1em 0; }
+.suggestion-diff pre { padding-top: 2.5rem; }
+.suggestion-diff .button-holder .patch-copy { width: auto; padding: 2px 8px; }
+.suggestion-diff .button-holder .patch-copy::before { content: none; }
+.suggestion-diff { --diff-add-background: #e6ffec; --diff-remove-background: #ffebe9; }
+.suggestion-diff .diff-add { background: var(--diff-add-background); }
+.suggestion-diff .diff-remove { background: var(--diff-remove-background); }
+.suggestion-diff .diff-header { color: var(--right-side-color); }
+:root[data-theme="dark"] .suggestion-diff { --diff-add-background: #183b29; --diff-remove-background: #4b2328; }
+:root[data-theme="ayu"] .suggestion-diff { --diff-add-background: #20352c; --diff-remove-background: #442831; }
 .run-issues, .source-unavailable { background: var(--stab-background-color); padding: 12px 16px; border-left: 2px solid var(--warning-border-color); }
 .source-scroll { overflow: auto; }
 .example-wrap pre code .code-line { display: block; min-height: 1.5em; scroll-margin-top: 24px; }

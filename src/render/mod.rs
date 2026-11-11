@@ -7,3 +7,4 @@ pub use pages::{render_report, validate_report};
 mod navigation;
 mod ranges;
 mod search;
+mod suggestions;

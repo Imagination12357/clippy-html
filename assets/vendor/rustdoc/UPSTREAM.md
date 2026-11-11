@@ -34,6 +34,10 @@ SEARCH.md. Settings/theme behavior is adapted under the same option; see
 SETTINGS.md. The report's matching/index engine is independent. Upstream API and
 DOM compatibility across releases are not promised.
 
+Suggestion patch copy controls adapt the same pinned code-block button/copy
+behavior; diff construction is report-specific. See SUGGESTIONS.md for the
+source, license and clipboard/CRLF adaptations.
+
 Browser titles use the reference output's ASCII ` - ` separator (for example,
 `cargo_clippy_html - Rust` and `main.rs - source`), with the report-specific
 `Clippy HTML` suffix retained for normal and search pages.

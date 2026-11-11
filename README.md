@@ -49,6 +49,7 @@ Settings는 rustdoc의 팝오버와 별도 `settings.html` 구조를 사용하�
 - 소스 HTML은 `src/diagnostic/normalize.rs.html`처럼 원래 경로를 알아볼 수 있는 이름을 사용합니다. 위험한 파일명 문자는 인코딩하고 충돌 시 식별자를 붙입니다. 소스 사이드바의 Files 트리에는 진단에 포함된 파일과 진단 수를 표시하며, 현재 파일의 경로를 펼칩니다. Findings in this file 목록에서 해당 줄로 이동할 수 있습니다.
 - 홈에서 category별 finding 수와 lint 종류 수를 확인하고 category → lint → 소스로 이동할 수 있습니다. 분류 출처·기준 버전·fallback 사유는 홈의 Category data에서 확인합니다. 동봉 표는 실행한 Clippy와 버전이 달라도 이름으로 적용하므로 분류가 다를 수 있습니다. 선택한 표에 없는 이름은 Unknown으로 남기고, rustc/general 진단은 Clippy category에 포함하지 않습니다. Category 정보는 severity나 finding ID를 바꾸지 않습니다.
 - 동일한 위치라도 package, severity, 관련 span 또는 suggestion이 다르면 별 진단입니다. 같은 진단이 여러 target에서 발생하면 target 목록을 합칩니다.
+- Suggestion은 여러 위치·파일의 수정을 한 묶음의 unified diff로 표시하고 applicability를 그대로 보여줍니다. `Copy patch`는 suggestion 전체를 복사하며 원본 파일을 수정하지 않습니다. JavaScript나 클립보드 권한이 없어도 diff를 읽을 수 있습니다. 원문 누락·좌표 불일치·겹치는 수정·patch로 표현할 수 없는 경로는 원래 교체 내용과 사유를 표시합니다. 전체 원문·교체 문자열 합계 4 MiB, 파일당 100,000개 개행, 수정 1,024개, patch 4 MiB, 생성 2초를 넘는 제안도 fallback합니다. [표시·복사 출처와 적용 범위](assets/vendor/rustdoc/SUGGESTIONS.md)
 
 소스의 실제 내용과 진단 위치가 맞지 않거나 파일을 읽을 수 없으면 진단 snippet과 사유를 표시합니다. 외부 dependency와 생성 코드의 전체 파일은 기본 복사하지 않습니다. 자동 수정은 하지 않습니다.
 
@@ -73,6 +74,8 @@ cargo +1.88.0 check --all-targets --locked
 ```
 
 process 테스트는 먼저 빌드한 `cargo_probe` helper를 사용해 양쪽 pipe의 대량 출력을 검증합니다. 통합 테스트는 fixture를 임시 폴더에 복사하므로 저장소의 fixture 소스를 수정하지 않습니다. fixture 자체는 외부 의존성을 사용하지 않습니다.
+
+Suggestion patch 테스트는 Git이 PATH에 있어야 하며, 생성한 patch를 임시 복사본에 실제 적용해 결과 바이트를 검사합니다.
 
 검색 엔진은 Node의 기본 테스트 runner로 검증합니다. DOM 동작 검증에만 테스트용 jsdom을 사용하며, 제품 생성·실행에는 Node/npm이 필요하지 않습니다.
 

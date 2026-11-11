@@ -19,6 +19,14 @@ macro_rules! font_license {
 }
 const FILES: &[(&str, &[u8])] = &[
     (
+        "licenses/SUGGESTIONS.md",
+        include_bytes!("../../assets/vendor/rustdoc/SUGGESTIONS.md"),
+    ),
+    (
+        "static.files/suggestions.js",
+        include_bytes!("../../assets/suggestions.js"),
+    ),
+    (
         "static.files/settings-tabs.css",
         include_bytes!("../../assets/vendor/rustdoc/settings-tabs.css"),
     ),

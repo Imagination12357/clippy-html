@@ -77,13 +77,14 @@ fn search_index_links_all_report_kinds_without_copying_source_bodies() {
         let html = std::fs::read_to_string(&path).unwrap();
         let doc = Html::parse_document(&html);
         let scripts: Vec<_> = doc.select(&Selector::parse("script").unwrap()).collect();
-        assert_eq!(scripts.len(), 5);
+        assert_eq!(scripts.len(), 6);
         for (script, name) in scripts.iter().zip([
             "settings-storage.js",
             "search-index.js",
             "search-engine.js",
             "search.js",
             "settings.js",
+            "suggestions.js",
         ]) {
             assert!(
                 script
@@ -309,6 +310,24 @@ fn warning_source_and_suggestion_are_escaped() {
     assert!(f.report().join("lint/clippy/clone_on_copy.html").is_file());
     let doc = Html::parse_document(&std::fs::read_to_string(&lint[0]).unwrap());
     assert_eq!(doc.select(&Selector::parse(".finding").unwrap()).count(), 1);
+    let diff = doc
+        .select(&Selector::parse(".suggestion-diff[data-patch]").unwrap())
+        .next()
+        .expect("validated suggestion diff");
+    let patch: String = serde_json::from_str(diff.value().attr("data-patch").unwrap()).unwrap();
+    assert!(patch.contains("--- \"a/src/lib.rs\""));
+    assert!(patch.contains("-pub fn copy_number(value: i32) -> i32 { value.clone() }"));
+    assert!(patch.contains("+pub fn copy_number(value: i32) -> i32 { value }"));
+    assert_eq!(
+        diff.select(&Selector::parse("button").unwrap()).count(),
+        0,
+        "no-JS report keeps the diff readable without an inactive copy button"
+    );
+    assert_eq!(
+        doc.select(&Selector::parse(".suggestion-unavailable").unwrap())
+            .count(),
+        0
+    );
     assert!(
         doc.root_element()
             .text()

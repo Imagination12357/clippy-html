@@ -21,3 +21,4 @@ ra-ap-rustc_lexer = "=0.178.0"
 unicode-ident = "=1.0.22"
 scraper = "0.24"
 ureq = { version = "=3.5.1", default-features = false, features = ["rustls"] }
+similar = "3.2.1"

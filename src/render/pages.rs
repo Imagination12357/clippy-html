@@ -109,6 +109,17 @@ struct ReplacementView {
 struct SuggestionView {
     message: String,
     replacements: Vec<ReplacementView>,
+    applicability: String,
+    patch: Option<PatchView>,
+    reason: String,
+}
+struct PatchView {
+    json: String,
+    lines: Vec<PatchLine>,
+}
+struct PatchLine {
+    class: &'static str,
+    text: String,
 }
 struct FindingView {
     category_href: String,
@@ -333,6 +344,7 @@ fn views(
     sources: &BTreeMap<PathBuf, SourceFile>,
     pages: &PageMap,
     packages: &[PackageInfo],
+    workspace_root: &Path,
 ) -> Vec<FindingView> {
     fn flatten(n: &Note, out: &mut Vec<NoteView>) {
         out.push(note_view(n));
@@ -429,22 +441,63 @@ fn views(
                 suggestions: f
                     .suggestions
                     .iter()
-                    .map(|s| SuggestionView {
-                        message: s.message.clone(),
-                        replacements: s
-                            .replacements
-                            .iter()
-                            .map(|r| ReplacementView {
-                                location: format!(
-                                    "{}:{}:{}",
-                                    r.span.path.display(),
-                                    r.span.line_start,
-                                    r.span.column_start
+                    .map(|s| {
+                        let (patch, reason) =
+                            match super::suggestions::build_patch(s, sources, workspace_root) {
+                                Ok(text) => (
+                                    Some(PatchView {
+                                        json: serde_json::to_string(&text)
+                                            .expect("serialize patch string"),
+                                        lines: text
+                                            .split_inclusive('\n')
+                                            .map(|line| PatchLine {
+                                                class: if line.starts_with("--- ")
+                                                    || line.starts_with("+++ ")
+                                                    || line.starts_with("@@")
+                                                {
+                                                    "diff-header"
+                                                } else if line.starts_with('+') {
+                                                    "diff-add"
+                                                } else if line.starts_with('-') {
+                                                    "diff-remove"
+                                                } else {
+                                                    "diff-context"
+                                                },
+                                                text: line.into(),
+                                            })
+                                            .collect(),
+                                    }),
+                                    String::new(),
                                 ),
-                                applicability: r.applicability.clone(),
-                                text: r.text.clone(),
-                            })
-                            .collect(),
+                                Err(reason) => (None, reason),
+                            };
+                        SuggestionView {
+                            message: s.message.clone(),
+                            applicability: s
+                                .replacements
+                                .iter()
+                                .map(|r| r.applicability.as_str())
+                                .collect::<std::collections::BTreeSet<_>>()
+                                .into_iter()
+                                .collect::<Vec<_>>()
+                                .join(" · "),
+                            patch,
+                            reason,
+                            replacements: s
+                                .replacements
+                                .iter()
+                                .map(|r| ReplacementView {
+                                    location: format!(
+                                        "{}:{}:{}",
+                                        r.span.path.display(),
+                                        r.span.line_start,
+                                        r.span.column_start
+                                    ),
+                                    applicability: r.applicability.clone(),
+                                    text: r.text.clone(),
+                                })
+                                .collect(),
+                        }
                     })
                     .collect(),
                 fallback: f.rendered.clone().unwrap_or_default(),
@@ -680,7 +733,14 @@ pub fn render_report(
                 root: relative_href(path, Path::new(""), None),
                 sidebar,
                 content: render(&Lint {
-                    findings: views(fs, path, sources, pages, &report.project.packages),
+                    findings: views(
+                        fs,
+                        path,
+                        sources,
+                        pages,
+                        &report.project.packages,
+                        &report.project.workspace_root,
+                    ),
                 })?,
                 crate_context: crate_context(report, fs),
                 crates: crate_infos(report, fs),
@@ -707,7 +767,14 @@ pub fn render_report(
             rows,
         })?;
         content.push_str(&render(&Lint {
-            findings: views(&fs, path, sources, pages, &report.project.packages),
+            findings: views(
+                &fs,
+                path,
+                sources,
+                pages,
+                &report.project.packages,
+                &report.project.workspace_root,
+            ),
         })?);
         let sidebar = fs
             .iter()
@@ -1043,7 +1110,14 @@ mod tests {
                 .all(|r| !r.marked && r.fragments.iter().all(|f| f.title.is_empty()))
         );
         let sources = BTreeMap::from([(key.clone(), source)]);
-        let rendered = views(&[&finding], Path::new("lint/a.html"), &sources, &pages, &[]);
+        let rendered = views(
+            &[&finding],
+            Path::new("lint/a.html"),
+            &sources,
+            &pages,
+            &[],
+            Path::new("/workspace"),
+        );
         assert!(
             rendered[0].locations[0]
                 .href
@@ -1298,7 +1372,14 @@ mod tests {
             lint_pages: BTreeMap::new(),
             source_pages: BTreeMap::from([(f.spans[0].path.clone(), PathBuf::from("src/a.html"))]),
         };
-        let result = views(&[&f], Path::new("lint/a.html"), &sources, &pages, &[]);
+        let result = views(
+            &[&f],
+            Path::new("lint/a.html"),
+            &sources,
+            &pages,
+            &[],
+            Path::new("/workspace"),
+        );
         assert_eq!(result[0].locations.len(), 1);
         assert_eq!(result[0].notes.len(), 1);
         assert_eq!(result[0].suggestions.len(), 1);
