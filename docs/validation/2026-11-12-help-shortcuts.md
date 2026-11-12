@@ -81,3 +81,12 @@ HELP.md. The exact user-viewed 1.101 artifact was not retrieved.
 Updated tests failed on the old key list/seven rows, then passed with six rows,
 the glyph and real compiled package version. All eight Help DOM tests, the
 generated Help integration test, fmt and strict all-target Clippy passed.
+
+## Follow-up: toolbar order
+
+User identified reversed Help/Settings buttons. Inspected RustdocToolbarElement
+in pinned storage-41dd4d93.js: Search, Settings, Help, then Summary. Matched the
+first three and kept Summary omitted. Both popup arrow offsets now account for
+that order at desktop and the native 850px compact breakpoint. The integration
+test reproduced Search/Help/Settings before the fix and verifies the corrected
+order on overview, lint and source pages. No key or popup behavior was changed.

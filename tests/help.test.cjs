@@ -5,7 +5,7 @@ const { JSDOM } = require("jsdom");
 
 function setup({ search = true, standalone = false, denied = false, url } = {}) {
     const content = fs.readFileSync("templates/help.html", "utf8").replaceAll("{{ generator_version }}", "test-version");
-    const toolbar = '<rustdoc-toolbar class="report-toolbar"><span id="search-button" class="hidden"><a href="?search="><span class="label">Search</span></a></span><div class="help-menu" tabindex="-1"><a href="../../help.html"><span class="label">Help</span></a></div><div class="settings-menu hidden" tabindex="-1"><a href="../../settings.html"><span class="label">Settings</span></a></div></rustdoc-toolbar>';
+    const toolbar = '<rustdoc-toolbar class="report-toolbar"><span id="search-button" class="hidden"><a href="?search="><span class="label">Search</span></a></span><div class="settings-menu hidden" tabindex="-1"><a href="../../settings.html"><span class="label">Settings</span></a></div><div class="help-menu" tabindex="-1"><a href="../../help.html"><span class="label">Help</span></a></div></rustdoc-toolbar>';
     const dom = new JSDOM(`<!doctype html><title>Original</title><body data-report-root="${standalone ? "" : "../../"}"><main><section id="main-content" class="content"><div class="main-heading"><h1>Report</h1>${standalone ? '<a id="back" href="index.html">Back</a>' : toolbar}</div>${standalone ? content : "original"}</section></main>${standalone ? "" : `<template id="help-content">${content}</template>`}</body>`, { url: url || (standalone ? "file:///report/help.html" : "https://example.test/report/src/nested/file.rs.html"), runScripts: "outside-only" });
     const w = dom.window, doc = w.document;
     w.matchMedia = () => ({ matches: false, addEventListener() {} });

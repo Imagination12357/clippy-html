@@ -50,6 +50,13 @@ fn help_is_readable_without_js_and_linked_from_nested_pages() {
             .next()
             .unwrap();
         assert!(!toolbar.value().classes().any(|c| c == "hidden"));
+        assert_eq!(
+            toolbar
+                .select(&Selector::parse("a > .label").unwrap())
+                .map(|e| e.text().collect::<String>())
+                .collect::<Vec<_>>(),
+            ["Search", "Settings", "Help"]
+        );
         let link = doc
             .select(&Selector::parse(".help-menu > a").unwrap())
             .next()

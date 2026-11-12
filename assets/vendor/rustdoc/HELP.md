@@ -36,8 +36,11 @@ IME composition and browser modifier keys are protected. Disable keyboard
 shortcuts suppresses the report's custom global and arrow handlers; native
 Tab/Enter and explicit buttons/links still work.
 
-Settings remains last in the toolbar. Help's scoped arrow offsets account for
-that following button, including rustdoc's compact 850px button breakpoint.
+Toolbar order is Search, Settings, Help, following the pinned reference's
+RustdocToolbarElement in storage-41dd4d93.js (SHA-256
+41ae6c52806867b0888b909a815fd147c2b012b10211a772747f49c10f3fece9).
+The reference's following Summary control is omitted. Popup arrow offsets
+account for Help following Settings, including the compact 850px breakpoint.
 Popup positioning uses the existing 700px mobile breakpoint. The report overrides the
 native mobile Help-link hiding rule because it does not have rustdoc-topbar.
 Long popup content scrolls inside .content rather than clipping its arrow.

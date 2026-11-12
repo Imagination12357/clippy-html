@@ -31,9 +31,9 @@ Disable keyboard shortcuts suppresses custom ?, search, Escape and arrow
 handlers; native Tab/Enter/button activation remains available. Buttons and
 links work whether that setting is enabled or disabled.
 
-Settings stays the last toolbar button so its existing arrow anchor remains
-valid. Help uses the native popup layout and a scoped arrow offset accounting
-for the following Settings control. Narrow screens use the existing rustdoc
+Toolbar order follows the native Search, Settings, Help sequence, with Summary
+omitted. Popup arrow offsets account for Help following Settings. Help uses
+the native popup layout. Narrow screens use the existing rustdoc
 responsive layout, with scrolling only where needed.
 
 Validation: DOM tests for layered Escape, focus, popup exclusion, modified
