@@ -17,6 +17,7 @@
 <script defer src="{{ root }}static.files/search.js"></script>
 <script defer src="{{ root }}static.files/settings.js"></script>
 <script defer src="{{ root }}static.files/suggestions.js"></script>
+<script defer src="{{ root }}static.files/help.js"></script>
 </head>
 <body class="rustdoc{% if source_page %} src{% else %} mod{% endif %}" data-report-root="{{ root }}">
 <a class="skip-main-content" href="#main-content">Skip to main content</a>
@@ -31,8 +32,9 @@
 {% endif %}
 </nav>
 <main>{% if !source_page %}<div class="width-limiter">{% endif %}<section id="main-content" class="content" tabindex="-1">
-<div class="main-heading">{% if root.len() > 0 %}<div class="rustdoc-breadcrumbs"><a href="{{ root }}index.html">{{ crate_context }}</a><span aria-hidden="true"> ::</span></div>{% endif %}<h1>{{ heading_kind }} <span>{{ title }}</span></h1>{% if settings_page %}<span class="out-of-band"><a id="back" href="{{ root }}index.html">Back</a></span>{% else %}<rustdoc-toolbar class="report-toolbar hidden"><span id="search-button" class="hidden"><a href="?search=" title="Search this report"><span class="label">Search</span></a></span><div class="settings-menu hidden" tabindex="-1"><a href="{{ root }}settings.html" aria-label="Settings"><span class="label">Settings</span></a></div></rustdoc-toolbar>{% endif %}</div>
+<div class="main-heading">{% if root.len() > 0 %}<div class="rustdoc-breadcrumbs"><a href="{{ root }}index.html">{{ crate_context }}</a><span aria-hidden="true"> ::</span></div>{% endif %}<h1>{{ heading_kind }} <span>{{ title }}</span></h1>{% if standalone_page %}<span class="out-of-band"><a id="back" href="{{ root }}index.html">Back</a></span>{% else %}<rustdoc-toolbar class="report-toolbar"><span id="search-button" class="hidden"><a href="?search=" title="Search this report"><span class="label">Search</span></a></span><div class="help-menu" tabindex="-1"><a href="{{ root }}help.html" aria-label="Help"><span class="label">Help</span></a></div><div class="settings-menu hidden" tabindex="-1"><a href="{{ root }}settings.html" aria-label="Settings"><span class="label">Settings</span></a></div></rustdoc-toolbar>{% endif %}</div>
 {{ content|safe }}</section>
 <footer class="report-footer"><a href="{{ root }}licenses/index.html">Licenses and third-party notices</a></footer>
 {% if !source_page %}</div>{% endif %}</main>
+{% if !standalone_page %}<template id="help-content">{% include "help.html" %}</template>{% endif %}
 </body></html>

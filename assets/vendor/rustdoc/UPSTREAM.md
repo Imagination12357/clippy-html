@@ -34,6 +34,10 @@ SEARCH.md. Settings/theme behavior is adapted under the same option; see
 SETTINGS.md. The report's matching/index engine is independent. Upstream API and
 DOM compatibility across releases are not promised.
 
+Help uses the same pinned toolbar/popover/standalone structure, with only
+implemented report commands and search rules. See HELP.md for sources and
+keyboard/focus adaptations. Expand/collapse controls remain a separate scope.
+
 Suggestion patch copy controls adapt the same pinned code-block button/copy
 behavior; diff construction is report-specific. See SUGGESTIONS.md for the
 source, license and clipboard/CRLF adaptations.

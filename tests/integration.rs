@@ -2,6 +2,58 @@ mod support;
 use scraper::{Html, Selector};
 use support::*;
 #[test]
+fn help_is_readable_without_js_and_linked_from_nested_pages() {
+    let f = Fixture::new("warning");
+    assert_success(&f.run(&[]));
+    let doc = Html::parse_document(&f.html("help.html"));
+    assert_eq!(doc.select(&Selector::parse("#help").unwrap()).count(), 1);
+    assert_eq!(
+        doc.select(&Selector::parse("#help .shortcuts dt").unwrap())
+            .count(),
+        7
+    );
+    assert_eq!(
+        doc.select(&Selector::parse("#back").unwrap())
+            .next()
+            .unwrap()
+            .value()
+            .attr("href"),
+        Some("index.html")
+    );
+    let text = doc
+        .select(&Selector::parse("#help").unwrap())
+        .next()
+        .unwrap()
+        .text()
+        .collect::<String>();
+    assert!(text.contains("case-insensitive") && text.contains("Escape"));
+    assert!(
+        !text.contains("Expand all") && !text.contains("fn:") && !text.contains("rustdoc book")
+    );
+    for path in [
+        "index.html",
+        "lint/clippy/clone_on_copy.html",
+        "src/lib.rs.html",
+    ] {
+        let doc = Html::parse_document(&f.html(path));
+        let toolbar = doc
+            .select(&Selector::parse("rustdoc-toolbar").unwrap())
+            .next()
+            .unwrap();
+        assert!(!toolbar.value().classes().any(|c| c == "hidden"));
+        let link = doc
+            .select(&Selector::parse(".help-menu > a").unwrap())
+            .next()
+            .unwrap();
+        assert!(link.value().attr("href").unwrap().ends_with("help.html"));
+        assert_eq!(
+            doc.select(&Selector::parse("template#help-content").unwrap())
+                .count(),
+            1
+        );
+    }
+}
+#[test]
 fn settings_page_has_local_bootstrap_and_valid_report_navigation() {
     let f = Fixture::new("clean");
     assert_success(&f.run(&[]));
@@ -77,7 +129,7 @@ fn search_index_links_all_report_kinds_without_copying_source_bodies() {
         let html = std::fs::read_to_string(&path).unwrap();
         let doc = Html::parse_document(&html);
         let scripts: Vec<_> = doc.select(&Selector::parse("script").unwrap()).collect();
-        assert_eq!(scripts.len(), 6);
+        assert_eq!(scripts.len(), 7);
         for (script, name) in scripts.iter().zip([
             "settings-storage.js",
             "search-index.js",
@@ -85,6 +137,7 @@ fn search_index_links_all_report_kinds_without_copying_source_bodies() {
             "search.js",
             "settings.js",
             "suggestions.js",
+            "help.js",
         ]) {
             assert!(
                 script
@@ -101,7 +154,7 @@ fn search_index_links_all_report_kinds_without_copying_source_bodies() {
         }
         assert_eq!(
             doc.select(
-                &Selector::parse(".main-heading > rustdoc-toolbar.hidden #search-button a")
+                &Selector::parse(".main-heading > rustdoc-toolbar #search-button.hidden a")
                     .unwrap()
             )
             .count(),

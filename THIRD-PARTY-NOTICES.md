@@ -18,6 +18,8 @@ The generator's own code remains MIT OR Apache-2.0; see LICENSE-MIT and LICENSE-
 
 Suggestion patch copy controls also adapt the pinned rustdoc code-block button structure and selected-text copy behavior under its MIT option. See assets/vendor/rustdoc/SUGGESTIONS.md (licenses/SUGGESTIONS.md in generated reports) and the existing rustdoc-MIT.txt notice. No clipboard/checkmark SVG assets are copied.
 
+Help and keyboard behavior adapt the same pinned rustdoc toolbar/popover and standalone Help structure under its MIT option. See assets/vendor/rustdoc/HELP.md (licenses/HELP.md in generated reports); the original rustdoc-MIT.txt notice also applies.
+
 Each font-family license file preserves the original copyright and Reserved Font Name declarations and the full OFL-1.1 text. The font binaries are unchanged copies of the pinned rustdoc output. See assets/vendor/rustdoc/FONTS.md (licenses/FONTS.md in generated reports) for file names, source details and SHA-256 values.
 
 The original rustdoc COPYRIGHT.txt is retained unmodified as upstream reference material. It also discusses resources not copied from rustdoc, including Rust logos, the complete rustdoc JavaScript files and Fira Mono. Search UI behavior is adapted as described in SEARCH.md; the upstream search engine is not shipped. The favicon is a separate adaptation of user-supplied Rust logo artwork, not a rustdoc asset. It is not the inventory of this bundle; the table above is that inventory.

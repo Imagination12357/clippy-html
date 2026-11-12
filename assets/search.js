@@ -187,14 +187,16 @@
     input.addEventListener("input", schedule);
     input.addEventListener("compositionstart", () => { composing = true; clearTimeoutInput(); });
     input.addEventListener("compositionend", () => { composing = false; schedule(); });
+    document.addEventListener("compositionstart", () => { composing = true; });
+    document.addEventListener("compositionend", () => { composing = false; });
     input.addEventListener("keydown", event => {
-        if (event.isComposing || composing || event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) return;
+        if (event.defaultPrevented || event.isComposing || composing || event.keyCode === 229 || event.ctrlKey || event.altKey || event.metaKey || event.shiftKey || globalThis.ClippyHtmlSettings?.get("disable-shortcuts") === "true") return;
         if (event.key === "ArrowDown") {
             event.preventDefault(); if (timeout !== null) render(); panels[currentTab].querySelector("a")?.focus();
         }
     });
     output.addEventListener("keydown", event => {
-        if (event.isComposing || event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) return;
+        if (event.defaultPrevented || event.isComposing || event.keyCode === 229 || event.ctrlKey || event.altKey || event.metaKey || event.shiftKey || globalThis.ClippyHtmlSettings?.get("disable-shortcuts") === "true") return;
         if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
             event.preventDefault(); const tabFocused = buttons.includes(document.activeElement);
             selectTab((currentTab + (event.key === "ArrowLeft" ? kinds.length - 1 : 1)) % kinds.length);
@@ -208,7 +210,7 @@
         }
     });
     document.addEventListener("keydown", event => {
-        if (event.isComposing || composing || event.ctrlKey || event.altKey || event.metaKey || globalThis.ClippyHtmlSettings?.get("disable-shortcuts") === "true") return;
+        if (event.defaultPrevented || event.isComposing || composing || event.keyCode === 229 || event.ctrlKey || event.altKey || event.metaKey || globalThis.ClippyHtmlSettings?.get("disable-shortcuts") === "true") return;
         if (event.key === "Escape" && displayed) { event.preventDefault(); close(); return; }
         const editable = event.target instanceof Element ? event.target.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])') : null;
         if (editable && !(editable instanceof HTMLInputElement && ["checkbox", "radio"].includes(editable.type))) return;

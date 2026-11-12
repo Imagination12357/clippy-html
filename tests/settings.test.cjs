@@ -132,6 +132,9 @@ test("settings and search share the toolbar; disable shortcuts and single-result
     s.doc.querySelector(".settings-menu > a").click();
     s.doc.getElementById("settings").querySelector('input[name="theme"][value="ayu"]').click();
     assert.equal(s.doc.documentElement.dataset.theme, "ayu");
+    key("Escape");
+    assert.equal(s.doc.getElementById("settings").style.display, "none");
+    assert.ok(s.doc.getElementById("main-content").classList.contains("hidden"));
     key("Escape"); assert.ok(!s.doc.getElementById("main-content").classList.contains("hidden"));
     s.api.set("go-to-only-result", "true"); key("/");
     let navigated = null;

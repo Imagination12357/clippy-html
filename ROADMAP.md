@@ -14,6 +14,7 @@ Clippy's structured diagnostics become portable, offline static HTML with rustdo
 | Report navigation | Overview/category/lint/source pages, online and bundled category data, readable URLs, file tree, finding links and report-local search | Browser acceptance of search |
 | Source and diagnostics | Whole-source lexical syntax colors, precise primary/secondary ranges and insertion triangles, line anchors/highlights, notes and grouped replacements; unified suggestion diff/patch copy | Browser acceptance of patch copying |
 | Familiar presentation | Pinned rustdoc CSS/DOM, bundled fonts/notices, favicon, native Settings structure and light/dark/ayu/system preference | Browser theme/keyboard/small-screen acceptance |
+| Help and keyboard | Pinned rustdoc Help popover/standalone page, implemented-key list, layered Escape, IME/modifier/disabled-key guards | Browser acceptance; Summary/Show All and section commands remain separate |
 | Distribution | Local install smoke, packaged assets and notices, Rust 1.88 all-target locked check and full tests on Windows; cross-platform CI and online self-report/Pages workflow configured | Hosted CI/Pages first run, browser/static-host checks, metadata export, release preparation |
 
 Phase 1 functional implementation is complete. This is not a claim that every browser/platform acceptance check has passed. Interface work from Phase 2 and font/license work originally in Phase 3 were intentionally brought forward in user-directed follow-ups.
@@ -76,6 +77,13 @@ See [Settings design](docs/superpowers/specs/2026-11-09-settings-design.md) and
 file-URL, keyboard and narrow-screen acceptance remain manual.
 
 **Done when:** representative home/lint/category/source/search flows are usable by keyboard and on small screens in the supported themes; actual browser checks are recorded separately from DOM tests.
+
+### Help and keyboard — implemented; browser acceptance pending
+
+2026-11-12: Help and keyboard coordination implemented separately from section
+expand/collapse. See [design](docs/superpowers/specs/2026-11-12-help-shortcuts-design.md)
+and [validation](docs/validation/2026-11-12-help-shortcuts.md). Summary/Show All
+and +/-/_ shortcuts are not part of this implementation.
 
 ### 5. Metadata and distribution
 

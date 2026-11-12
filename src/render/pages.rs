@@ -37,7 +37,7 @@ struct Page<'a> {
     crates: Vec<CrateInfo>,
     heading_kind: &'a str,
     source_page: bool,
-    settings_page: bool,
+    standalone_page: bool,
     source_tree: String,
 }
 #[derive(Template)]
@@ -148,6 +148,9 @@ struct Licenses;
 #[derive(Template)]
 #[template(path = "settings.html")]
 struct Settings;
+#[derive(Template)]
+#[template(path = "help.html")]
+struct Help;
 struct SourceRow {
     number: usize,
     fragments: Vec<super::ranges::Fragment>,
@@ -658,7 +661,7 @@ pub fn render_report(
             crates: crate_infos(report, &[]),
             heading_kind: "Report",
             source_page: false,
-            settings_page: false,
+            standalone_page: false,
             source_tree: String::new(),
         },
     )?;
@@ -684,7 +687,24 @@ pub fn render_report(
             crates: crate_infos(report, &[]),
             heading_kind: "Report",
             source_page: false,
-            settings_page: false,
+            standalone_page: false,
+            source_tree: String::new(),
+        },
+    )?;
+    write_page(
+        destination,
+        Path::new("help.html"),
+        Page {
+            title: "Clippy HTML help",
+            section: "Help",
+            root: String::new(),
+            sidebar: vec![],
+            content: render(&Help)?,
+            crate_context: crate_context(report, &[]),
+            crates: crate_infos(report, &[]),
+            heading_kind: "Report",
+            source_page: false,
+            standalone_page: true,
             source_tree: String::new(),
         },
     )?;
@@ -701,7 +721,7 @@ pub fn render_report(
             crates: crate_infos(report, &[]),
             heading_kind: "",
             source_page: false,
-            settings_page: true,
+            standalone_page: true,
             source_tree: String::new(),
         },
     )?;
@@ -746,7 +766,7 @@ pub fn render_report(
                 crates: crate_infos(report, fs),
                 heading_kind: "Lint",
                 source_page: false,
-                settings_page: false,
+                standalone_page: false,
                 source_tree: String::new(),
             },
         )?;
@@ -815,7 +835,7 @@ pub fn render_report(
                 crates: crate_infos(report, &fs),
                 heading_kind: "Source",
                 source_page: true,
-                settings_page: false,
+                standalone_page: false,
                 source_tree: super::navigation::source_tree(
                     sources,
                     pages,

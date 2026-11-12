@@ -40,7 +40,7 @@
 .source-files > summary, .source-findings > summary { font-size: 1.125rem; }
 .source-count { color: var(--right-side-color); font-size: .8em; }
 :focus-visible { outline: 2px solid var(--search-input-focused-border-color); outline-offset: 3px; }
-/* The report omits rustdoc's help/summary controls and separate source toggle. */
+/* The report omits rustdoc's summary control and separate source toggle. */
 .main-heading .report-toolbar { display: flex; margin-top: 0; }
 .src #search .search-form { margin-left: 0; }
 :root.sans-serif-fonts { --font-family-code: "Source Code Pro", monospace; }
@@ -49,6 +49,12 @@ html.hide-sidebar .rustdoc nav.sidebar { display: none; }
 /* The Settings arrow follows the last toolbar button; scroll the form inside it. */
 .report-toolbar #settings.popover { --popover-arrow-offset: 36px; max-width: calc(100vw - 30px); }
 .report-toolbar #settings.popover .settings { max-height: 70vh; overflow-y: auto; }
+/* Help precedes Settings; retain rustdoc's popup and responsive content layout. */
+.report-toolbar #help.popover { --popover-arrow-offset: calc(113px + var(--button-left-margin)); max-width: min(600px, calc(100vw - 30px)); }
+.report-toolbar #help.popover .content { max-height: 70vh; overflow-y: auto; }
+@media (max-width: 850px) {
+    .report-toolbar #help.popover { --popover-arrow-offset: calc(47px + var(--button-left-margin)); }
+}
 /* rustdoc toggles mobile navigation with JS. Keep it available without JS here. */
 @media (max-width: 700px) {
     body.rustdoc { display: block; }
@@ -58,7 +64,8 @@ html.hide-sidebar .rustdoc nav.sidebar { display: none; }
     }
     .src .sidebar > * { visibility: visible; }
     main { padding: 10px 15px 40px; }
-    html:not(.hide-sidebar) .rustdoc:not(.src) .report-toolbar .settings-menu > a { display: flex; }
+    html:not(.hide-sidebar) .rustdoc:not(.src) .report-toolbar .settings-menu > a, html:not(.hide-sidebar) .rustdoc:not(.src) .report-toolbar .help-menu > a { display: flex; }
     .report-toolbar #settings.popover { --popover-arrow-offset: 13px; top: calc(100% - 16px); height: auto; }
     .report-toolbar #settings.popover .settings { height: auto; }
+    .report-toolbar #help.popover { top: calc(100% - 16px); height: auto; }
 }

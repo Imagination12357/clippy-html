@@ -101,7 +101,9 @@
     panel.tabIndex = -1; panel.style.display = "none"; menu.append(panel);
     button.setAttribute("aria-label", "Settings"); button.setAttribute("aria-controls", "settings");
     button.setAttribute("aria-expanded", "false");
-    let opened = false;
+    let opened = false, composing = false;
+    document.addEventListener("compositionstart", () => { composing = true; });
+    document.addEventListener("compositionend", () => { composing = false; });
     function close(focus = false) {
         if (!opened) return;
         opened = false; panel.style.display = "none"; button.setAttribute("aria-expanded", "false");
@@ -111,7 +113,7 @@
         if (event.button !== 0 || event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) return;
         event.preventDefault();
         if (opened) close();
-        else { sync(); opened = true; panel.style.display = ""; button.setAttribute("aria-expanded", "true"); }
+        else { document.dispatchEvent(new Event("clippy-html-settings-open")); sync(); opened = true; panel.style.display = ""; button.setAttribute("aria-expanded", "true"); }
     });
     document.addEventListener("click", event => { if (!menu.contains(event.target)) close(); });
     menu.addEventListener("focusout", event => {
@@ -121,10 +123,11 @@
         queueMicrotask(() => { if (!menu.contains(document.activeElement)) close(); });
     });
     document.addEventListener("keydown", event => {
-        if (event.key === "Escape" && !event.isComposing && !event.ctrlKey && !event.altKey && !event.metaKey && api.get("disable-shortcuts") !== "true" && opened) {
+        if (event.key === "Escape" && !event.defaultPrevented && !event.isComposing && !composing && event.keyCode !== 229 && !event.ctrlKey && !event.altKey && !event.metaKey && api.get("disable-shortcuts") !== "true" && opened) {
             event.preventDefault(); close(true);
         }
-    });
+    }, true);
     document.addEventListener("clippy-html-search-open", () => close(menu.contains(document.activeElement)));
+    document.addEventListener("clippy-html-help-open", () => close());
     menu.classList.remove("hidden"); menu.closest("rustdoc-toolbar")?.classList.remove("hidden");
 })();
