@@ -10,7 +10,7 @@ fn help_is_readable_without_js_and_linked_from_nested_pages() {
     assert_eq!(
         doc.select(&Selector::parse("#help .shortcuts dt").unwrap())
             .count(),
-        7
+        6
     );
     assert_eq!(
         doc.select(&Selector::parse("#back").unwrap())
@@ -26,7 +26,16 @@ fn help_is_readable_without_js_and_linked_from_nested_pages() {
         .unwrap()
         .text()
         .collect::<String>();
-    assert!(text.contains("case-insensitive") && text.contains("Escape"));
+    assert!(text.contains("case-insensitive") && text.contains("⏎"));
+    assert!(!text.contains("Escape"));
+    assert_eq!(
+        doc.select(&Selector::parse("#help .bottom code").unwrap())
+            .next()
+            .unwrap()
+            .text()
+            .collect::<String>(),
+        format!("cargo-clippy-html {}", env!("CARGO_PKG_VERSION"))
+    );
     assert!(
         !text.contains("Expand all") && !text.contains("fn:") && !text.contains("rustdoc book")
     );

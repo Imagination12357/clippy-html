@@ -67,3 +67,17 @@ DOM checks do not establish popup geometry, responsive wrapping, actual browser
 keyboard defaults, file:// policy or assistive-technology announcement behavior.
 No live screen-reader claim is made. No push or hosted CI/Pages update was
 performed in this task.
+
+## Follow-up: native key labels and generator version
+
+User compared docs.rs rustdoc 1.101.0-nightly. Removed the added Escape row
+without removing Escape behavior, changed Enter's label to ⏎, and restored
+span.bottom > code with cargo-clippy-html's own CARGO_PKG_VERSION. The shared
+popup/standalone partial receives that value from the generator, independently
+of project crate/toolchain/reference versions. These conventions were already
+present in pinned 1.97.1; live docs.rs 1.102 also confirms them, as recorded in
+HELP.md. The exact user-viewed 1.101 artifact was not retrieved.
+
+Updated tests failed on the old key list/seven rows, then passed with six rows,
+the glyph and real compiled package version. All eight Help DOM tests, the
+generated Help integration test, fmt and strict all-target Clippy passed.

@@ -7,8 +7,11 @@ Summary/Show All decision; do not implement or advertise it now.
 Reference: generated rustdoc 1.97.1 help.html and main-fcd733ba.js from this
 project. Reuse toolbar .help-menu > a, #help.popover > .content > .side-by-side,
 .shortcuts > h2 + dl (kbd/dt/dd), .infos and a standalone help.html with Back.
-Omit the rustdoc handbook, API search syntax and version footer; explain only
+Omit the rustdoc handbook, API search syntax and rustdoc version text; explain only
 the report's four search kinds, AND words and case-insensitive matching.
+The follow-up keeps Escape behavior without a shortcut-list row, labels Enter
+as ⏎, and uses the native bottom/version structure for cargo-clippy-html's
+actual build package version.
 Do not add new explanatory paragraphs elsewhere in the report.
 
 Render Help content once as an Askama partial, both in a non-JS standalone page

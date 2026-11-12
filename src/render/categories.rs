@@ -86,6 +86,7 @@ pub(super) fn write(report: &Report, pages: &PageMap, destination: &Path) -> Res
                 heading_kind: "Category",
                 source_page: false,
                 standalone_page: false,
+                generator_version: env!("CARGO_PKG_VERSION"),
                 source_tree: String::new(),
             },
         )?;

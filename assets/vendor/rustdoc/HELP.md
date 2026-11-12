@@ -20,10 +20,13 @@ normal Help link remains usable without JavaScript; modified clicks navigate
 normally. Static Back falls back to the overview; JavaScript uses history only
 for a previous page within the same report.
 
-Keyboard list adapts only implemented commands: ?, S / /, search-result arrows,
-Enter and Escape. Search Tricks describes report data, AND terms and
+Keyboard list adapts only implemented commands: ?, S / /, search-result arrows
+and ⏎. Escape behavior remains implemented without an additional Help row,
+matching the reference. The native span.bottom > code structure displays the
+generator's own cargo-clippy-html package version (CARGO_PKG_VERSION), not a
+rustdoc/compiler or inspected-crate version. Search Tricks describes report data, AND terms and
 case-insensitive matching. Rustdoc's type/API search syntax, handbook links,
-version footer and +/-/_ section commands are omitted. No new report keyboard
+rustdoc version text and +/-/_ section commands are omitted. No new report keyboard
 commands for settings, copying or navigation were invented.
 
 Help and Settings popovers exclude each other while search stays open beneath
@@ -39,3 +42,13 @@ Popup positioning uses the existing 700px mobile breakpoint. The report override
 native mobile Help-link hiding rule because it does not have rustdoc-topbar.
 Long popup content scrolls inside .content rather than clipping its arrow.
 Actual layout and assistive-technology behavior require separate validation.
+
+2026-11-12 follow-up: the user compared docs.rs rustdoc 1.101.0-nightly and
+identified the unnecessary Escape row, the Enter label instead of ⏎ and the
+missing generator version footer. The same conventions are present in the
+pinned 1.97.1 artifact, so no global style migration is needed. The live
+https://docs.rs/clap/latest/clap/ page checked on this date instead declares
+1.102.0-nightly (f5cedb83a 2026-11-07); its
+https://docs.rs/-/rustdoc.static/main-b2682d9c.js also confirms those conventions.
+The exact user-viewed 1.101 artifact was not fetched; do not treat the live
+1.102 artifact as that build.

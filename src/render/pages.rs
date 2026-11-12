@@ -38,6 +38,7 @@ struct Page<'a> {
     heading_kind: &'a str,
     source_page: bool,
     standalone_page: bool,
+    generator_version: &'static str,
     source_tree: String,
 }
 #[derive(Template)]
@@ -150,7 +151,9 @@ struct Licenses;
 struct Settings;
 #[derive(Template)]
 #[template(path = "help.html")]
-struct Help;
+struct Help {
+    generator_version: &'static str,
+}
 struct SourceRow {
     number: usize,
     fragments: Vec<super::ranges::Fragment>,
@@ -662,6 +665,7 @@ pub fn render_report(
             heading_kind: "Report",
             source_page: false,
             standalone_page: false,
+            generator_version: env!("CARGO_PKG_VERSION"),
             source_tree: String::new(),
         },
     )?;
@@ -688,6 +692,7 @@ pub fn render_report(
             heading_kind: "Report",
             source_page: false,
             standalone_page: false,
+            generator_version: env!("CARGO_PKG_VERSION"),
             source_tree: String::new(),
         },
     )?;
@@ -699,12 +704,15 @@ pub fn render_report(
             section: "Help",
             root: String::new(),
             sidebar: vec![],
-            content: render(&Help)?,
+            content: render(&Help {
+                generator_version: env!("CARGO_PKG_VERSION"),
+            })?,
             crate_context: crate_context(report, &[]),
             crates: crate_infos(report, &[]),
             heading_kind: "Report",
             source_page: false,
             standalone_page: true,
+            generator_version: env!("CARGO_PKG_VERSION"),
             source_tree: String::new(),
         },
     )?;
@@ -722,6 +730,7 @@ pub fn render_report(
             heading_kind: "",
             source_page: false,
             standalone_page: true,
+            generator_version: env!("CARGO_PKG_VERSION"),
             source_tree: String::new(),
         },
     )?;
@@ -767,6 +776,7 @@ pub fn render_report(
                 heading_kind: "Lint",
                 source_page: false,
                 standalone_page: false,
+                generator_version: env!("CARGO_PKG_VERSION"),
                 source_tree: String::new(),
             },
         )?;
@@ -836,6 +846,7 @@ pub fn render_report(
                 heading_kind: "Source",
                 source_page: true,
                 standalone_page: false,
+                generator_version: env!("CARGO_PKG_VERSION"),
                 source_tree: super::navigation::source_tree(
                     sources,
                     pages,

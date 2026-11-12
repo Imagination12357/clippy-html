@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const { JSDOM } = require("jsdom");
 
 function setup({ search = true, standalone = false, denied = false, url } = {}) {
-    const content = fs.readFileSync("templates/help.html", "utf8");
+    const content = fs.readFileSync("templates/help.html", "utf8").replaceAll("{{ generator_version }}", "test-version");
     const toolbar = '<rustdoc-toolbar class="report-toolbar"><span id="search-button" class="hidden"><a href="?search="><span class="label">Search</span></a></span><div class="help-menu" tabindex="-1"><a href="../../help.html"><span class="label">Help</span></a></div><div class="settings-menu hidden" tabindex="-1"><a href="../../settings.html"><span class="label">Settings</span></a></div></rustdoc-toolbar>';
     const dom = new JSDOM(`<!doctype html><title>Original</title><body data-report-root="${standalone ? "" : "../../"}"><main><section id="main-content" class="content"><div class="main-heading"><h1>Report</h1>${standalone ? '<a id="back" href="index.html">Back</a>' : toolbar}</div>${standalone ? content : "original"}</section></main>${standalone ? "" : `<template id="help-content">${content}</template>`}</body>`, { url: url || (standalone ? "file:///report/help.html" : "https://example.test/report/src/nested/file.rs.html"), runScripts: "outside-only" });
     const w = dom.window, doc = w.document;
@@ -33,6 +33,8 @@ test("native Help content and ? work independently of missing search data and de
     assert.equal(s.doc.activeElement, s.help());
     const text = s.doc.querySelector("#help").textContent;
     assert.ok(text.includes("Keyboard Shortcuts") && text.includes("Search Tricks"));
+    assert.deepEqual([...s.doc.querySelectorAll("#help kbd")].map(k => k.textContent), ["?", "S", "/", "↑", "↓", "←", "→", "⏎"]);
+    assert.equal(s.doc.querySelector("#help .bottom code").textContent, "cargo-clippy-html test-version");
     assert.ok(!text.includes("Expand all") && !text.includes("fn:") && !text.includes("rustdoc book"));
     s.dom.window.close();
 });
@@ -129,7 +131,7 @@ test("disable-shortcuts suppresses custom global and result keys but keeps contr
 test("standalone Help is already readable without JS and initializes without duplication", () => {
     const s = setup({ standalone: true, search: false });
     assert.equal(s.doc.querySelectorAll("#help").length, 1);
-    assert.ok(s.doc.querySelector("#help dl").textContent.includes("Escape"));
+    assert.ok(s.doc.querySelector("#help dl").textContent.includes("⏎"));
     assert.equal(s.doc.querySelector("#back").getAttribute("href"), "index.html");
     assert.equal(s.doc.querySelector(".help-menu"), null);
     s.dom.window.close();
