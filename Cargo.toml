@@ -13,12 +13,12 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 blake3 = "1.8.7"
 tempfile = "3.27.0"
-askama = "0.16.1"
+askama = { version = "0.16.1", default-features = false, features = ["derive", "std"] }
 webbrowser = "1.2.5"
 url = "2"
 ra-ap-rustc_lexer = "=0.178.0"
 # The lexer requires both Unicode tables to stay on Unicode 17.
 unicode-ident = "=1.0.22"
-scraper = "0.24"
+scraper = { version = "0.24", default-features = false }
 ureq = { version = "=3.5.1", default-features = false, features = ["rustls"] }
 similar = "3.2.1"
