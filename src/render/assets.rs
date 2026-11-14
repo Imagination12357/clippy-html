@@ -79,10 +79,6 @@ const FILES: &[(&str, &[u8])] = &[
         include_bytes!("../../assets/favicon/README.md"),
     ),
     (
-        "licenses/favicon-CC-BY-4.0.txt",
-        include_bytes!("../../assets/favicon/CC-BY-4.0.txt"),
-    ),
-    (
         "static.files/rustdoc.css",
         include_bytes!("../../assets/vendor/rustdoc/rustdoc.css"),
     ),

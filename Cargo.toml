@@ -5,6 +5,7 @@ edition = "2024"
 rust-version = "1.88"
 description = "Explore structured Clippy diagnostics in portable, rustdoc-styled HTML reports"
 license = "MIT OR Apache-2.0"
+exclude = ["/target/**", "/assets/favicon/CC-BY-4.0.txt"]
 
 [dependencies]
 clap = { version = "4.6.7", features = ["derive"] }

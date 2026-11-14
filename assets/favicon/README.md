@@ -1,11 +1,23 @@
 # Clippy HTML favicon
 
-The favicon is adapted from the Rust logo by the Rust Project. The Rust Foundation owns the Rust logo, as described in its [trademark policy](https://rustfoundation.org/policy/rust-trademark-policy/). The original artwork is distributed under [Creative Commons Attribution 4.0 International](https://creativecommons.org/licenses/by/4.0/); see CC-BY-4.0.txt (favicon-CC-BY-4.0.txt in generated reports). This modified artwork is also distributed under CC BY 4.0.
+The current favicon is original project artwork: a white paperclip on a black
+circle, drawn from simple SVG geometry for Clippy HTML. It uses no Rust logo
+artwork. The user approved this design on 2026-11-14. The artwork is distributed
+under the project's MIT OR Apache-2.0 license; see the root LICENSE-MIT and
+LICENSE-APACHE files (generator-MIT.txt and generator-APACHE.txt in reports).
 
-Source: [official Rust logo artwork and license](https://github.com/rust-lang/rust-artwork/tree/main/logo). The initial geometry reference was the user-supplied Rust_programming_language_black_logo.svg, provided on 2026-10-30. On 2026-11-07, the [official rust-logo.svg](https://github.com/rust-lang/rust-artwork/blob/main/logo/rust-logo.svg) was downloaded and checked: its visible strokes are specified as `black`, equivalent to #000000. The favicon now uses that black instead of the initial #D34516 orange.
+favicon.svg has a 32-by-32 viewBox, a #000000 circle, a #ffffff clip and a
+transparent outside background. Its approved geometry is unchanged. favicon.ico
+contains 16-, 32- and 48-pixel rasterizations of this exact SVG. Rasterization
+uses sharp/libvips and Pillow assembles the ICO; these are development tools,
+not runtime or Cargo dependencies. The ICO images are checked byte-for-byte
+against the corresponding SVG rasterizations.
 
-Modifications: removed the R, retained the 32 teeth, gear ring and five inward triangular mounts with transparent holes, used the official black (#000000), scaled to a 32-by-32 viewBox, and added a paperclip in the center. Outside the gear and inside its ring remain transparent. favicon.ico contains 16-, 32- and 48-pixel rasterizations of favicon.svg. Rasterization uses sharp/libvips; Pillow assembles the ICO container. Neither is a runtime or Cargo dependency.
+Earlier Rust-gear assets and design experiments are local archives under
+target/, which is ignored by Git and explicitly excluded from Cargo packaging.
+The retired CC-BY-4.0.txt is preserved locally but untracked, ignored and
+package-excluded; it is not embedded in the executable or new reports. Earlier
+Git commits retain their original artwork and attribution as historical records.
 
-Clippy HTML is an independent tool, not an official Rust Project or Rust Foundation product. The artwork license does not grant trademark rights or imply endorsement. Consult the linked trademark policy for public branding/distribution; no trademark approval has been obtained or claimed here.
-
-The generator code's MIT OR Apache-2.0 license remains unchanged. This asset's license does not apply to source code inspected by the generator or diagnostic content. Distributors should retain this attribution, the modification notice and CC-BY-4.0.txt alongside the embedded assets.
+These asset terms do not change the license of inspected project source or
+diagnostic content. Clippy HTML is an independent project.

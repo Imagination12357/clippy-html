@@ -2,6 +2,43 @@ mod support;
 use scraper::{Html, Selector};
 use support::*;
 #[test]
+fn reports_embed_circle_clip_assets_without_retired_rust_logo_notice() {
+    let f = Fixture::new("clean");
+    assert_success(&f.run(&[]));
+    let svg = f.html("static.files/favicon.svg");
+    let doc = Html::parse_document(&svg);
+    assert_eq!(
+        doc.select(&Selector::parse("circle[fill=\"#000000\"]").unwrap())
+            .count(),
+        1
+    );
+    assert_eq!(
+        doc.select(&Selector::parse("path[stroke=\"#ffffff\"]").unwrap())
+            .count(),
+        1
+    );
+    assert_eq!(
+        doc.select(&Selector::parse("mask,g,metadata").unwrap())
+            .count(),
+        0
+    );
+    for name in ["favicon.svg", "favicon.ico"] {
+        assert_eq!(
+            std::fs::read(f.report().join("static.files").join(name)).unwrap(),
+            std::fs::read(
+                std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                    .join("assets/favicon")
+                    .join(name)
+            )
+            .unwrap()
+        );
+    }
+    assert!(!f.report().join("licenses/favicon-CC-BY-4.0.txt").exists());
+    let licenses = f.html("licenses/index.html");
+    assert!(!licenses.contains("favicon-CC-BY") && !licenses.contains("modified Rust logo"));
+    assert!(f.html("licenses/FAVICON.md").contains("MIT OR Apache-2.0"));
+}
+#[test]
 fn help_is_readable_without_js_and_linked_from_nested_pages() {
     let f = Fixture::new("warning");
     assert_success(&f.run(&[]));

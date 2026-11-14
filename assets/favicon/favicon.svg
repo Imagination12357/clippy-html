@@ -1,59 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <title>Clippy HTML favicon draft — Rust-style gear with five mounts and paperclip</title>
-  <metadata>Adapted from the Rust Project logo, owned by the Rust Foundation. CC BY 4.0: https://creativecommons.org/licenses/by/4.0/ . Source: https://github.com/rust-lang/rust-artwork/tree/main/logo . Changes: R replaced with a paperclip, recolored #000000, scaled. See licenses/FAVICON.md in generated reports. Independent tool; no Rust Project or Rust Foundation endorsement.</metadata>
-  <g transform="translate(16 16) scale(.29)" stroke="#000000" stroke-linejoin="round">
-    <defs>
-      <mask id="mount-holes" maskUnits="userSpaceOnUse" x="-60" y="-60" width="120" height="120">
-        <rect x="-60" y="-60" width="120" height="120" fill="white" stroke="none"/>
-        <g fill="black" stroke="none"><circle cy="-40" r="3" transform="rotate(0)"/>
-    <circle cy="-40" r="3" transform="rotate(72)"/>
-    <circle cy="-40" r="3" transform="rotate(144)"/>
-    <circle cy="-40" r="3" transform="rotate(216)"/>
-    <circle cy="-40" r="3" transform="rotate(288)"/></g>
-      </mask>
-    </defs>
-    <g mask="url(#mount-holes)">
-    <circle r="43" fill="none" stroke-width="9"/>
-    <g fill="#000000" stroke-width="3">
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(0)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(11.25)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(22.5)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(33.75)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(45)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(56.25)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(67.5)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(78.75)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(90)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(101.25)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(112.5)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(123.75)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(135)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(146.25)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(157.5)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(168.75)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(180)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(191.25)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(202.5)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(213.75)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(225)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(236.25)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(247.5)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(258.75)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(270)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(281.25)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(292.5)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(303.75)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(315)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(326.25)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(337.5)"/>
-    <path d="M46 3L51 0L46 -3Z" transform="rotate(348.75)"/>
-    </g>
-    <g fill="#000000" stroke-width="6"><path d="M-7 -42L0 -35L7 -42Z" transform="rotate(0)"/>
-    <path d="M-7 -42L0 -35L7 -42Z" transform="rotate(72)"/>
-    <path d="M-7 -42L0 -35L7 -42Z" transform="rotate(144)"/>
-    <path d="M-7 -42L0 -35L7 -42Z" transform="rotate(216)"/>
-    <path d="M-7 -42L0 -35L7 -42Z" transform="rotate(288)"/></g>
-    </g>
-  </g>
-  <path d="M14 12V20C14 23 18 23 18 20V10C18 6 11 6 11 10V20C11 27 21 27 21 20V12" transform="translate(16 16) scale(.85) translate(-16 -16) rotate(35 16 16)" fill="none" stroke="#000000" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+  <title>Clippy HTML — white paperclip on black circle</title>
+  <circle cx="16" cy="16" r="15" fill="#000000"/>
+  <path d="M15 12.5V20a1.5 1.5 0 0 0 3 0V10.5a3 3 0 0 0-6 0v10a4.5 4.5 0 0 0 9 0v-8"
+    transform="rotate(35 16 16) translate(16 16) scale(1.05) translate(-16.5 -16.25)"
+    fill="none" stroke="#ffffff" stroke-width="1.65" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>
