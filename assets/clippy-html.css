@@ -5,6 +5,10 @@
 .finding-meta { color: var(--right-side-color); font-size: .875rem; }
 .sidebar-crate .crate-info { display: block; margin-top: .5rem; }
 .finding { margin-bottom: 2em; scroll-margin-top: 20px; }
+.finding-toggle[open] > summary .finding-location { display: none; }
+/* The finding wrapper misses rustdoc's root-toggle gutter selectors. */
+.src .finding > details.finding-toggle { padding-left: 20px; }
+.src .finding > details.finding-toggle > summary:not(.hideme)::before { left: -20px; }
 .severity { font: 500 .75rem var(--font-family-code); border: 1px solid var(--border-color); border-radius: 3px; padding: 2px 6px; margin-right: 6px; }
 .severity.warning { color: #805500; border-color: #b99540; }
 .severity.error { color: #a21d27; border-color: #bd6d74; }
@@ -40,23 +44,29 @@
 .source-files > summary, .source-findings > summary { font-size: 1.125rem; }
 .source-count { color: var(--right-side-color); font-size: .8em; }
 :focus-visible { outline: 2px solid var(--search-input-focused-border-color); outline-offset: 3px; }
-/* The report omits rustdoc's summary control and separate source toggle. */
+/* The report keeps a unified source sidebar rather than a separate source toggle. */
 .main-heading .report-toolbar { display: flex; margin-top: 0; }
 .src #search .search-form { margin-left: 0; }
 :root.sans-serif-fonts { --font-family-code: "Source Code Pro", monospace; }
 html.hide-sidebar .rustdoc nav.sidebar { display: none; }
 .hide-sidebar #search .search-form { margin-left: 0; }
-/* Native order is Search, Settings, Help; this report has no Summary button. */
+/* Native toolbar order; popup offsets account for Summary only when visible. */
 .report-toolbar #settings.popover { --popover-arrow-offset: calc(110px + var(--button-left-margin)); max-width: calc(100vw - 30px); }
 .report-toolbar #settings.popover .settings { max-height: 70vh; overflow-y: auto; }
 .report-toolbar #help.popover { --popover-arrow-offset: 33px; max-width: min(600px, calc(100vw - 30px)); }
 .report-toolbar #help.popover .content { max-height: 70vh; overflow-y: auto; }
+.report-toolbar.has-summary #settings.popover { --popover-arrow-offset: calc(190px + var(--button-left-margin) + var(--button-left-margin)); }
+.report-toolbar.has-summary #help.popover { --popover-arrow-offset: calc(113px + var(--button-left-margin)); }
 @media (max-width: 850px) {
     .report-toolbar #settings.popover { --popover-arrow-offset: calc(47px + var(--button-left-margin)); }
     .report-toolbar #help.popover { --popover-arrow-offset: 13px; }
+    .report-toolbar.has-summary #settings.popover { --popover-arrow-offset: calc(127px + var(--button-left-margin) + var(--button-left-margin)); }
+    .report-toolbar.has-summary #help.popover { --popover-arrow-offset: calc(93px + var(--button-left-margin)); }
 }
 /* rustdoc toggles mobile navigation with JS. Keep it available without JS here. */
 @media (max-width: 700px) {
+    .finding > details.finding-toggle { padding-left: 20px; }
+    .finding > details.finding-toggle > summary:not(.hideme)::before { left: -20px; }
     body.rustdoc { display: block; }
     .rustdoc nav.sidebar, .src-sidebar-expanded .src nav.sidebar {
         display: block; position: static; width: auto; height: auto;

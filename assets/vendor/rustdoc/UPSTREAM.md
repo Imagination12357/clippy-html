@@ -36,7 +36,8 @@ DOM compatibility across releases are not promised.
 
 Help uses the same pinned toolbar/popover/standalone structure, with only
 implemented report commands and search rules. See HELP.md for sources and
-keyboard/focus adaptations. Expand/collapse controls remain a separate scope.
+keyboard/focus adaptations. Diagnostic-only Summary/Show all and its native
+toggle structure are documented in SUMMARY.md.
 
 Suggestion patch copy controls adapt the same pinned code-block button/copy
 behavior; diff construction is report-specific. See SUGGESTIONS.md for the

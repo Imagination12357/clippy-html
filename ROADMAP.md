@@ -1,6 +1,6 @@
 # Current roadmap
 
-Updated 2026-11-10 after validating MSRV 1.88. This document is the current milestone/status index. DETAILS.md remains the full product specification with later approved design decisions applied; older plans and ledgers preserve execution history rather than current status.
+Updated 2026-11-14 after diagnostic Summary implementation. This document is the current milestone/status index. DETAILS.md remains the full product specification with later approved design decisions applied; older plans and ledgers preserve execution history rather than current status.
 
 ## Product boundary
 
@@ -12,10 +12,10 @@ Clippy's structured diagnostics become portable, offline static HTML with rustdo
 |---|---|---|
 | Functional core | CLI, Cargo/Clippy collection, normalization, target deduplication, deterministic IDs, failure status, safe staged output | Continue regression coverage as features change |
 | Report navigation | Overview/category/lint/source pages, online and bundled category data, readable URLs, file tree, finding links and report-local search | Browser acceptance of search |
-| Source and diagnostics | Whole-source lexical syntax colors, precise primary/secondary ranges and insertion triangles, line anchors/highlights, notes and grouped replacements; unified suggestion diff/patch copy | Browser acceptance of patch copying |
+| Source and diagnostics | Whole-source lexical syntax colors, precise primary/secondary ranges and insertion triangles, line anchors/highlights, notes and grouped replacements; unified suggestion diff/patch copy accepted by the user | Broader cross-browser and assistive-technology coverage |
 | Familiar presentation | Pinned rustdoc CSS/DOM, bundled fonts/notices, favicon, native Settings structure and light/dark/ayu/system preference | Browser theme/keyboard/small-screen acceptance |
-| Help and keyboard | Pinned rustdoc Help popover/standalone page, implemented-key list, layered Escape, IME/modifier/disabled-key guards | Browser acceptance; Summary/Show All and section commands remain separate |
-| Distribution | Local install smoke, packaged assets and notices, Rust 1.88 all-target locked check and full tests on Windows; cross-platform CI and online self-report/Pages workflow configured | Hosted CI/Pages first run, browser/static-host checks, metadata export, release preparation |
+| Help and keyboard | Pinned rustdoc Help, layered Escape and input guards; diagnostic-only Summary/Show all and +/-/= commands | Browser acceptance of the new Summary view |
+| Distribution | Local install/package verification, assets/notices, Rust 1.88 checks, cross-platform CI and self-report/Pages workflow; Pages smoke reported successful by user | Broader browser/static-host coverage, metadata export, release preparation |
 
 Phase 1 functional implementation is complete. This is not a claim that every browser/platform acceptance check has passed. Interface work from Phase 2 and font/license work originally in Phase 3 were intentionally brought forward in user-directed follow-ups.
 
@@ -49,8 +49,8 @@ narrow-screen browser acceptance remain manual.
 
 ### 3. Diagnostic understanding
 
-Precise full-source ranges implemented 2026-11-07: solid/dashed underlines,
-insertion carets, overlap labels and unchanged-source validation. See
+Precise full-source ranges implemented 2026-11-07 and later refined to primary/
+secondary backgrounds and insertion triangles, with unchanged-source validation. See
 [range validation](docs/validation/2026-11-07-source-ranges.md). The user selected
 Settings/theme work next, ahead of the remaining suggestion diff/copy work;
 that port was implemented on 2026-11-09.
@@ -63,6 +63,10 @@ Before/After display is recorded only as a possible future option. See
 [design](docs/superpowers/specs/2026-11-11-suggestion-diff-design.md) and
 [validation](docs/validation/2026-11-11-suggestion-diff.md). Actual browser
 clipboard/theme acceptance remains separate from local tests.
+
+The user subsequently confirmed suggestion diff/copy layout and behavior as
+working; screen-reader runtime behavior remains unverified. Do not repeat that
+completed smoke acceptance as a new implementation task.
 
 **Done when:** Unicode/CRLF/multiline ranges and multipart suggestions have verified examples, and unsupported cases show an explicit useful fallback.
 
@@ -82,8 +86,13 @@ file-URL, keyboard and narrow-screen acceptance remain manual.
 
 2026-11-12: Help and keyboard coordination implemented separately from section
 expand/collapse. See [design](docs/superpowers/specs/2026-11-12-help-shortcuts-design.md)
-and [validation](docs/validation/2026-11-12-help-shortcuts.md). Summary/Show All
-and +/-/_ shortcuts are not part of this implementation.
+and [validation](docs/validation/2026-11-12-help-shortcuts.md).
+
+2026-11-14: diagnostic-only Summary/Show all and - / + / = were implemented,
+preserving summaries, sidebar/source/log independence and deep-link reveal.
+No _ command is needed without impl blocks. See [design](docs/superpowers/specs/2026-11-14-diagnostic-summary-design.md)
+and [validation](docs/validation/2026-11-14-diagnostic-summary.md). Browser
+acceptance of this new view remains separate from earlier user confirmations.
 
 ### 5. Metadata and distribution
 
@@ -93,7 +102,7 @@ Add opt-in --metadata <FILE>, schema/version and safe output-path handling. Veri
 
 ## Verification throughout
 
-- The Windows/Linux/macOS stable test matrix, Linux 1.88 compile check, quality/DOM checks and online self-report/Pages workflow were configured on 2026-11-10. No hosted cross-platform or Pages pass is claimed until CI actually runs. See [CI validation](docs/validation/2026-11-10-ci.md).
+- The Windows/Linux/macOS stable test matrix, Linux 1.88 compile check, quality/DOM checks and online self-report/Pages workflow were configured on 2026-11-10. The user subsequently reported a successful Pages smoke; do not treat the initial CI setup as still unexecuted. See [CI validation](docs/validation/2026-11-10-ci.md) for local implementation evidence and initial history.
 - Run relevant tests at each feature checkpoint; preserve forwarding, exit status, escaping, stable IDs, source boundaries and safe output replacement.
 - Compare meaningful UI changes to the same pinned rustdoc version and record why deviations remain.
 - Browser review still needs actual Chrome/Edge and Firefox coverage of file://, long files, keyboard, narrow screens and static subpath hosting. Existing local-file automation restrictions do not count as a pass.

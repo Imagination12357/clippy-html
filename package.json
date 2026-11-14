@@ -6,7 +6,7 @@
     "node": ">=24"
   },
   "scripts": {
-    "test": "node --test tests/search-engine.test.cjs tests/search-ui.test.cjs tests/settings.test.cjs tests/suggestions.test.cjs tests/help.test.cjs"
+    "test": "node --test tests/search-engine.test.cjs tests/search-ui.test.cjs tests/settings.test.cjs tests/suggestions.test.cjs tests/help.test.cjs tests/summary.test.cjs"
   },
   "devDependencies": {
     "jsdom": "29.1.1"

@@ -150,6 +150,7 @@
         if (!displayed) return;
         displayed = false; alternative.classList.add("hidden"); main.classList.remove("hidden");
         originalHeading.append(toolbar); label.textContent = "Search"; button.setAttribute("aria-expanded", "false");
+        document.dispatchEvent(new Event("clippy-html-search-close"));
         if (skip) skip.href = "#main-content";
         document.title = originalTitle;
         if (updateHistory) {

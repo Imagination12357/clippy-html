@@ -2,6 +2,64 @@ mod support;
 use scraper::{Html, Selector};
 use support::*;
 #[test]
+fn finding_summary_preserves_identity_and_location_with_native_no_js_details() {
+    let f = Fixture::new("warning");
+    assert_success(&f.run(&[]));
+    for path in ["lint/clippy/clone_on_copy.html", "src/lib.rs.html"] {
+        let doc = Html::parse_document(&f.html(path));
+        let finding = doc
+            .select(&Selector::parse("section.finding[id]").unwrap())
+            .next()
+            .unwrap();
+        let toggle = finding
+            .select(&Selector::parse("details.finding-toggle[open] > summary").unwrap())
+            .next()
+            .expect("native initially open finding summary");
+        assert!(
+            toggle
+                .select(&Selector::parse(".severity").unwrap())
+                .next()
+                .is_some()
+        );
+        assert!(
+            toggle
+                .select(&Selector::parse("code").unwrap())
+                .next()
+                .unwrap()
+                .text()
+                .collect::<String>()
+                .contains("clone_on_copy")
+        );
+        assert!(
+            toggle
+                .select(&Selector::parse(".finding-message").unwrap())
+                .next()
+                .is_some()
+        );
+        assert!(
+            toggle
+                .select(&Selector::parse(".finding-location a").unwrap())
+                .next()
+                .unwrap()
+                .text()
+                .collect::<String>()
+                .contains("src/lib.rs:3:")
+        );
+        assert!(
+            finding
+                .select(&Selector::parse(".finding-body .diagnostic-location").unwrap())
+                .next()
+                .is_some()
+        );
+        assert_eq!(
+            doc.select(&Selector::parse("#toggle-all-docs").unwrap())
+                .count(),
+            0,
+            "global control requires JS"
+        );
+    }
+}
+#[test]
 fn reports_embed_circle_clip_assets_without_retired_rust_logo_notice() {
     let f = Fixture::new("clean");
     assert_success(&f.run(&[]));
@@ -47,7 +105,7 @@ fn help_is_readable_without_js_and_linked_from_nested_pages() {
     assert_eq!(
         doc.select(&Selector::parse("#help .shortcuts dt").unwrap())
             .count(),
-        6
+        8
     );
     assert_eq!(
         doc.select(&Selector::parse("#back").unwrap())
@@ -182,7 +240,7 @@ fn search_index_links_all_report_kinds_without_copying_source_bodies() {
         let html = std::fs::read_to_string(&path).unwrap();
         let doc = Html::parse_document(&html);
         let scripts: Vec<_> = doc.select(&Selector::parse("script").unwrap()).collect();
-        assert_eq!(scripts.len(), 7);
+        assert_eq!(scripts.len(), 8);
         for (script, name) in scripts.iter().zip([
             "settings-storage.js",
             "search-index.js",
@@ -191,6 +249,7 @@ fn search_index_links_all_report_kinds_without_copying_source_bodies() {
             "settings.js",
             "suggestions.js",
             "help.js",
+            "summary.js",
         ]) {
             assert!(
                 script

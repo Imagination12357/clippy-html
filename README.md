@@ -39,7 +39,9 @@ Search 버튼 또는 `S`·`/`로 rustdoc처럼 본문 자리에 검색 화면을
 
 Settings는 rustdoc의 팝오버와 별도 `settings.html` 구조를 사용하며, 탭 구성은 docs.rs의 rustdoc 1.102 nightly에서 Appearance / Interface / Content와 항목 순서를 가져왔습니다. 전역 스타일은 기존 1.97.1을 유지합니다. `light`·`dark`·`ayu`·`system preference`를 고르고, 시스템 밝기별 선호 테마도 지정할 수 있습니다. 탐색창/목차 숨김, sans-serif 본문, 소스 줄바꿈, 단축키 비활성화, 검색 단일 결과로 바로 이동을 제공합니다. 테마는 스타일 적용 전에 복원하며 저장소가 차단되어도 현재 페이지의 설정 변경은 동작합니다. `file://`에서 페이지 사이의 저장 공유는 브라우저에 따라 다릅니다. 이식 항목과 제외 이유는 [Settings 출처 기록](assets/vendor/rustdoc/SETTINGS.md)에 있습니다.
 
-Help 버튼 또는 `?`는 rustdoc 구조의 단축키·검색 도움말 팝오버를 엽니다. JavaScript 없이도 Help 링크로 `help.html`을 읽을 수 있습니다. `Esc`는 Help/Settings 팝오버를 먼저 닫고 다음 입력에서 검색을 닫습니다. 입력 폼·IME 조합·브라우저 modifier 키를 보호하며, Settings의 단축키 비활성화는 전역 단축키와 검색의 사용자 정의 방향키 동작에 적용합니다. 기본 Tab/Enter와 버튼·링크는 유지합니다. 전체 펼치기·접기 단축키는 아직 제공하지 않습니다. [Help 출처와 범위](assets/vendor/rustdoc/HELP.md)
+Help 버튼 또는 `?`는 rustdoc 구조의 단축키·검색 도움말 팝오버를 엽니다. JavaScript 없이도 Help 링크로 `help.html`을 읽을 수 있습니다. `Esc`는 Help/Settings 팝오버를 먼저 닫고 다음 입력에서 검색을 닫습니다. 입력 폼·IME 조합·브라우저 modifier 키를 보호하며, Settings의 단축키 비활성화는 전역 단축키와 검색의 사용자 정의 방향키 동작에 적용합니다. 기본 Tab/Enter와 버튼·링크는 유지합니다. [Help 출처와 범위](assets/vendor/rustdoc/HELP.md)
+
+진단이 있는 lint·소스 페이지의 `Summary`는 severity·lint명·메시지·대표 위치를 남기고 상세를 접습니다. `Show all`은 진단 안의 targets·suggestion·원본 진단도 함께 펼칩니다. `-`는 접기, `+`·`=`는 펼치기이며 사이드바·전체 소스·오버뷰 로그는 건드리지 않습니다. 검색 중에는 제어가 비활성화되고, 특정 진단 링크로 이동하면 해당 항목을 펼칩니다. JS 없이도 진단별 기본 펼침 상태와 개별 접기·펼치기는 유지합니다. [출처와 범위](assets/vendor/rustdoc/SUMMARY.md)
 
 - 홈에는 검사 종료 상태, 수집 완전성, 원본 진단 수와 병합 후 finding 수를 별도로 표시합니다.
 - 진단 종류 페이지에는 code, 실제 severity, target, primary/secondary 위치, note/help, suggestion 묶음과 applicability를 표시합니다.

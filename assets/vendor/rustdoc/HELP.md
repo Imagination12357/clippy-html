@@ -26,7 +26,8 @@ matching the reference. The native span.bottom > code structure displays the
 generator's own cargo-clippy-html package version (CARGO_PKG_VERSION), not a
 rustdoc/compiler or inspected-crate version. Search Tricks describes report data, AND terms and
 case-insensitive matching. Rustdoc's type/API search syntax, handbook links,
-rustdoc version text and +/-/_ section commands are omitted. No new report keyboard
+rustdoc version text is omitted. The later diagnostic Summary control adds
++/= and - to Help; _ stays omitted because no impl blocks exist. No new report keyboard
 commands for settings, copying or navigation were invented.
 
 Help and Settings popovers exclude each other while search stays open beneath
@@ -39,8 +40,9 @@ Tab/Enter and explicit buttons/links still work.
 Toolbar order is Search, Settings, Help, following the pinned reference's
 RustdocToolbarElement in storage-41dd4d93.js (SHA-256
 41ae6c52806867b0888b909a815fd147c2b012b10211a772747f49c10f3fece9).
-The reference's following Summary control is omitted. Popup arrow offsets
-account for Help following Settings, including the compact 850px breakpoint.
+The following Summary control appears only on finding pages, as described in
+SUMMARY.md. Popup offsets account for that control when visible and revert
+during search, including the compact 850px Help/Settings breakpoint.
 Popup positioning uses the existing 700px mobile breakpoint. The report overrides the
 native mobile Help-link hiding rule because it does not have rustdoc-topbar.
 Long popup content scrolls inside .content rather than clipping its arrow.

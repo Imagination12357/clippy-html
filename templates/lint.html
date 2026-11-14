@@ -1,7 +1,10 @@
 {% for f in findings %}
 <section class="finding" id="finding-{{ f.id }}">
+<details class="toggle finding-toggle" open><summary><section class="finding-summary">
 <h2 class="section-header"><span class="severity {{ f.level }}">{{ f.level }}</span> <code>{{ f.code }}</code> <a class="anchor" href="#finding-{{ f.id }}" aria-label="Link to finding">§</a></h2>
 <p class="finding-message">{{ f.message }}</p>
+{% match f.summary_location %}{% when Some with (loc) %}<p class="finding-location"><a href="{{ loc.href }}"><code>{{ loc.text }}</code></a></p>{% when None %}{% endmatch %}
+</section></summary><div class="finding-body">
 <p class="finding-meta">{{ f.origin }} · {% if f.category_href.len() > 0 %}<a href="{{ f.category_href }}">{{ f.category }}</a>{% else %}{{ f.category }}{% endif %} · <code>{{ f.package }}</code></p>
 {% if f.docs.len() > 0 %}<p><a href="{{ f.docs }}" rel="noopener noreferrer">Official Clippy documentation</a></p>{% endif %}
 <details><summary>Targets ({{ f.targets.len() }})</summary><ul>{% for target in f.targets %}<li><code>{{ target }}</code></li>{% endfor %}</ul></details>
@@ -9,5 +12,6 @@
 {% for note in f.notes %}<p class="diagnostic-note"><strong>{{ note.level }}</strong>: {{ note.message }}{% match note.link %}{% when Some with (link) %}<a href="{{ link.href }}" rel="noopener noreferrer">{{ link.text }}</a>{% when None %}{% endmatch %}</p>{% endfor %}
 {% for suggestion in f.suggestions %}<details class="suggestion" open><summary>Suggestion: {{ suggestion.message }}</summary>{% match suggestion.patch %}{% when Some with (patch) %}<p class="finding-meta">{{ suggestion.applicability }}</p><div class="example-wrap suggestion-diff" data-patch="{{ patch.json }}"><pre><code>{% for line in patch.lines %}<span class="{{ line.class }}">{{ line.text }}</span>{% endfor %}</code></pre></div>{% when None %}<p class="suggestion-unavailable">Diff unavailable: {{ suggestion.reason }}</p>{% for replacement in suggestion.replacements %}<p><code>{{ replacement.location }}</code> · {{ replacement.applicability }}</p><pre><code>{{ replacement.text }}</code></pre>{% endfor %}{% endmatch %}</details>{% endfor %}
 {% if f.fallback.len() > 0 %}<details><summary>Rendered diagnostic (text)</summary><pre>{{ f.fallback }}</pre></details>{% endif %}
+</div></details>
 </section>
 {% endfor %}

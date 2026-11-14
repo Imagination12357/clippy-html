@@ -19,6 +19,8 @@ Suggestion patch copy controls also adapt the pinned rustdoc code-block button s
 
 Help and keyboard behavior adapt the same pinned rustdoc toolbar/popover and standalone Help structure under its MIT option. See assets/vendor/rustdoc/HELP.md (licenses/HELP.md in generated reports); the original rustdoc-MIT.txt notice also applies.
 
+Diagnostic Summary controls adapt the pinned rustdoc finding toggle/toolbar structure under the same MIT option. Scope, keyboard and deep-link adaptations are recorded in assets/vendor/rustdoc/SUMMARY.md (licenses/SUMMARY.md in generated reports).
+
 Each font-family license file preserves the original copyright and Reserved Font Name declarations and the full OFL-1.1 text. The font binaries are unchanged copies of the pinned rustdoc output. See assets/vendor/rustdoc/FONTS.md (licenses/FONTS.md in generated reports) for file names, source details and SHA-256 values.
 
 The original rustdoc COPYRIGHT.txt is retained unmodified as upstream reference material. It also discusses resources not copied from rustdoc, including Rust logos, the complete rustdoc JavaScript files and Fira Mono. Search UI behavior is adapted as described in SEARCH.md; the upstream search engine is not shipped. The current circle-and-paperclip favicon is original project artwork under MIT OR Apache-2.0, described in assets/favicon/README.md; it uses no Rust logo artwork. The upstream copyright reference is not the inventory of this bundle; the table above is that inventory.

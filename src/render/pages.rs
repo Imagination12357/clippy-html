@@ -134,6 +134,7 @@ struct FindingView {
     docs: String,
     targets: Vec<String>,
     locations: Vec<Location>,
+    summary_location: Option<Link>,
     notes: Vec<NoteView>,
     suggestions: Vec<SuggestionView>,
     fallback: String,
@@ -361,7 +362,7 @@ fn views(
     findings
         .iter()
         .map(|f| {
-            let locations = display_spans(f)
+            let locations: Vec<Location> = display_spans(f)
                 .into_iter()
                 .map(|s| {
                     let matched = sources
@@ -415,6 +416,14 @@ fn views(
                 })
                 .unwrap_or_default();
             FindingView {
+                summary_location: locations
+                    .iter()
+                    .find(|loc| loc.kind == "Primary")
+                    .or_else(|| locations.first())
+                    .map(|loc| Link {
+                        href: loc.href.clone(),
+                        text: loc.label.clone(),
+                    }),
                 id: f.id.clone(),
                 level: f.level.clone(),
                 code: f

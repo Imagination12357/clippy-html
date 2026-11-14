@@ -33,7 +33,7 @@ test("native Help content and ? work independently of missing search data and de
     assert.equal(s.doc.activeElement, s.help());
     const text = s.doc.querySelector("#help").textContent;
     assert.ok(text.includes("Keyboard Shortcuts") && text.includes("Search Tricks"));
-    assert.deepEqual([...s.doc.querySelectorAll("#help kbd")].map(k => k.textContent), ["?", "S", "/", "↑", "↓", "←", "→", "⏎"]);
+    assert.deepEqual([...s.doc.querySelectorAll("#help kbd")].map(k => k.textContent), ["?", "S", "/", "↑", "↓", "←", "→", "⏎", "+", "=", "-"]);
     assert.equal(s.doc.querySelector("#help .bottom code").textContent, "cargo-clippy-html test-version");
     assert.ok(!text.includes("Expand all") && !text.includes("fn:") && !text.includes("rustdoc book"));
     s.dom.window.close();
