@@ -264,15 +264,25 @@ mod tests {
     }
     #[test]
     fn process_pipes_are_drained_and_failures_preserved() {
-        let helper = std::env::current_exe()
-            .unwrap()
-            .parent()
-            .unwrap()
-            .parent()
-            .unwrap()
-            .join("examples")
+        let helper_dir = tempfile::tempdir().unwrap();
+        let helper = helper_dir
+            .path()
             .join(format!("cargo_probe{}", std::env::consts::EXE_SUFFIX));
-        assert!(helper.is_file(), "Build cargo_probe before running tests");
+        let source =
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("examples/cargo_probe.rs");
+        let build = Command::new(std::env::var_os("RUSTC").unwrap_or_else(|| "rustc".into()))
+            .current_dir(helper_dir.path())
+            .arg("--edition=2024")
+            .arg(source)
+            .arg("-o")
+            .arg(&helper)
+            .output()
+            .expect("Cannot compile cargo_probe");
+        assert!(
+            build.status.success(),
+            "Cannot compile cargo_probe: {}",
+            String::from_utf8_lossy(&build.stderr)
+        );
         let (send, recv) = std::sync::mpsc::channel();
         std::thread::spawn(move || {
             let mut result = vec![];

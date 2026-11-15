@@ -70,14 +70,13 @@ Clippy가 경고를 오류로 처리하거나 컴파일 오류로 실패해도 �
 ## 개발 검증
 
 ```powershell
-cargo build --example cargo_probe --locked
 cargo test --locked
 cargo fmt --check
 cargo clippy --all-targets --locked -- -D warnings
 cargo +1.88.0 check --all-targets --locked
 ```
 
-process 테스트는 먼저 빌드한 `cargo_probe` helper를 사용해 양쪽 pipe의 대량 출력을 검증합니다. 통합 테스트는 fixture를 임시 폴더에 복사하므로 저장소의 fixture 소스를 수정하지 않습니다. fixture 자체는 외부 의존성을 사용하지 않습니다.
+process 테스트는 표준 라이브러리만 사용하는 `cargo_probe` helper를 `rustc`로 임시 폴더에 직접 컴파일해 양쪽 pipe의 대량 출력을 검증합니다. Cargo 빌드 디렉터리 구조에 의존하지 않으며 별도 사전 빌드는 필요하지 않습니다. 통합 테스트는 fixture를 임시 폴더에 복사하므로 저장소의 fixture 소스를 수정하지 않습니다. fixture 자체는 외부 의존성을 사용하지 않습니다.
 
 Suggestion patch 테스트는 Git이 PATH에 있어야 하며, 생성한 patch를 임시 복사본에 실제 적용해 결과 바이트를 검사합니다.
 
