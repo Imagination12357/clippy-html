@@ -14,6 +14,9 @@ use std::{
 pub struct RunOptions {
     #[arg(long, value_name = "DIR")]
     pub output: Option<PathBuf>,
+    /// Write an optional machine-readable report navigation index.
+    #[arg(long, value_name = "FILE")]
+    pub metadata: Option<PathBuf>,
     #[arg(long)]
     pub open: bool,
     /// Use bundled category data without fetching it (Cargo flags go after --).
@@ -161,8 +164,28 @@ mod tests {
             input.extend(args(forwarded));
             assert!(parse_args(input).is_err());
         }
-        assert!(parse_args(args(&["tool", "--metadata", "x.json"])).is_err());
         assert!(parse_args(args(&["tool", "--", "--", "--message-format=json"])).is_ok());
+    }
+    #[test]
+    fn metadata_is_opt_in_and_requires_a_path() {
+        assert!(parse_args(args(&["tool"])).unwrap().metadata.is_none());
+        assert!(parse_args(args(&["tool", "--metadata"])).is_err());
+        let opts = parse_args(args(&[
+            "tool",
+            "--metadata",
+            "보고서 폴더/index.json",
+            "--",
+            "--all-targets",
+        ]))
+        .unwrap();
+        assert_eq!(opts.metadata, Some(PathBuf::from("보고서 폴더/index.json")));
+        assert_eq!(opts.clippy_args, args(&["--all-targets"]));
+        assert_eq!(
+            parse_args(args(&["tool", "--metadata=x.json"]))
+                .unwrap()
+                .metadata,
+            Some(PathBuf::from("x.json"))
+        );
     }
     #[test]
     fn unicode_os_paths_survive() {

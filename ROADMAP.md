@@ -96,7 +96,15 @@ acceptance of this new view remains separate from earlier user confirmations.
 
 ### 5. Metadata and distribution
 
-Add opt-in --metadata <FILE>, schema/version and safe output-path handling. Verify installation, offline/static hosting under a repository subpath, Actions artifact and Pages guidance; prepare the release package and bundled notices. Publishing/pushing remains separately authorized.
+2026-11-16: opt-in `--metadata <FILE>` now exports versioned navigation JSON:
+report-relative page/finding URLs and basic selection fields, without a stored
+report base URL or a full diagnostic dump. Internal JSON is staged with HTML;
+external files are replaced after HTML publication. See [public contract](docs/metadata.md)
+and [design](docs/superpowers/specs/2026-11-16-navigation-metadata-design.md).
+
+Remaining: verify installation and release packaging; consolidate offline/static
+subpath hosting, Actions artifact and Pages guidance and bundled notices.
+Publishing/pushing remains separately authorized.
 
 **Done when:** explicit metadata export is tested without changing the default output contract, the support matrix is exercised, and install/hosting/package examples work.
 

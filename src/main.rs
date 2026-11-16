@@ -2,6 +2,7 @@ mod cargo;
 mod cli;
 mod diagnostic;
 mod lint;
+mod metadata;
 mod output;
 mod render;
 mod source;
@@ -19,6 +20,11 @@ fn run(opts: cli::RunOptions) -> Result<i32, String> {
         .as_ref()
         .map_or_else(|| project.target_dir.join("clippy-html"), |p| cwd.join(p));
     let target = output::prepare_target(&output, &project)?;
+    let metadata_target = opts
+        .metadata
+        .as_ref()
+        .map(|path| metadata::MetadataTarget::prepare(&cwd.join(path), &target))
+        .transpose()?;
     let collected = cargo::collect(&ctx, &opts)?;
     let raw_count = collected.messages.len();
     let mut findings = diagnostic::dedup::merge_findings(
@@ -47,8 +53,22 @@ fn run(opts: cli::RunOptions) -> Result<i32, String> {
     };
     let sources = source::load_sources(&report.project, &report.findings);
     let pages = render::paths::build_page_map(&report, &sources);
+    let navigation = metadata_target
+        .as_ref()
+        .map(|_| metadata::build(&report, &sources, &pages));
+    let prepared_metadata = metadata_target
+        .zip(navigation.as_ref())
+        .map(|(target, navigation)| target.stage(navigation.json()?))
+        .transpose()?;
     let published = output::publish_report(&target, |dir| {
-        render::render_report(&report, &sources, &pages, dir)
+        render::render_report(&report, &sources, &pages, dir)?;
+        if let Some(metadata) = &prepared_metadata {
+            metadata.write_report(dir)?;
+        }
+        if let Some(navigation) = &navigation {
+            navigation.validate(dir)?;
+        }
+        Ok(())
     })
     .map_err(|e| {
         format!(
@@ -60,6 +80,16 @@ fn run(opts: cli::RunOptions) -> Result<i32, String> {
         eprintln!("Warning: {warning}");
     }
     println!("Report: {}", published.index.display());
+    if let Some(metadata) = prepared_metadata {
+        metadata.publish_external().map_err(|e| format!(
+            "{e}\nHTML report published at {}; requested metadata was not published.\nClippy exit: {:?}; collection complete: {}",
+            published.index.display(), report.execution.code, report.execution.complete
+        ))?;
+        println!(
+            "Metadata: {}",
+            cwd.join(opts.metadata.as_ref().unwrap()).display()
+        );
+    }
     if opts.open {
         let url = url::Url::from_file_path(&published.index)
             .map_err(|_| "Cannot form report file URL")?;

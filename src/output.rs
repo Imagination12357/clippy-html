@@ -44,7 +44,7 @@ fn canonical_future(path: &Path) -> Result<PathBuf, String> {
         path.canonicalize().map_err(|e| e.to_string())
     }
 }
-pub fn prepare_target(requested: &Path, project: &ProjectInfo) -> Result<OutputTarget, String> {
+pub(crate) fn resolve_path(requested: &Path) -> Result<PathBuf, String> {
     let absolute = if requested.is_absolute() {
         requested.to_owned()
     } else {
@@ -62,7 +62,10 @@ pub fn prepare_target(requested: &Path, project: &ProjectInfo) -> Result<OutputT
             c => cleaned.push(c),
         }
     }
-    let path = canonical_future(&cleaned)?;
+    canonical_future(&cleaned)
+}
+pub fn prepare_target(requested: &Path, project: &ProjectInfo) -> Result<OutputTarget, String> {
+    let path = resolve_path(requested)?;
     let mut protected = vec![
         canonical_future(&project.workspace_root)?,
         canonical_future(&project.target_dir)?,

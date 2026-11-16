@@ -685,10 +685,9 @@ fn output_and_target_dir_paths_follow_invocation_directory() {
     assert!(elsewhere.join("relative-report/index.html").exists());
 }
 #[test]
-fn refuses_metadata_and_preserves_unowned_directory() {
+fn requires_metadata_path_and_preserves_unowned_directory() {
     let f = Fixture::new("clean");
-    assert_eq!(f.run(&["--metadata", "x.json"]).status.code(), Some(2));
-    assert!(!f.root.join("x.json").exists());
+    assert_eq!(f.run(&["--metadata"]).status.code(), Some(2));
     let folder = f.root.join("notes");
     std::fs::create_dir(&folder).unwrap();
     std::fs::write(folder.join("important.txt"), "keep").unwrap();

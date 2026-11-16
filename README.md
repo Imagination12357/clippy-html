@@ -67,6 +67,8 @@ Clippy가 경고를 오류로 처리하거나 컴파일 오류로 실패해도 �
 
 중단 후 lock이나 backup이 남으면 도구가 알려 주는 경로를 확인합니다. 실행 중인 생성기가 없는지 확인하고, backup의 정상 결과물을 보존한 뒤 복구합니다. 도구는 불확실한 backup이나 stale lock을 임의 삭제하지 않습니다. 여러 rename 사이의 전원 장애까지 원자적으로 복구하는 기능은 없습니다.
 
+외부 도구에서 보고서를 탐색하려면 `cargo clippy-html --output report --metadata report/metadata.json`으로 선택적인 JSON 인덱스를 생성할 수 있습니다. 페이지·진단 URL과 기본 식별 정보를 제공하며, URL은 JSON 위치와 무관하게 보고서 루트 기준입니다. 보고서 자체의 배포 URL은 저장하지 않습니다. [스키마와 사용 예제](docs/metadata.md)를 참고하세요.
+
 ## 개발 검증
 
 ```powershell
