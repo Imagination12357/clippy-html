@@ -135,4 +135,6 @@ For a local report, use `Path("report").resolve().as_uri() + "/"` as the root.
   command fails, and the error names the published HTML and the metadata failure.
   The old external JSON is retained if it still exists. HTML and external JSON do
   not form an atomic transaction; simultaneous readers can see different snapshots.
+  The report's writer lock remains held through external JSON publication to prevent
+  cooperating concurrent writers from interleaving the two successful publications.
 - `--open` opens the report after all requested outputs have been published.

@@ -70,5 +70,5 @@ Option<PathBuf>`. Metadata owns URL enumeration and staged destination validatio
   overwrites, failure states, and a short consumer example without HTML parsing.
 - [x] Run Rust 1.100 full suite, fmt, strict Clippy, Node suite and Rust 1.88
   all-target check/process test; expected all pass. Generate a real metadata preview.
-- [ ] Fresh whole-change review once; fix important findings with RED/GREEN tests.
-- [ ] Commit verified changes, push main without force, and report actual state.
+- [x] Fresh whole-change review once; fix important findings with RED/GREEN tests.
+- [x] Commit verified changes; push main without force as authorized and report delivery state separately.

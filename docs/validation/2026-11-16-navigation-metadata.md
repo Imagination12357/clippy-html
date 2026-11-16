@@ -27,5 +27,26 @@ See [design](../superpowers/specs/2026-11-16-navigation-metadata-design.md) and
   URL/fragment was validated against staged HTML before publication.
 - Preview: `target/navigation-metadata-preview/index.html` and `metadata.json`.
 
-Fresh final review, delivery commit and remote CI results are recorded below
-after execution. Local tests are not claims of Linux/macOS or browser execution.
+## Final review and fix
+
+One fresh-context read-only reviewer found one important issue and no minor
+findings: the HTML publication lock was released before external JSON publication,
+allowing successful concurrent writers to leave mixed snapshots. The new
+`publication_lock_covers_external_metadata_and_is_released_with_the_receipt` test
+failed on the old behavior (a second publisher entered between the two outputs).
+PublishedReport now retains the existing RAII lock until its receipt is dropped.
+The test passes and confirms the lock is subsequently released.
+
+After the fix, Rust 1.100 full suite: 79 unit + 15 existing integration + 5 metadata
+integration = 99/99. Strict Clippy and fmt pass. Rust 1.88 all-target check and all
+79 unit tests pass. The real preview was regenerated after the fix with the same
+43 pages/73 findings and all URL destinations validated. Node's 49 passing tests
+were not repeated for a Rust-only lock-lifetime change.
+
+Power-loss atomicity across HTML and external JSON remains deliberately excluded:
+interruption can leave different snapshots. The writer lock prevents successful
+cooperating writers from interleaving; it does not make two filesystem publications
+one transaction. This boundary is documented in the public contract.
+
+Local results are not claims of Linux/macOS or browser execution. Remote CI runs
+after the separately authorized delivery push; its result is not inferred here.

@@ -55,7 +55,9 @@ Outside the report: explicitly selected regular files may be replaced. Prepare a
 same-directory temporary file before publishing HTML, then replace the selected
 file after successful HTML publication. Reject directories, symlinks/reparse points
 and reserved publication paths; recheck before replacement. Missing parent folders
-may be created. An HTML failure leaves the old external JSON untouched. A final
+may be created. Hold the report publication lock through external JSON publication
+to prevent successful cooperating writers from interleaving their two outputs.
+An HTML failure leaves the old external JSON untouched. A final
 external JSON publication failure keeps the finished HTML, preserves any previous
 JSON, reports both states and fails the command; do not claim a two-file transaction.
 Clippy failure/incomplete collection still permits exporting the available report

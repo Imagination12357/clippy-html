@@ -7,6 +7,8 @@ pub struct OutputTarget {
 pub struct PublishedReport {
     pub index: PathBuf,
     pub warnings: Vec<String>,
+    // Keep cooperating writers out until related external outputs are published.
+    _publication_lock: Lock,
 }
 use std::{
     fs,
@@ -189,10 +191,10 @@ fn publish_with_rename(
             backup.display()
         ));
     }
-    drop(lock);
     Ok(PublishedReport {
         index: target.path.join("index.html"),
         warnings,
+        _publication_lock: lock,
     })
 }
 #[cfg(test)]
@@ -328,6 +330,31 @@ mod tests {
         .unwrap();
         assert!(result.index.is_file());
         assert!(result.warnings.is_empty());
+    }
+    #[test]
+    fn publication_lock_covers_external_metadata_and_is_released_with_the_receipt() {
+        let t = tempdir();
+        let target = prepare_target(&t.path().join("report"), &project(t.path())).unwrap();
+        let metadata_path = t.path().join("navigation.json");
+        let metadata = crate::metadata::MetadataTarget::prepare(&metadata_path, &target)
+            .unwrap()
+            .stage(b"snapshot A".to_vec())
+            .unwrap();
+        let published = publish_report(&target, simple_report).unwrap();
+        let competing = publish_report(&target, |_| {
+            panic!("a second publisher must not enter between HTML and external JSON publication")
+        });
+        assert!(competing.is_err());
+        metadata.publish_external().unwrap();
+        assert_eq!(fs::read(&metadata_path).unwrap(), b"snapshot A");
+        assert!(
+            publish_report(&target, |_| panic!(
+                "publication receipt still owns the lock"
+            ))
+            .is_err()
+        );
+        drop(published);
+        assert!(publish_report(&target, simple_report).is_ok());
     }
     #[test]
     fn unexpected_destination_created_during_render_is_preserved() {
