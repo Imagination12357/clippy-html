@@ -33,11 +33,22 @@ fn check_file(path: &Path) -> Result<(), String> {
         Err(e) => Err(format!("Cannot inspect metadata output: {e}")),
     }
 }
+fn same_directory(a: &Path, b: &Path) -> std::io::Result<bool> {
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::MetadataExt;
+        let (a, b) = (fs::metadata(a)?, fs::metadata(b)?);
+        Ok(a.dev() == b.dev() && a.ino() == b.ino())
+    }
+    #[cfg(not(unix))]
+    {
+        Ok(a.canonicalize()? == b.canonicalize()?)
+    }
+}
 fn report_relative_path(path: &Path, report: &Path) -> Result<Option<PathBuf>, String> {
     if let Ok(relative) = path.strip_prefix(report) {
         return Ok(Some(relative.to_owned()));
     }
-    #[cfg(windows)]
     {
         if report.exists() {
             return Ok(None);
@@ -53,7 +64,7 @@ fn report_relative_path(path: &Path, report: &Path) -> Result<Option<PathBuf>, S
         let depth = missing.components().count();
         // Mirror only the missing directories in an isolated sibling. Let the
         // filesystem resolve aliases, including Unicode and inherited case flags,
-        // without creating the real output or assuming Windows is case-insensitive.
+        // without creating the real output or assuming case behavior from the OS.
         let probe = tempfile::Builder::new()
             .prefix(".clippy-html-path-probe-")
             .tempdir_in(parent)
@@ -61,24 +72,24 @@ fn report_relative_path(path: &Path, report: &Path) -> Result<Option<PathBuf>, S
         let mirrored = probe.path().join(missing);
         fs::create_dir_all(&mirrored).map_err(|e| e.to_string())?;
         let prefix: PathBuf = requested.components().take(depth).collect();
-        let resolved = match probe.path().join(prefix).canonicalize() {
-            Ok(path) => path,
+        let expected: PathBuf = missing
+            .components()
+            .take(prefix.components().count())
+            .collect();
+        let aliases = match same_directory(&probe.path().join(prefix), &probe.path().join(expected))
+        {
+            Ok(aliases) => aliases,
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(None),
             Err(e) => return Err(e.to_string()),
         };
-        let mirrored = mirrored.canonicalize().map_err(|e| e.to_string())?;
-        if resolved == mirrored {
+        if !aliases {
+            return Ok(None);
+        }
+        if requested.components().count() >= depth {
             return Ok(Some(requested.components().skip(depth).collect()));
         }
-        if mirrored.starts_with(resolved) {
-            return Err(
-                "Metadata output must not replace the report directory or its ancestors".into(),
-            );
-        }
-        Ok(None)
+        Err("Metadata output must not replace the report directory or its ancestors".into())
     }
-    #[cfg(not(windows))]
-    Ok(None)
 }
 impl MetadataTarget {
     pub fn prepare(requested: &Path, report: &OutputTarget) -> Result<Self, String> {
@@ -255,7 +266,6 @@ mod tests {
         assert!(MetadataTarget::prepare(&parent.join("new.json"), &report).is_err());
         assert_eq!(fs::read(original).unwrap(), b"preserve");
     }
-    #[cfg(windows)]
     #[test]
     fn new_report_alias_cannot_replace_the_report_or_its_ancestors() {
         let dir = tempdir();

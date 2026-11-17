@@ -8,7 +8,6 @@ use support::*;
 fn read(path: &Path) -> Value {
     serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap()
 }
-#[cfg(windows)]
 #[test]
 fn new_report_case_alias_metadata_is_internal_and_repeated_runs_succeed() {
     let f = Fixture::new("clean");
