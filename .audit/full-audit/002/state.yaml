@@ -1,0 +1,118 @@
+run: 2
+status: complete
+baseline:
+  git_head: d8f1e73c7db57ee0ca687848d40f255f238afbe3
+  working_tree: clean
+  note: "main; tracked source stayed clean throughout review. New run explicitly requested as FA-002. FA-001 records remain immutable. Extra scrutiny of fixes in 3a8fd2e and d8f1e73; comparison to 08945ba used for the explicitly authorized fix focus, not as a substitute for current-source review."
+scope:
+  include: [src, assets/*.js, assets/clippy-html.css, assets/favicon, templates, tests, examples, .github, Cargo.toml, Cargo.lock, package.json, package-lock.json, README.md, ROADMAP.md, docs/metadata.md, docs/superpowers/specs, AGENTS.md, .gitignore, THIRD-PARTY-NOTICES.md]
+  exclude: [target, node_modules, .git, .audit, .superpowers, assets/vendor]
+  note: "Vendored code/dependencies excluded; first-party embedding and provenance boundaries included. Historical plans/validation logs and ignored DETAILS.md are context, not a historical-accuracy audit. First-party fixture vendor/dep is included."
+coverage:
+  - unit: "CLI and Cargo collection (main, cli, cargo, diagnostic/parse)"
+    status: reviewed
+    note: "Re-traced argument/context selection and process completion. Real member-specific --features and attached -F controls succeeded; pipe/status/damage tests passed. load_project retains only target_directory, relevant to FA-002-003."
+  - unit: "Diagnostic model, normalization and deduplication"
+    status: reviewed
+    note: "Revisited canonical fields including expansion/notes/replacements, target-only merging, collision suffix determinism and severity/origin preservation. No new failure established; current model/dedup tests passed."
+  - unit: "Category parse/fetch/fallback and update example"
+    status: reviewed
+    note: "Rechecked selector host/scheme/version validation, parser duplicate/deprecated rules, limits and no-fetch cases; category enrichment still follows ID assignment and does not alter collection/exit. Controlled tests passed; no live request."
+  - unit: "Source eligibility, coordinate validation, ranges and lexical highlighting"
+    status: reviewed
+    note: "Re-traced canonical member/nearest-manifest/target exclusions and first-line/multiline coordinate projection; actual first-line BOM and separate generated build-directory probes established FA-002-002/003. Existing range tests passed."
+  - unit: "Paths, navigation, page generation, templates, assets and report validation"
+    status: reviewed
+    note: "Revisited source-name collision namespaces, relative href/anchor construction, source tree/count identity, per-page escaping, static-script data, embedded assets and validator paths. Report generation/metadata tests and actual generated probes exercise loaded and fallback destinations. No new defect beyond source eligibility/coordinate findings."
+  - unit: "Suggestion patches and clipboard UI"
+    status: reviewed
+    note: "Rechecked full-snippet verification, BOM first-line interaction, patch-path quoting, aggregate limits, overlap guards and reverse edits; copy UI still uses entire serialized patch with explicit failure fallback. Git-apply and clipboard DOM checks passed; BOM failure recorded in FA-002-002."
+  - unit: "Output ownership, locks, staging and recovery"
+    status: reviewed
+    note: "Revisited new/missing-path canonicalization, alias-created unowned directories, lock receipt lifetime, rollback and reparse rejection. Original Windows alias reproduction now succeeds; Windows case-sensitive temp-directory control preserves distinct external paths. Non-Windows branch proof tracked in FA-002-001."
+  - unit: "Navigation metadata DTO, destination validation and publication; Windows alias-fix regressions"
+    status: reviewed
+    note: "Examined both fix commits and current internal/external classification, ancestor rejection, mirror-probe ownership/cleanup and case-flag inheritance. Original Windows scenarios fixed; case-sensitive Windows control and invalid-alias ancestor tests passed. Complete static proof/branch-emulation found non-Windows residual FA-002-001. DTO URLs checked against generated HTML."
+  - unit: "Search engine and search/help lifecycle"
+    status: reviewed
+    note: "Revisited Unicode AND search, row caps/counts, href containment, deep-query/popstate and same-document routing, toolbar movement, IME/modifier/Escape handling and Help/Settings exclusion; current DOM tests passed."
+  - unit: "Settings fix, storage, summary and CSS/favicon"
+    status: reviewed
+    note: "Rechecked actual report-root URL resolution with nested source and standalone pages, generated-page reproduction, denied-storage/system-theme behavior, focus/hash reveal and shortcut guards. Original Settings fault fixed. Styles/assets unchanged; source provenance adaptation recorded by fix."
+  - unit: "Tests, fixtures, build/CI contracts and current documentation"
+    status: reviewed
+    note: "Reviewed regression assertions including early-return platform branches, fixture isolation, current manifests/lock contracts, model support for modern Cargo metadata, CI matrix/failure propagation and public generated-source promises. MSRV/fmt/strict Clippy and stub-Cargo CI checks passed. Current app tests 102 and DOM tests 50 passed; targeted probes cover earlier gaps."
+findings:
+  - id: FA-002-001
+    title: "Report-local metadata case aliases still take the external branch on non-Windows case-insensitive filesystems"
+    location: "src/metadata/output.rs:36-82; src/output.rs:134-138"
+    confidence: confirmed
+    severity: important
+    condition: "On a non-Windows host with a case-insensitive filesystem, a new Report output is paired with report/navigation.json."
+    impact: "Metadata creates an unowned output directory before publication; HTML publication then fails and subsequent retries encounter the unowned directory."
+    evidence: "Complete static trace: the alias fix is #[cfg(windows)]; other targets return None after case-sensitive Path::strip_prefix failure. For a missing report and its alias, canonical_future preserves the missing names. External stage creates report/ before publication. On case-insensitive storage this is the real output: publication either rejects changed canonical spelling or rejects the missing ownership marker. probe-platform-branch.py extracted the current non-Windows helper branch into a temporary module and imported actual output.rs unchanged on available case-insensitive storage: external=true, first error Output path changed during generation, directory left=true, index=false, matching-case retry refused non-report directory. The render/validation stubs were never reached. This is branch emulation plus static proof, NOT a native macOS/Linux execution."
+    related_to: [FA-001-003]
+    history:
+      - "probable -> confirmed: completed source proof and actual filesystem execution of the non-Windows branch in an isolated harness."
+  - id: FA-002-002
+    title: "Unchanged UTF-8 BOM source loses first-line range links and suggestion diffs"
+    location: "src/source.rs:85-108; src/render/suggestions.rs:107-111"
+    confidence: confirmed
+    severity: minor
+    condition: "A real Clippy diagnostic or suggestion references the first line of a valid Rust file beginning with the UTF-8 BOM."
+    impact: "The unchanged source is treated as mismatched; metadata falls back from L1 to a finding anchor, precise source marking and a valid suggestion diff are unavailable."
+    evidence: "probe-boundaries.py: unchanged LF/CRLF controls exited 0, linked #L1, had precise ranges/diff; BOM input exited 0 but linked #finding-..., had zero precise ranges and displayed Diff unavailable. Raw Clippy spans: LF byte 39..48, BOM byte 42..51, both columns 40..49 and snippet without BOM. span_matches compares that snippet against first source line retaining U+FEFF and computes columns without BOM adjustment. Unlike FA-001's line-3 probe, this first line fails. This is pre-existing code, not introduced by the two fixes."
+    related_to: [FA-001-002]
+  - id: FA-002-003
+    title: "Cargo's separate build directory is not excluded from full-source export"
+    location: "src/cargo.rs:43-53; src/diagnostic/model.rs:74-78; src/source.rs:33,56-60"
+    confidence: confirmed
+    severity: important
+    condition: "Cargo build.build-dir is configured to a separate directory under the workspace, outside target_directory; an OUT_DIR-generated Rust file emits a diagnostic."
+    impact: "The report includes the full generated file and enables its suggestion patch instead of the promised generated-source snippet fallback. A published report can contain generated material beyond the diagnostic excerpt."
+    evidence: "probe-boundaries.py created no-dependency projects with build.rs writing OUT_DIR/generated.rs, whose clone_on_copy warning is on line 3. Default control: Cargo target_directory/build_directory both target, source fallback anchor, no diff, no line-1 sentinel in report. Custom build-dir=generated-cache: Cargo explicitly reported target_directory=target/build_directory=generated-cache; report exported an L3 URL and a diff and full source HTML included FULL_GENERATED_SOURCE_SENTINEL from line 1 outside the diagnostic snippet. load_sources excludes only project.target_dir; separate build dir remains in an eligible root/nearest manifest. cargo_metadata 0.23.1 already exposes optional build_directory but load_project discards it. README.md:58 and the original design:111 promise generated-source fallback. No hypothetical secret or breach is claimed."
+  - id: FA-002-004
+    title: "Member-specific feature forwarding may cause metadata failure"
+    location: "src/cli.rs:57-102; src/cargo.rs:20-32"
+    confidence: disproven
+    severity: null
+    condition: "A non-virtual root package is selected differently from a workspace member whose feature is requested."
+    impact: "Suspected failure before Clippy because metadata does not receive -p."
+    evidence: "Real temp workspace with root package and member-only special feature: -p member --features special and -p member -Fspecial both exited 0. Cargo metadata --no-deps did not reject either request. No incorrect source behavior established."
+  - id: FA-002-005
+    title: "Windows mirror probe may classify case-sensitive distinct directories as aliases"
+    location: "src/metadata/output.rs:36-82"
+    confidence: disproven
+    severity: null
+    condition: "A new Windows output lives under an explicitly case-sensitive temporary directory; metadata uses a distinct case spelling."
+    impact: "Suspected unintended internal metadata staging or merging distinct Report/report paths."
+    evidence: "probe-boundaries.py successfully enabled the case-sensitive flag on its own isolated temporary parent. --output Report --metadata report/nav.json exited 0, produced Report/index.html and distinct report/nav.json. This exercises the branch skipped by default-volume tests and did not reproduce the suspected regression."
+prior_findings:
+  - id: FA-001-001
+    assessment: "Original actual generated src/settings.html probe now reports panelInsideMain=false, popoverExists=true, menuHidden=false. Current Settings tests cover HTTP/file and standalone query/hash cases; fix effective in the original scenario."
+  - id: FA-001-003
+    assessment: "Original Windows first publication and retry now both exit 0 with index.html; matching-case control also succeeds. Distinct paths on an explicitly case-sensitive Windows directory remain external. Non-Windows case-insensitive scope remains defective as FA-002-001."
+checks:
+  - "cargo +1.100.0 test --locked --offline (approved unsandboxed): 80 unit + 15 integration + 7 metadata tests passed."
+  - "npm test: all 50 JavaScript/DOM tests passed."
+  - "zg query --rg used for index-free source search."
+  - "cargo +1.100.0 build --locked --offline: current-binary build passed."
+  - "probe-boundaries.py: BOM-first-line defect reproduced; member-specific long/attached -F feature controls passed; Windows temporary case-sensitive directory was enabled successfully and distinct Report/report external output passed."
+  - "probe-platform-branch.py: non-Windows helper branch emulation on available case-insensitive storage reproduced failed publication and poisoned retry. Actual macOS/Linux was not executed."
+  - "Original immutable FA-001 probe rerun against current binary: both original Windows/Settings scenarios fixed; prior LF/CRLF/BOM-line-3 controls still pass."
+  - "Default vs separate build-dir probe: Cargo metadata reported both directories; only the separate workspace build directory leaked full generated source."
+  - "cargo +1.100.0 fmt --check: passed."
+  - "cargo +1.100.0 clippy --all-targets --locked --offline -- -D warnings: passed."
+  - "cargo +1.88.0 check --all-targets --locked --offline: passed."
+  - "Git Bash tests/ci-dogfood.test.sh: all 4 stub-Cargo cases passed; no actual deployment."
+  - "codeknow debt: no existing graph; used direct source traces rather than creating an unrelated persistent graph."
+  - "Final BOM probe captured raw compiler spans: byte offsets include BOM's 3 bytes while columns/snippet omit it; precise range count dropped from nonzero to 0."
+  - "Final record validation: YAML/report agree; all 11 units reviewed; 3 confirmed (2 important, 1 minor), 2 disproven; immutable IDs/cross-run relations and both Python scripts' syntax valid."
+  - "Final baseline check: HEAD still d8f1e73c7db57ee0ca687848d40f255f238afbe3; tracked/staged diff empty; only four new .audit/full-audit/002 files untracked."
+limitations:
+  - "No native macOS/Linux execution. FA-002-001 is confirmed by complete static proof plus isolated execution of the actual non-Windows helper branch on available case-insensitive storage, not a claim of native platform testing."
+  - "No real browser layout/file policy/clipboard-permission/accessibility acceptance; UI checks use jsdom and actual generated HTML."
+  - "No live external HTTPS/category request, dependency installation, hosted CI or deployment."
+  - "Third-party dependency and vendored implementation internals excluded; current first-party integration and source provenance inspected."
+  - "Historical design/validation logs used as context, not audited for every historical claim."
+  - "Complete records coverage/assessment completion, not proof that no further bugs exist."
