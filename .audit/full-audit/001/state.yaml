@@ -1,0 +1,97 @@
+run: 1
+status: complete
+baseline:
+  git_head: 08945ba063cd6ac9515e3e29e2eefcf8fcfa2272
+  working_tree: clean
+  note: "main; tracked source clean before and after review. Audit records excluded from drift checks. Ignored local DETAILS.md used only as historical context, SHA256 A3B0A52FF1FCC48F3131ACC2B1E9A967D3757FFA35DEA94F7600883E52A1D5D8. Current README/ROADMAP and approved feature specs take precedence over historical phase wording."
+scope:
+  include: [src, assets/*.js, assets/clippy-html.css, assets/favicon, templates, tests, examples, .github, Cargo.toml, Cargo.lock, package.json, package-lock.json, README.md, ROADMAP.md, docs, THIRD-PARTY-NOTICES.md, AGENTS.md, .gitignore]
+  exclude: [target, node_modules, .git, .audit, .superpowers, assets/vendor, DETAILS.md]
+  note: "Vendored implementation/assets excluded; first-party integration and provenance documentation inspected. DETAILS.md is ignored historical context; old docs/plans/validation logs consulted for contracts and limitations, not audited for complete historical accuracy. Fixture-owned vendor/dep is first-party test data and included."
+coverage:
+  - unit: "CLI orchestration and Cargo process/stream collection (main, cli, cargo, diagnostic/parse)"
+    status: reviewed
+    note: "Traced forwarding boundaries, metadata context, parallel pipe drain, parse damage/build-finished/status disagreement and propagated exit codes. Real Cargo fixture probes and existing process/integration tests assessed."
+  - unit: "Diagnostic model, normalization and deduplication"
+    status: reviewed
+    note: "Traced recursive notes and grouped replacements, identity fields, target-only merging and collision suffixes; existing tests passed."
+  - unit: "Category lookup, fetch/cache, and metadata update example"
+    status: reviewed
+    note: "No cache implementation. Traced official selector allowlist, HTTPS/body/time limits, offline and ambiguous-version fallback, unknown categories and generator inputs; tests passed. Live HTTPS not exercised."
+  - unit: "Source resolution and precise ranges/highlighting"
+    status: reviewed
+    note: "Traced membership/nearest-manifest/target exclusions, coordinate/snippet/UTF-8 validation, multiline projection, insertion/indent/overlap handling and escaped lexical fragments. Actual LF/CRLF/BOM reports retain validated L3 links."
+  - unit: "Page paths, navigation, rendering/templates, embedded assets and validation"
+    status: reviewed
+    note: "Traced path component encoding/case collision assignment, cross-page relative links, per-file finding counts, source fallback anchors, Askama escaping, packaged notices/fonts and staged link/anchor/font validation."
+  - unit: "Suggestion diff generation and copy UI"
+    status: reviewed
+    note: "Traced complete-snippet guards, all-or-nothing multipart edits, overlap/path/binary/size/deadline failures, reverse application, unified diff generation and whole-patch clipboard/fallback UI. Existing Git-apply and DOM tests passed."
+  - unit: "Output ownership, locks, staging and rollback"
+    status: reviewed
+    note: "Traced protected roots, owned markers, reparse/symlink rejection, parent lock lifetime through external metadata, staging validation, rollback and uncertain-backup retention. Windows tests passed outside sandbox."
+  - unit: "Navigation metadata schema, URLs and publication"
+    status: reviewed
+    note: "Traced version 1 JSON, actual page map destinations and line/finding anchor validation, internal collision checks and external staging/publication. Existing tests passed; extra first-publication case-alias probe confirmed FA-001-003."
+  - unit: "Search engine and search/help UI"
+    status: reviewed
+    note: "Traced Unicode AND matching/ranking, safe local destination checks, 100-row cap with actual counts, search history/IME/focus lifecycle, one-result routing and Help/Settings/Escape coordination. DOM tests passed. Real browser acceptance not run."
+  - unit: "Settings, storage, summary UI and first-party CSS/favicon"
+    status: reviewed
+    note: "Traced storage validation/denial fallback/system theme, native page/popover classification, summary/hash reveal and editing guards, CSS selectors and asset embedding. FA-001-001 reproduced; existing DOM tests passed."
+  - unit: "Rust/JS test contracts, fixtures, examples, manifests, CI and user documentation"
+    status: reviewed
+    note: "Inspected test isolation/fixtures/assertions, Cargo probe and metadata updater, locked dependency manifests/MSRV, CI matrices and dogfood failure propagation. Current user contracts compared to implementations and feature specs; historical records used only as context. Local Rust/Node/fmt/Clippy/MSRV and four stub-Cargo CI cases passed. No live install, fetch, browser, hosted CI or deployment run."
+findings:
+  - id: FA-001-001
+    title: "A source page named settings.html initializes standalone Settings"
+    location: "assets/settings.js:7,87-103; src/render/paths.rs:132-137"
+    confidence: confirmed
+    severity: minor
+    condition: "Rust compiles a source file named settings (e.g. #[path = \"settings\"]), generating src/settings.html."
+    impact: "Settings is injected into the source page and its toolbar popover remains hidden/uninitialized."
+    evidence: "python .audit/full-audit/001/probe-projects.py (approved unsandboxed): real Clippy accepted #[path = \"settings\"] mod settings and generated src/settings.html#L1. Initializing the real generated HTML with settings-storage.js/settings.js in jsdom reported panelInsideMain=true, popoverExists=false, menuHidden=true. settings.js classifies solely by pathname suffix, unlike Help's DOM guard. The standalone report-root settings.html legitimately needs the other branch; source path generation is valid."
+    history:
+      - "probable -> confirmed: actual Cargo output plus generated-page DOM reproduction."
+  - id: FA-001-002
+    title: "CRLF or BOM shifts diagnostic byte coordinates"
+    location: "src/source.rs:67-110; src/render/highlight.rs:220-243"
+    confidence: disproven
+    severity: null
+    condition: "A current Clippy clone_on_copy diagnostic on line 3 of LF, CRLF or UTF-8-BOM source."
+    impact: "Suspected loss of validated source links or precise annotations."
+    evidence: "python .audit/full-audit/001/probe-projects.py: LF, CRLF and BOM fixtures each exited 0 and exported src/lib.rs.html#L3. Current compiler byte coordinates matched the original source under these cases; existing source-range and Git patch tests also passed. No defect established."
+  - id: FA-001-003
+    title: "Case aliases misclassify report-local metadata and block a new Windows output"
+    location: "src/metadata/output.rs:53-66; src/output.rs:134-138"
+    confidence: confirmed
+    severity: important
+    condition: "On a case-insensitive Windows filesystem, the report does not yet exist and --output Report is combined with --metadata report/navigation.json."
+    impact: "A valid report-local metadata request fails after Clippy succeeds. Metadata staging creates an unowned report directory, so a subsequent attempt using identical casing is also rejected until the empty directory is removed manually. No existing report or source data loss was observed."
+    evidence: "MetadataTarget::prepare uses case-sensitive Path::strip_prefix against the not-yet-existent output name. resolve_path cannot canonicalize that missing component, so the physical same-directory destination is classified External. stage creates its parent before report publication. python .audit/full-audit/001/probe-projects.py (approved unsandboxed) reproduced exit 1, 'Output path changed during generation', directoryLeft=true, indexExists=false; retry with matching Report casing exited 1 'Refusing to overwrite non-report directory'. A fresh Control/Control/navigation.json request exited 0 and produced index.html. Existing Windows tests cover aliases for existing generated files/locks but do not cover this pre-publication classification."
+checks:
+  - "zg query failed: no workspace index; no index created. Fallback to no-index search."
+  - "codeknow debt: no codegraph-out/graph.json exists; graph not built to avoid unrelated persistent outputs. Structure verified against source."
+  - "cargo test --locked --offline (sandbox): 59 unit tests passed, 20 failed with Windows path PermissionDenied; not classified as source defects."
+  - "cargo test --locked --offline (approved unsandboxed retry): 79 unit + 15 integration + 5 metadata tests passed."
+  - "npm test: all 49 JavaScript/DOM tests passed."
+  - "cargo fmt --check: passed after approved unsandboxed retry of path PermissionDenied."
+  - "cargo clippy --all-targets --locked --offline -- -D warnings: passed after approved unsandboxed retry of manifest-directory PermissionDenied."
+  - "python .audit/full-audit/001/probe-projects.py: safe temp-project LF/CRLF/BOM/source-page probes passed, confirming FA-001-001; initial sandbox temp-directory access denied, approved unsandboxed retry succeeded."
+  - "Extended temp-project probe confirmed FA-001-003 with failing case-alias first publication and retry, plus successful matching-case control."
+  - "cargo +1.88.0 check --all-targets --locked --offline (approved unsandboxed): passed with installed toolchain; no dependency installation."
+  - "Git Bash tests/ci-dogfood.test.sh (approved unsandboxed retry after MSYS sandbox denial): 4 cases passed; uses stub cargo and does not install/deploy."
+  - "Final record validation using yaml.safe_load: complete status, all 11 coverage units reviewed, 2 confirmed + 1 disproven finding, unique IDs and all IDs present in report."
+  - "Final Git baseline check: git diff --exit-code HEAD emitted no diff; HEAD remained 08945ba063cd6ac9515e3e29e2eefcf8fcfa2272; git status --short listed only untracked .audit/."
+environment:
+  platform: "Windows x86_64"
+  rustc: "1.99.1 (58cf8f9c3 2026-10-13)"
+  cargo: "1.99.1 (5f94df478 2026-08-27)"
+  node: "24.14.1"
+limitations:
+  - "No actual Chrome/Edge/Firefox, file:// policy, clipboard permission, accessibility or responsive-layout acceptance run; jsdom is DOM-only evidence."
+  - "No local Linux/macOS or hosted Actions/Pages execution."
+  - "Live category HTTPS retrieval and actual installation/deployment were not run; static transport guards and controlled resolver tests were reviewed."
+  - "Third-party dependencies/vendored implementations not independently audited; their first-party boundaries and pinned manifests were reviewed."
+  - "Historical design/plans/validation logs consulted for context; complete historical accuracy is outside this correctness audit. README/ROADMAP retain some old phase-status wording, not counted as a runtime defect."
+  - "Complete means all eleven review units were assessed, not proof of absence of further bugs. No unresolved active findings or unreviewed runtime units remain."

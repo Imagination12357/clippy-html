@@ -1,0 +1,11 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const {JSDOM} = require('jsdom');
+const repo = path.resolve(__dirname, '../../..');
+const html = fs.readFileSync(process.argv[2], 'utf8');
+const dom = new JSDOM(html, {url:'https://example.test/report/src/settings.html',runScripts:'outside-only'});
+dom.window.matchMedia = () => ({matches:false,addEventListener(){}});
+for (const file of ['settings-storage.js','settings.js']) dom.window.eval(fs.readFileSync(path.join(repo,'assets',file),'utf8'));
+const doc = dom.window.document;
+console.log(JSON.stringify({probe:'extensionless-settings-dom',panelInsideMain:!!doc.querySelector('#main-content > #settings'),popoverExists:!!doc.querySelector('.settings-menu #settings.popover'),menuHidden:doc.querySelector('.settings-menu').classList.contains('hidden')}));
+dom.window.close();
