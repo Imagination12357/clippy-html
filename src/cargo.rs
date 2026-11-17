@@ -45,6 +45,7 @@ pub fn load_project(ctx: &CargoContext) -> Result<ProjectInfo, String> {
         .collect();
     Ok(ProjectInfo {
         workspace_root: m.workspace_root.into_std_path_buf(),
+        build_dir: m.build_directory.map(|p| p.into_std_path_buf()),
         target_dir: ctx
             .target_dir_override
             .clone()

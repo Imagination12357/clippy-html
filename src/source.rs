@@ -31,6 +31,10 @@ pub fn load_sources(project: &ProjectInfo, findings: &[Finding]) -> BTreeMap<Pat
         .filter_map(|p| p.manifest.parent()?.canonicalize().ok())
         .collect();
     let target = project.target_dir.canonicalize().ok();
+    let build = project
+        .build_dir
+        .as_ref()
+        .and_then(|p| p.canonicalize().ok());
     let member_ids: std::collections::BTreeSet<_> = project
         .packages
         .iter()
@@ -55,7 +59,7 @@ pub fn load_sources(project: &ProjectInfo, findings: &[Finding]) -> BTreeMap<Pat
         sources.entry(source_path.clone()).or_insert_with(||{
             let loaded=source_path.canonicalize().map_err(|e|e.to_string()).and_then(|path|{
                 let nearest_manifest=path.parent().and_then(|p|p.ancestors().map(|a|a.join("Cargo.toml")).find(|m|m.is_file())).and_then(|p|p.canonicalize().ok());
-                if !eligible||!roots.iter().any(|r|path.starts_with(r))||target.as_ref().is_some_and(|r|path.starts_with(r))||!nearest_manifest.is_some_and(|m|member_manifests.contains(&m)){return Err("External, generated, or non-workspace source; diagnostic snippet shown instead".into());}
+                if !eligible||!roots.iter().any(|r|path.starts_with(r))||target.as_ref().is_some_and(|r|path.starts_with(r))||build.as_ref().is_some_and(|r|path.starts_with(r))||!nearest_manifest.is_some_and(|m|member_manifests.contains(&m)){return Err("External, generated, or non-workspace source; diagnostic snippet shown instead".into());}
                 std::fs::read_to_string(path).map_err(|e|e.to_string())
             });
             let (text,reason)=match loaded{Ok(s)=>(Some(s),None),Err(e)=>(None,Some(e))};
@@ -84,8 +88,16 @@ pub fn span_matches(source: &SourceFile, span: &Span) -> bool {
     if !span
         .text
         .iter()
-        .zip(lines.iter().skip(span.line_start - 1))
-        .all(|(snippet, line)| snippet.text == line.trim_end_matches('\r'))
+        .zip(lines.iter().enumerate().skip(span.line_start - 1))
+        .all(|(snippet, (index, line))| {
+            let line = line.trim_end_matches('\r');
+            let line = if index == 0 {
+                line.strip_prefix('\u{feff}').unwrap_or(line)
+            } else {
+                line
+            };
+            snippet.text == line
+        })
     {
         return false;
     }
@@ -99,12 +111,18 @@ pub fn span_matches(source: &SourceFile, span: &Span) -> bool {
             .map(|l| l.len() + 1)
             .sum::<usize>();
         let value = lines[line - 1].trim_end_matches('\r');
+        let bom = if line == 1 && value.starts_with('\u{feff}') {
+            3
+        } else {
+            0
+        };
+        let value = &value[bom..];
         let offset = if column - 1 == value.chars().count() {
             value.len()
         } else {
             value.char_indices().nth(column - 1)?.0
         };
-        Some(prefix + offset)
+        Some(prefix + bom + offset)
     };
     coordinate(span.line_start, span.column_start) == Some(span.byte_start)
         && coordinate(span.line_end, span.column_end) == Some(span.byte_end)
@@ -144,10 +162,48 @@ mod tests {
         assert!(!span_matches(&source, &span));
     }
     #[test]
+    fn bom_adjusts_only_first_line_columns_without_relaxing_byte_validation() {
+        let cargo_metadata::Message::CompilerMessage(message) =
+            serde_json::from_value(crate::diagnostic::sample()).unwrap()
+        else {
+            panic!()
+        };
+        let mut span = crate::diagnostic::normalize::normalize(&message, Path::new("/demo"))
+            .spans
+            .remove(0);
+        let source = SourceFile {
+            display_path: "bom.rs".into(),
+            text: Some("\u{feff}abc\r\nabc".into()),
+            reason: None,
+        };
+        span.byte_start = 3;
+        span.byte_end = 6;
+        assert!(span_matches(&source, &span));
+        span.byte_start = 0;
+        span.byte_end = 3;
+        assert!(!span_matches(&source, &span));
+        span.line_start = 2;
+        span.line_end = 2;
+        span.byte_start = 8;
+        span.byte_end = 11;
+        assert!(span_matches(&source, &span));
+        let changed = SourceFile {
+            display_path: "bom.rs".into(),
+            text: Some("\u{feff}xyz\r\nabc".into()),
+            reason: None,
+        };
+        span.line_start = 1;
+        span.line_end = 1;
+        span.byte_start = 3;
+        span.byte_end = 6;
+        assert!(!span_matches(&changed, &span));
+    }
+    #[test]
     fn missing_source_is_fallback() {
         let project = ProjectInfo {
             workspace_root: PathBuf::from("/missing"),
             target_dir: PathBuf::from("/missing/target"),
+            build_dir: None,
             packages: vec![],
         };
         let f = crate::diagnostic::normalize::normalize(

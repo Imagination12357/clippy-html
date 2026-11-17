@@ -74,6 +74,7 @@ pub struct PackageInfo {
 pub struct ProjectInfo {
     pub workspace_root: PathBuf,
     pub target_dir: PathBuf,
+    pub build_dir: Option<PathBuf>,
     pub packages: Vec<PackageInfo>,
 }
 #[derive(Debug, Clone)]

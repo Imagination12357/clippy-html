@@ -153,6 +153,7 @@ mod tests {
             project: ProjectInfo {
                 workspace_root: "/demo".into(),
                 target_dir: "/demo/target".into(),
+                build_dir: None,
                 packages: vec![],
             },
             execution: Execution {

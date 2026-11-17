@@ -72,6 +72,9 @@ pub fn prepare_target(requested: &Path, project: &ProjectInfo) -> Result<OutputT
         canonical_future(&project.workspace_root)?,
         canonical_future(&project.target_dir)?,
     ];
+    if let Some(build) = &project.build_dir {
+        protected.push(canonical_future(build)?);
+    }
     protected.extend(
         project
             .packages
@@ -81,7 +84,7 @@ pub fn prepare_target(requested: &Path, project: &ProjectInfo) -> Result<OutputT
             .collect::<Result<Vec<_>, _>>()?,
     );
     if protected.iter().any(|p| p.starts_with(&path)) {
-        return Err("Output must not replace a project, package, or target root".into());
+        return Err("Output must not replace a project, package, target, or build root".into());
     }
     check_owned(&path)?;
     Ok(OutputTarget { path })
@@ -209,6 +212,7 @@ mod tests {
         ProjectInfo {
             workspace_root: root.into(),
             target_dir: root.join("target"),
+            build_dir: None,
             packages: vec![],
         }
     }
@@ -253,6 +257,15 @@ mod tests {
             std::fs::read_to_string(path.join("index.html")).unwrap(),
             "old"
         );
+    }
+    #[test]
+    fn separate_build_root_is_protected_but_a_report_below_it_is_allowed() {
+        let t = tempdir();
+        let mut p = project(t.path());
+        let build = t.path().join("generated-cache");
+        p.build_dir = Some(build.clone());
+        assert!(prepare_target(&build, &p).is_err());
+        assert!(prepare_target(&build.join("report"), &p).is_ok());
     }
     #[test]
     fn refuses_unowned_or_project_directory() {

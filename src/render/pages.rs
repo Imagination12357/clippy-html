@@ -214,9 +214,15 @@ fn source_rows(
                 }
                 let line = lines[number - 1];
                 let offset = |column: usize| {
-                    line.char_indices()
+                    let bom = if number == 1 && line.starts_with('\u{feff}') {
+                        3
+                    } else {
+                        0
+                    };
+                    line[bom..]
+                        .char_indices()
                         .nth(column - 1)
-                        .map_or(line.len(), |(byte, _)| byte)
+                        .map_or(line.len(), |(byte, _)| bom + byte)
                 };
                 let mut start = if number == span.line_start {
                     offset(span.column_start)
@@ -1433,6 +1439,7 @@ mod tests {
             project: ProjectInfo {
                 workspace_root: PathBuf::from("/demo"),
                 target_dir: PathBuf::from("/demo/target"),
+                build_dir: None,
                 packages: vec![],
             },
             execution: Execution {
@@ -1498,6 +1505,7 @@ mod tests {
             project: ProjectInfo {
                 workspace_root: PathBuf::from("/demo"),
                 target_dir: PathBuf::from("/demo/target"),
+                build_dir: None,
                 packages: vec![],
             },
             execution: Execution {
