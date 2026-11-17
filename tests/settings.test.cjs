@@ -18,6 +18,21 @@ function setup({ stored = {}, store = new Map(Object.entries(stored).map(([k, v]
     const changeDark = value => { media.matches = value; for (const fn of listeners) fn(); };
     return { dom, w, doc, store, changeDark, load, api: w.ClippyHtmlSettings };
 }
+test("source settings.html uses a popover while only the report-root page is standalone", () => {
+    for (const url of ["https://example.test/report/src/settings.html", "file:///C:/report/src/settings.html"]) {
+        const s = setup({ ui: true, url });
+        assert.equal(s.doc.querySelector("#main-content > #settings"), null);
+        const menu = s.doc.querySelector(".settings-menu");
+        assert.ok(!menu.classList.contains("hidden"));
+        assert.ok(menu.querySelector("#settings.popover"));
+        menu.querySelector("a").click();
+        assert.equal(menu.querySelector("#settings").style.display, "");
+        s.dom.window.close();
+    }
+    const standalone = setup({ page: true, ui: true, url: "https://example.test/report/settings.html?x=1#theme" });
+    assert.ok(standalone.doc.querySelector("#main-content > #settings"));
+    standalone.dom.window.close();
+});
 test("native theme defaults follow system; light, dark and Ayu can be fixed", () => {
     const s = setup({ dark: true }); assert.ok(s.api, "settings bootstrap must initialize");
     assert.equal(s.doc.documentElement.dataset.theme, "dark");

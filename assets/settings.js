@@ -4,7 +4,8 @@
 (() => {
     const api = globalThis.ClippyHtmlSettings;
     if (!api) return;
-    const standalone = window.location.pathname.endsWith("/settings.html");
+    const settingsPage = new URL(`${document.body.dataset.reportRoot || "./"}settings.html`, document.baseURI);
+    const standalone = window.location.pathname === settingsPage.pathname;
     const main = document.getElementById("main-content");
     const menu = document.querySelector(".settings-menu");
     if (!main || (!standalone && !menu)) return;

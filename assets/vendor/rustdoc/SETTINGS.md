@@ -30,6 +30,12 @@ rustdoc stylesheet upgrade.
 
 ## Original state/popup reference and report adaptations
 
+The standalone-page check uses the generated `data-report-root` to resolve the
+report's actual `settings.html`, rather than matching a pathname suffix. This
+adapts rustdoc's separate viewer structure to our shared source/report viewer:
+an extensionless Rust source named `settings` also produces `src/settings.html`.
+The tabbed form, order and styles are unchanged.
+
 Reference: this project's generated rustdoc 1.97.1, Rust commit
 8bab26f4f68e0e26f0bb7960be334d5b520ea452. Original sources:
 https://github.com/rust-lang/rust/tree/8bab26f4f68e0e26f0bb7960be334d5b520ea452/src/librustdoc/html/static/js
