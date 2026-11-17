@@ -8,6 +8,42 @@ use support::*;
 fn read(path: &Path) -> Value {
     serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap()
 }
+#[cfg(windows)]
+#[test]
+fn new_report_case_alias_metadata_is_internal_and_repeated_runs_succeed() {
+    let f = Fixture::new("clean");
+    let probe = f.root.join("case-probe");
+    std::fs::write(&probe, "probe").unwrap();
+    if !f.root.join("CASE-PROBE").exists() {
+        return;
+    }
+    for (report, metadata) in [
+        ("Report", "report/navigation.json"),
+        ("Report", "Report/navigation.json"),
+        ("Report", "REPORT/navigation.json"),
+        ("Nested/Report", "nested/REPORT/navigation.json"),
+        ("Étage", "étage/navigation.json"),
+    ] {
+        assert_success(&f.run(&["--output", report, "--metadata", metadata]));
+        assert!(f.root.join(report).join("index.html").is_file());
+        assert_eq!(read(&f.root.join(metadata))["schema_version"], 1);
+    }
+}
+#[test]
+fn distinct_case_sensitive_output_paths_remain_external() {
+    let f = Fixture::new("clean");
+    std::fs::write(f.root.join("case-probe"), "probe").unwrap();
+    if f.root.join("CASE-PROBE").exists() {
+        return;
+    }
+    assert_success(&f.run(&["--output", "Report", "--metadata", "report/navigation.json"]));
+    assert!(f.root.join("Report/index.html").is_file());
+    assert!(!f.root.join("report/index.html").exists());
+    assert_eq!(
+        read(&f.root.join("report/navigation.json"))["schema_version"],
+        1
+    );
+}
 fn assert_url(root: &Path, href: &str) {
     assert!(!href.starts_with('/') && !href.contains('\\') && !href.contains("://"));
     let base = url::Url::from_directory_path(root).unwrap();
