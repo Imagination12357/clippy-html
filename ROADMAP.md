@@ -1,6 +1,9 @@
 # Current roadmap
 
-Updated 2026-11-14 after diagnostic Summary implementation. This document is the current milestone/status index. DETAILS.md remains the full product specification with later approved design decisions applied; older plans and ledgers preserve execution history rather than current status.
+Updated 2026-11-18 for source packaging and English public documentation. This
+document is the repository milestone/status index. Current public contracts are
+README.md and docs/metadata.md; approved feature designs add implementation detail.
+Older plans, validation records and the local DETAILS.md preserve historical context.
 
 ## Product boundary
 
@@ -15,7 +18,7 @@ Clippy's structured diagnostics become portable, offline static HTML with rustdo
 | Source and diagnostics | Whole-source lexical syntax colors, precise primary/secondary ranges and insertion triangles, line anchors/highlights, notes and grouped replacements; unified suggestion diff/patch copy accepted by the user | Broader cross-browser and assistive-technology coverage |
 | Familiar presentation | Pinned rustdoc CSS/DOM, bundled fonts/notices, favicon, native Settings structure and light/dark/ayu/system preference | Browser theme/keyboard/small-screen acceptance |
 | Help and keyboard | Pinned rustdoc Help, layered Escape and input guards; diagnostic-only Summary/Show all and +/-/= commands | Browser acceptance of the new Summary view |
-| Distribution | Local install/package verification, assets/notices, Rust 1.88 checks, cross-platform CI and self-report/Pages workflow; Pages smoke reported successful by user | Broader browser/static-host coverage, metadata export, release preparation |
+| Distribution | Optional navigation metadata, explicit source-package inventory, isolated Windows release install, packaged unit/MSRV checks, English public docs, cross-platform CI and self-report/Pages; Pages smoke reported successful by user | Broader browser/static-host coverage and release preparation |
 
 Phase 1 functional implementation is complete. This is not a claim that every browser/platform acceptance check has passed. Interface work from Phase 2 and font/license work originally in Phase 3 were intentionally brought forward in user-directed follow-ups.
 
@@ -102,8 +105,13 @@ report base URL or a full diagnostic dump. Internal JSON is staged with HTML;
 external files are replaced after HTML publication. See [public contract](docs/metadata.md)
 and [design](docs/superpowers/specs/2026-11-16-navigation-metadata-design.md).
 
-Remaining: verify installation and release packaging; consolidate offline/static
-subpath hosting, Actions artifact and Pages guidance and bundled notices.
+2026-11-18: source-package allowlist and English README/CONTRIBUTING completed.
+Actual archive verification, retained unit tests and an isolated Windows release
+install generated HTML/metadata successfully; packaged Rust 1.88 compilation also
+passed. See [package validation](docs/validation/2026-11-18-package-public-docs.md).
+
+Remaining: choose release version/changelog and distribution steps; broaden native
+browser/static-host acceptance. Contributor documentation now holds CI/Pages setup.
 Publishing/pushing remains separately authorized.
 
 **Done when:** explicit metadata export is tested without changing the default output contract, the support matrix is exercised, and install/hosting/package examples work.

@@ -1,129 +1,153 @@
 # Clippy HTML
 
-Clippy의 구조화된 진단을 rustdoc 스타일의 정적 HTML 문서로 탐색하는 Cargo 서브커맨드입니다.
+Explore Clippy diagnostics in a portable, rustdoc-styled HTML report. Browse
+findings by lint, category or source file; search the report; and inspect suggested
+changes as unified diffs. The generator does not modify your source files.
 
-**기능 코어와 일부 후속 인터페이스가 구현되어 있습니다.** 실제 Clippy 진단 수집, 중복 병합, 홈·category·진단 종류·전체 소스 페이지, 파일 트리, 검색, Settings·테마 선택, 구문 색칠, 정밀 primary/secondary 범위, 줄 anchor, child 진단과 suggestion replacement 표시를 제공합니다. suggestion diff/copy, metadata export는 남아 있습니다. 현재 상태·완료 기준·검증 과제는 [로드맵](ROADMAP.md)을 기준으로 봅니다.
+## Install from source
 
-## 설치와 실행
+Requires Rust 1.88 or newer and the Clippy component for the toolchain used to
+inspect your project. Node.js is only needed for contributor tests.
 
-Rust와 Clippy가 필요합니다. 이 저장소에서 설치합니다.
-
-```powershell
+```sh
 rustup component add clippy
+git clone https://github.com/Imagination12357/clippy-html.git
+cd clippy-html
 cargo install --path . --locked
 ```
 
-검사할 Cargo 프로젝트에서 실행합니다.
+Run the installed command in the Cargo project you want to inspect:
 
-```powershell
-cargo clippy-html
+```sh
 cargo clippy-html --open
+```
+
+The default report is `<Cargo target directory>/clippy-html/index.html`. Open that
+file directly in a browser, or serve the generated directory on a static host.
+
+## Usage
+
+```sh
 cargo clippy-html --output report
-cargo clippy-html --offline
+cargo clippy-html --output report --metadata report/metadata.json
+cargo clippy-html -- --workspace --all-targets
+cargo clippy-html -- --all-targets --all-features -- -W clippy::pedantic
+```
+
+| Option | Purpose |
+|---|---|
+| `--output <DIR>` | Choose the report directory. Relative paths use the invocation directory. |
+| `--open` | Open the report after all requested outputs have been published. |
+| `--metadata <FILE>` | Write an optional machine-readable navigation index. |
+| `--offline` | Use bundled lint categories without fetching the online table. |
+| `--help`, `--version` | Show command help or version. |
+
+Arguments after the first `--` go to Cargo Clippy. A second `--` separates Cargo
+options from rustc/Clippy options. `--all-targets` and `--all-features` are opt-in.
+Forwarded `--target-dir` also changes the default report location. Cargo's
+`--fix` and `--message-format` options are rejected: source edits and alternate
+diagnostic output formats are not supported.
+
+### Offline generation and reading
+
+By default, the generator fetches official category data for the version identified
+by diagnostic documentation links. It falls back to the bundled table if retrieval
+or validation fails. Category lookup does not change diagnostic severity or exit
+status; unmatched Clippy lints appear under Unknown.
+
+The tool's `--offline` controls category lookup; Cargo's `--offline` is separate:
+
+```sh
+# Disable both category fetching and Cargo network access.
 cargo clippy-html --offline -- --offline
-cargo clippy-html -- --all-targets --all-features
-cargo clippy-html -- --workspace --all-targets -- -W clippy::pedantic
 ```
 
-기본 결과물은 Cargo target directory 아래의 `clippy-html/index.html`입니다. `--output`을 지정하면 그 경로를 사용합니다. 상대경로는 명령을 실행한 폴더 기준입니다. 전달한 `--target-dir`도 기본 보고서 위치에 반영됩니다.
+Cargo still needs the project's dependencies available locally. Once generated,
+the report uses bundled scripts, styles and fonts and needs no network connection.
 
-첫 `--` 이후는 Cargo Clippy에 전달합니다. 그 안의 두 번째 `--` 이후는 rustc/Clippy 인자입니다. `--all-targets`와 `--all-features`는 기본 강제하지 않습니다. 출력 형식을 변경하는 `--message-format`과 소스를 수정하는 `--fix`는 Cargo 인자 영역에서 거부합니다. Phase 1의 `--metadata`는 미지원 옵션 오류이며 공개 metadata JSON을 자동 생성하지 않습니다.
+## Read the report
 
-Category는 기본적으로 진단의 공식 문서 링크에 해당하는 Clippy 버전의 분류표를 온라인으로 한 번 조회합니다. 최대 10초 안에 조회하지 못하거나 형식 검증에 실패하면 동봉 표(rust-1.97.0, 활성 lint 815개)를 이름으로 적용합니다. `cargo clippy-html --offline`은 이 조회만 생략하며 Cargo의 네트워크 사용을 막지는 않습니다. `cargo clippy-html -- --offline`은 Cargo에만 전달됩니다. 양쪽 모두 offline으로 쓰려면 위 예시처럼 두 위치에 지정합니다. Clippy 진단이 없으면 분류표를 조회하지 않습니다.
+- **Overview:** execution status, collection completeness, packages and diagnostic
+  counts before and after target deduplication.
+- **Lints and categories:** related findings, locations, notes and grouped
+  suggestions. Readable URLs include `lint/clippy/clone_on_copy.html`.
+- **Source files:** file tree, syntax colors, line links, stronger primary and
+  softer secondary range backgrounds, and purple triangles for insertion points.
+- **Suggestions:** unified diffs and whole-suggestion **Copy patch** controls.
+  Applicability is shown as reported by Clippy; copying a patch does not apply it.
+- **Search:** lint names, file paths, messages and categories. Search terms are
+  case-insensitive and all terms must match. Each tab displays up to 100 results
+  and reports the full match count.
+- **Settings and Help:** light, dark, Ayu and system themes; navigation and source
+  wrapping preferences; keyboard and search help. **Summary / Show all** folds or
+  expands diagnostic details while retaining each finding's identity.
 
-## 보고서 읽기
+Basic pages, links, syntax colors, diffs and individual diagnostic toggles work
+without JavaScript. Search, settings, global Summary controls and patch copying
+require JavaScript. Clipboard permissions and settings persistence across `file://`
+pages depend on the browser.
 
-생성한 `index.html`을 브라우저에서 직접 엽니다. 서버나 인터넷 연결, JavaScript가 없어도 기본 탐색이 가능합니다.
+Useful shortcuts: `S` or `/` opens search, `?` opens Help, `-` folds diagnostics,
+and `+` or `=` expands them. Escape closes an active Help/Settings popover before
+closing search. See Help for result navigation and Settings to disable shortcuts.
 
-Search 버튼 또는 `S`·`/`로 rustdoc처럼 본문 자리에 검색 화면을 엽니다. lint 이름·파일 경로·진단 메시지(하위 note/help 포함)·category를 검색하며, In Lints / In Files / In Findings / In Categories 탭으로 결과를 나눕니다. 여러 검색어는 모두 포함되어야 하고 대소문자를 구별하지 않습니다. 폼의 Enter는 즉시 검색하고, 아래 화살표는 결과로 이동하며, 결과의 좌우 화살표는 탭을 바꿉니다. Escape나 Exit로 원래 문서에 돌아옵니다. 검색과 Settings에는 JavaScript가 필요하며, 모든 데이터와 스크립트는 보고서에 동봉합니다. 각 탭은 최대 100개를 표시하고 전체 일치 수와 제한 여부를 알립니다.
+Identical diagnostics from multiple targets are merged; different packages,
+severities, spans or suggestions remain distinct. Only eligible workspace source
+files are copied in full. External dependencies, files in Cargo target/build
+directories, and unreadable or mismatched source use snippets or fallback locations. Valid suggestion
+diffs require matching source; unavailable or oversized patches retain the original
+replacement details and a reason.
 
-Settings는 rustdoc의 팝오버와 별도 `settings.html` 구조를 사용하며, 탭 구성은 docs.rs의 rustdoc 1.102 nightly에서 Appearance / Interface / Content와 항목 순서를 가져왔습니다. 전역 스타일은 기존 1.97.1을 유지합니다. `light`·`dark`·`ayu`·`system preference`를 고르고, 시스템 밝기별 선호 테마도 지정할 수 있습니다. 탐색창/목차 숨김, sans-serif 본문, 소스 줄바꿈, 단축키 비활성화, 검색 단일 결과로 바로 이동을 제공합니다. 테마는 스타일 적용 전에 복원하며 저장소가 차단되어도 현재 페이지의 설정 변경은 동작합니다. `file://`에서 페이지 사이의 저장 공유는 브라우저에 따라 다릅니다. 이식 항목과 제외 이유는 [Settings 출처 기록](assets/vendor/rustdoc/SETTINGS.md)에 있습니다.
+## Navigation metadata
 
-Help 버튼 또는 `?`는 rustdoc 구조의 단축키·검색 도움말 팝오버를 엽니다. JavaScript 없이도 Help 링크로 `help.html`을 읽을 수 있습니다. `Esc`는 Help/Settings 팝오버를 먼저 닫고 다음 입력에서 검색을 닫습니다. 입력 폼·IME 조합·브라우저 modifier 키를 보호하며, Settings의 단축키 비활성화는 전역 단축키와 검색의 사용자 정의 방향키 동작에 적용합니다. 기본 Tab/Enter와 버튼·링크는 유지합니다. [Help 출처와 범위](assets/vendor/rustdoc/HELP.md)
+`--metadata <FILE>` exports page and finding URLs plus basic selection fields for
+external tools. No public metadata JSON is written by default. All URLs are
+relative to the **report root**, regardless of where the JSON is saved. Consumers
+supply the report location; no deployment URL is stored. Source text and complete
+diagnostic details remain in HTML. See the [schema and consumer example](docs/metadata.md).
 
-진단이 있는 lint·소스 페이지의 `Summary`는 severity·lint명·메시지·대표 위치를 남기고 상세를 접습니다. `Show all`은 진단 안의 targets·suggestion·원본 진단도 함께 펼칩니다. `-`는 접기, `+`·`=`는 펼치기이며 사이드바·전체 소스·오버뷰 로그는 건드리지 않습니다. 검색 중에는 제어가 비활성화되고, 특정 진단 링크로 이동하면 해당 항목을 펼칩니다. JS 없이도 진단별 기본 펼침 상태와 개별 접기·펼치기는 유지합니다. [출처와 범위](assets/vendor/rustdoc/SUMMARY.md)
+## Failures and existing output
 
-- 홈에는 검사 종료 상태, 수집 완전성, 원본 진단 수와 병합 후 finding 수를 별도로 표시합니다.
-- 진단 종류 페이지에는 code, 실제 severity, target, primary/secondary 위치, note/help, suggestion 묶음과 applicability를 표시합니다.
-- 진단 URL은 `lint/clippy/clone_on_copy.html`, `lint/rustc/E0308.html`처럼 출처와 코드를 사용합니다. 코드 없는 진단은 `lint/general.html`에 모읍니다. 기존 해시 URL은 보고서를 재생성하면 변경됩니다.
-- 소스 페이지에는 관련 workspace 파일의 전체 코드, 줄 번호, 줄 단위 진단 표시, finding 링크를 표시합니다.
-- 전체 소스의 정확한 진단 범위는 기존의 옅은 줄 배경 위에 primary는 진한 배경·secondary는 조금 옅은 배경으로 표시합니다. 삽입 위치는 글자 아래 보라색 삼각형으로 표시하며 별도 hover 설명은 없습니다. 범위의 tooltip에 lint와 위치 설명을 보존합니다. 기존 구문 색칠은 유지하며 소스가 진단 좌표와 맞지 않으면 정밀 표시 없이 원본 snippet을 제공합니다.
-- 코드 범위에 포함된 줄 앞 스페이스·탭은 진한 배경에서 제외합니다. 공백만 지목한 진단과 문자열·주석 내부의 공백은 강조를 유지하며, 원래 좌표와 소스 텍스트는 바꾸지 않습니다.
-- 소스 화면은 생성 시 Rust 토큰을 분류하여 rustdoc CSS로 키워드·문자열·주석·숫자·lifetime·매크로 등을 색칠합니다. 여러 줄 문자열과 중첩 주석의 문맥을 보존하며 JavaScript는 필요하지 않습니다. 타입 의미 분석이나 정의 이동은 제공하지 않습니다. [구현 출처와 범위](assets/vendor/rustdoc/HIGHLIGHTING.md)
-- 소스 HTML은 `src/diagnostic/normalize.rs.html`처럼 원래 경로를 알아볼 수 있는 이름을 사용합니다. 위험한 파일명 문자는 인코딩하고 충돌 시 식별자를 붙입니다. 소스 사이드바의 Files 트리에는 진단에 포함된 파일과 진단 수를 표시하며, 현재 파일의 경로를 펼칩니다. Findings in this file 목록에서 해당 줄로 이동할 수 있습니다.
-- 홈에서 category별 finding 수와 lint 종류 수를 확인하고 category → lint → 소스로 이동할 수 있습니다. 분류 출처·기준 버전·fallback 사유는 홈의 Category data에서 확인합니다. 동봉 표는 실행한 Clippy와 버전이 달라도 이름으로 적용하므로 분류가 다를 수 있습니다. 선택한 표에 없는 이름은 Unknown으로 남기고, rustc/general 진단은 Clippy category에 포함하지 않습니다. Category 정보는 severity나 finding ID를 바꾸지 않습니다.
-- 동일한 위치라도 package, severity, 관련 span 또는 suggestion이 다르면 별 진단입니다. 같은 진단이 여러 target에서 발생하면 target 목록을 합칩니다.
-- Suggestion은 여러 위치·파일의 수정을 한 묶음의 unified diff로 표시하고 applicability를 그대로 보여줍니다. `Copy patch`는 suggestion 전체를 복사하며 원본 파일을 수정하지 않습니다. JavaScript나 클립보드 권한이 없어도 diff를 읽을 수 있습니다. 원문 누락·좌표 불일치·겹치는 수정·patch로 표현할 수 없는 경로는 원래 교체 내용과 사유를 표시합니다. 전체 원문·교체 문자열 합계 4 MiB, 파일당 100,000개 개행, 수정 1,024개, patch 4 MiB, 생성 2초를 넘는 제안도 fallback합니다. [표시·복사 출처와 적용 범위](assets/vendor/rustdoc/SUGGESTIONS.md)
+A failed Clippy run can still produce a report, and its nonzero exit status is
+preserved. Incomplete diagnostic collection is shown separately. Report-generation
+or requested metadata-output errors also fail the command.
 
-소스의 실제 내용과 진단 위치가 맞지 않거나 파일을 읽을 수 없으면 진단 snippet과 사유를 표시합니다. 외부 dependency와 생성 코드의 전체 파일은 기본 복사하지 않습니다. 자동 수정은 하지 않습니다.
+Reports are staged and validated before replacement. An existing destination must
+be a report owned by this tool (`.clippy-html-owned`); unrelated directories and
+project, package, target and build roots are protected. Concurrent report writers
+use a publication lock. If an interrupted run leaves a lock or backup, inspect the
+reported path and confirm no generator is running before attempting recovery.
 
-보고서에는 **원본 소스코드와 로컬 경로가 포함될 수 있습니다**. artifact나 Pages에 게시할 때 공개 범위를 확인해야 합니다.
+Report-local metadata is replaced with HTML. External metadata explicitly selected
+by `--metadata` may overwrite a regular file; it is published after HTML succeeds.
+If that final replacement fails, completed HTML remains and the command fails.
+HTML and external JSON are separate publications, not a power-loss-safe transaction.
 
-## 실패와 기존 결과물
+## Static hosting
 
-Clippy가 경고를 오류로 처리하거나 컴파일 오류로 실패해도 가능한 보고서를 생성하고 비영 종료 코드를 유지합니다. 보고서 생성 성공을 검사 성공으로 표시하지 않습니다. JSON 손상이나 완료 메시지 누락은 불완전 수집으로 표시합니다. Cargo 자체 시작이나 metadata 조회에 실패하면 기존 보고서를 유지합니다.
+Upload the **entire report directory**, including `static.files/`, `licenses/`,
+lint/category pages and source pages. Internal links are relative, so reports can
+live under a repository subpath. Keep report-local metadata at the report root if
+consumers should resolve its URLs relative to the JSON's own directory.
 
-출력은 임시 폴더에 완성·검증한 뒤 교체합니다. 기존 폴더는 `.clippy-html-owned` marker가 있는 전용 보고서일 때만 교체합니다. 일반 폴더나 프로젝트/target 루트를 덮어쓰지 않습니다. 동시 출력 writer는 lock으로 구별합니다.
+Reports can contain **workspace source code and local paths**. Review their contents
+before sharing an artifact or publishing a site. The repository's own CI produces
+a self-report and publishes it to Pages on successful main builds; see the
+[contributor and CI guide](https://github.com/Imagination12357/clippy-html/blob/main/CONTRIBUTING.md).
 
-중단 후 lock이나 backup이 남으면 도구가 알려 주는 경로를 확인합니다. 실행 중인 생성기가 없는지 확인하고, backup의 정상 결과물을 보존한 뒤 복구합니다. 도구는 불확실한 backup이나 stale lock을 임의 삭제하지 않습니다. 여러 rename 사이의 전원 장애까지 원자적으로 복구하는 기능은 없습니다.
+## License and contributing
 
-외부 도구에서 보고서를 탐색하려면 `cargo clippy-html --output report --metadata report/metadata.json`으로 선택적인 JSON 인덱스를 생성할 수 있습니다. 페이지·진단 URL과 기본 식별 정보를 제공하며, URL은 JSON 위치와 무관하게 보고서 루트 기준입니다. 보고서 자체의 배포 URL은 저장하지 않습니다. [스키마와 사용 예제](docs/metadata.md)를 참고하세요.
+Project code and original circle-and-paperclip artwork are licensed under
+[MIT](LICENSE-MIT) OR [Apache-2.0](LICENSE-APACHE). Bundled rustdoc styles and adapted
+UI retain their MIT notices; fonts retain their OFL-1.1 licenses. See
+[third-party notices](THIRD-PARTY-NOTICES.md) and
+[font provenance](assets/vendor/rustdoc/FONTS.md). Generated reports include the
+corresponding notices under `licenses/`. These licenses do not change the license
+of inspected source code.
 
-## 개발 검증
+The global style reference is rustdoc 1.97.1, with the tabbed Settings structure
+adapted from rustdoc 1.102 nightly. This is a Clippy report viewer, not API
+documentation or a semantic Rust source browser.
 
-```powershell
-cargo test --locked
-cargo fmt --check
-cargo clippy --all-targets --locked -- -D warnings
-cargo +1.88.0 check --all-targets --locked
-```
-
-process 테스트는 표준 라이브러리만 사용하는 `cargo_probe` helper를 `rustc`로 임시 폴더에 직접 컴파일해 양쪽 pipe의 대량 출력을 검증합니다. Cargo 빌드 디렉터리 구조에 의존하지 않으며 별도 사전 빌드는 필요하지 않습니다. 통합 테스트는 fixture를 임시 폴더에 복사하므로 저장소의 fixture 소스를 수정하지 않습니다. fixture 자체는 외부 의존성을 사용하지 않습니다.
-
-Suggestion patch 테스트는 Git이 PATH에 있어야 하며, 생성한 patch를 임시 복사본에 실제 적용해 결과 바이트를 검사합니다.
-
-검색 엔진은 Node의 기본 테스트 runner로 검증합니다. DOM 동작 검증에만 테스트용 jsdom을 사용하며, 제품 생성·실행에는 Node/npm이 필요하지 않습니다.
-
-```powershell
-npm ci --ignore-scripts
-npm test
-```
-
-DOM 테스트는 실제 브라우저의 배치나 로컬 파일 정책 검증을 대신하지 않습니다. 검색 UI의 고정 rustdoc 대조와 남은 수동 확인은 [검색 검증 기록](docs/validation/2026-11-07-search.md)에 기록합니다.
-
-MSRV는 Rust 1.88입니다. Windows에서 Rust 1.88.0 전체 target 컴파일과 단위·통합 테스트를 검증했고, 현재 stable 1.99.1에서도 같은 테스트가 통과했습니다. `cargo-platform`은 lockfile에서 0.3.2를 사용하며, 다른 의존성은 변경하지 않았습니다. 근거와 재현 명령은 [MSRV 검증 기록](docs/validation/2026-11-10-msrv-1.88.md)에 있습니다. 이전 1.94 검증 기록은 당시 이력으로 보존합니다.
-
-## CI와 셀프 보고서
-
-[CI workflow](.github/workflows/ci.yml)는 PR·main push·수동 실행에서 stable Rust의 Windows/Linux/macOS 테스트, Linux Rust 1.88.0 전체 target 컴파일, fmt·Clippy·Node/DOM 검사를 실행합니다. Node 24 이상을 사용하며 테스트 의존성은 npm lockfile로 고정합니다.
-
-PR에서는 현재 체크아웃을 설치해 온라인 기본 모드의 셀프 보고서를 만들고 `dogfood-report` artifact로 14일 보관합니다. main에서는 모든 검사 통과 후 하나의 job이 같은 보고서를 생성하고 GitHub Pages로 게시합니다. main의 `dogfood-report`는 보고서 생성이나 Pages 배포가 실패했을 때만 남은 보고서·로그를 보관하며, 성공 시에는 배포용 `github-pages` artifact만 사용합니다. 수동 실행도 main에서만 게시하며, 다른 브랜치에서는 artifact만 만듭니다. pedantic 경고는 보고서에 포함하고, 설치·검사·보고서 생성의 실제 실패는 job 실패로 유지합니다. 보고서 생성 실패 시 Pages 게시 단계는 건너뜁니다.
-
-최초 게시 전 저장소의 **Settings → Pages → Build and deployment → Source**를 **GitHub Actions**로 설정해야 합니다. [GitHub 공식 설정 안내](https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages)를 참고하세요. 워크플로 추가만으로 원격 설정이나 push를 수행하지는 않습니다. 로컬 검증과 아직 실행하지 않은 hosted runner/Pages 검증은 [CI 검증 기록](docs/validation/2026-11-10-ci.md)에 구분합니다.
-
-## 구조와 라이선스
-
-CLI → Cargo 수집 → 진단 정규화/병합 → 소스 로드 → HTML 생성 → 출력 교체 순서입니다. parser와 renderer는 독립적으로 테스트할 수 있습니다. 파일별 책임은 [설계 문서](docs/superpowers/specs/2026-10-27-clippy-html-design.md)에 있습니다.
-
-프로젝트 코드와 Cargo 라이선스 표기는 MIT 또는 Apache-2.0을 유지합니다. rustdoc CSS는 이 프로젝트의 비교용 문서를 생성한 Rust 1.97.1, 커밋 `8bab26f4f68e0e26f0bb7960be334d5b520ea452`을 기준으로 MIT 조건으로 재사용했습니다. normalize.css의 별도 MIT 라이선스와 rustdoc 저작권 고지도 포함합니다.
-
-동봉 Clippy category 표는 공식 문서에서 이름과 분류만 추출했습니다. MIT 원본 고지와 출처·변경·재생성 방법은 [분류 데이터 안내](assets/vendor/clippy/README.md)에 있습니다. 분류표 갱신 도구는 로컬 HTML 입력으로 실행하며, 런타임 조회 실패가 Clippy의 성공/실패나 진단 수집 완전성을 바꾸지는 않습니다.
-
-기본 폰트는 Fira Sans(UI), Source Serif 4(본문), Source Code Pro(코드), NanumBarunGothic(한글 보완)입니다. rustdoc의 WOFF2 12개를 수정 없이 동봉하며 폰트에는 각각 OFL-1.1이 적용됩니다. 원본 저작권·예약 이름·라이선스 전문을 함께 배포합니다. [실제 동봉 자산과 고지](THIRD-PARTY-NOTICES.md), [폰트 출처와 해시](assets/vendor/rustdoc/FONTS.md)를 확인할 수 있습니다. 생성 보고서에서도 footer의 라이선스 안내를 통해 같은 고지에 접근할 수 있습니다. 이 조건이 검사 대상 소스의 라이선스를 바꾸지는 않습니다.
-
-폰트와 고지는 실행 파일에 내장되어 보고서에 출력되므로 실행 시 rustdoc 설치나 폰트 다운로드가 필요하지 않습니다. 실행 파일을 배포할 때는 THIRD-PARTY-NOTICES.md에 명시된 라이선스 파일과 출처 고지를 배포 묶음에도 포함합니다. 원본 rustdoc의 local() 우선순위와 font-display: swap을 유지하며, Source Code Pro는 원본처럼 동봉 파일을 직접 사용합니다.
-
-출처와 변경은 [UPSTREAM.md](assets/vendor/rustdoc/UPSTREAM.md)에 기록합니다. 필요한 고지는 생성 보고서의 `licenses/`에도 함께 배포됩니다. rustdoc의 버전 간 DOM/API 호환성은 보장하지 않습니다.
-
-보고서의 favicon은 검은 원 안에 흰 클립을 놓은 자체 도안이며 프로젝트와 같은 MIT OR Apache-2.0으로 배포합니다. SVG와 같은 원본에서 만든 16·32·48px ICO를 동봉합니다. [favicon 안내](assets/favicon/README.md)에 자산과 생성 방법을 기록합니다. 이전 시안과 로컬 보관 자산은 `/target` 아래에 두며 Git과 Cargo 패키징에서 제외합니다.
-
-## rustdoc 스타일 비교
-
-외부 예제 대신 이 프로젝트의 문서를 비교 기준으로 사용합니다.
-
-```powershell
-cargo doc --no-deps --document-private-items
-cargo run --locked -- --output target/rustdoc-style-preview -- --all-targets -- -W clippy::pedantic
-```
-
-`target/doc/cargo_clippy_html/index.html`과 `target/rustdoc-style-preview/index.html`을 나란히 엽니다. 비교용 Clippy 실행에만 pedantic을 전달하여 lint·소스 화면을 살펴볼 진단을 확보합니다. 도구의 기본 lint 설정을 바꾸지는 않습니다. 최신 요소별 대조와 유지한 차이는 [2026-10-30 비교 기록](docs/validation/2026-10-30-rustdoc-audit.md)에 있습니다.
+For repository tests, packaging checks and CI setup, see
+[CONTRIBUTING](https://github.com/Imagination12357/clippy-html/blob/main/CONTRIBUTING.md).
