@@ -1,13 +1,13 @@
 # Clippy HTML
 
-Explore Clippy diagnostics in a portable, rustdoc-styled HTML report. Browse
-findings by lint, category or source file; search the report; and inspect suggested
-changes as unified diffs. The generator does not modify your source files.
+`cargo clippy-html` turns Clippy diagnostics into a static report styled like
+rustdoc. Browse findings by lint, category, or source file, and review Clippy's
+suggestions as unified diffs. Your source files stay untouched.
 
 ## Install from source
 
-Requires Rust 1.88 or newer and the Clippy component for the toolchain used to
-inspect your project. Node.js is only needed for contributor tests.
+Use Rust 1.88 or later to build the tool. Install Clippy for the toolchain you use
+to check your project.
 
 ```sh
 rustup component add clippy
@@ -45,109 +45,100 @@ cargo clippy-html -- --all-targets --all-features -- -W clippy::pedantic
 Arguments after the first `--` go to Cargo Clippy. A second `--` separates Cargo
 options from rustc/Clippy options. `--all-targets` and `--all-features` are opt-in.
 Forwarded `--target-dir` also changes the default report location. Cargo's
-`--fix` and `--message-format` options are rejected: source edits and alternate
-diagnostic output formats are not supported.
+`--fix` and `--message-format` are rejected because the report needs structured
+diagnostics from a run that leaves the source untouched.
 
 ### Offline generation and reading
 
-By default, the generator fetches official category data for the version identified
-by diagnostic documentation links. It falls back to the bundled table if retrieval
-or validation fails. Category lookup does not change diagnostic severity or exit
-status; unmatched Clippy lints appear under Unknown.
+When Clippy's diagnostic links identify a single documentation version, the tool
+fetches its category table by default. It uses the bundled table if it cannot
+identify the version, fetch the table, or validate it. Unmatched Clippy lints
+appear under Unknown. Category lookup leaves severity and exit status unchanged.
 
-The tool's `--offline` controls category lookup; Cargo's `--offline` is separate:
+Put `--offline` before `--` to use bundled categories. Pass it after `--` to
+tell Cargo to use locally available dependencies. To do both, run the following.
 
 ```sh
-# Disable both category fetching and Cargo network access.
 cargo clippy-html --offline -- --offline
 ```
 
-Cargo still needs the project's dependencies available locally. Once generated,
-the report uses bundled scripts, styles and fonts and needs no network connection.
+The finished report has its own scripts, styles, and fonts, so you can read it
+offline regardless of how you generated it.
 
 ## Read the report
 
-- **Overview:** execution status, collection completeness, packages and diagnostic
-  counts before and after target deduplication.
-- **Lints and categories:** related findings, locations, notes and grouped
-  suggestions. Readable URLs include `lint/clippy/clone_on_copy.html`.
-- **Source files:** file tree, syntax colors, line links, stronger primary and
-  softer secondary range backgrounds, and purple triangles for insertion points.
-- **Suggestions:** unified diffs and whole-suggestion **Copy patch** controls.
-  Applicability is shown as reported by Clippy; copying a patch does not apply it.
-- **Search:** lint names, file paths, messages and categories. Search terms are
-  case-insensitive and all terms must match. Each tab displays up to 100 results
-  and reports the full match count.
-- **Settings and Help:** light, dark, Ayu and system themes; navigation and source
-  wrapping preferences; keyboard and search help. **Summary / Show all** folds or
-  expands diagnostic details while retaining each finding's identity.
+Start at the overview to check whether Clippy ran successfully and whether
+diagnostic collection finished. It shows packages and counts before and after
+merging duplicates across targets. Lint and category pages group related
+findings, notes, and suggestions. A lint page can have a URL such as
+`lint/clippy/clone_on_copy.html`.
+
+On a source page, use the file tree or a line link to reach a finding. Primary
+spans have a stronger background than secondary spans. A purple triangle marks
+an insertion point. **Copy patch** copies the entire suggestion, including edits
+to multiple files. The report shows the applicability Clippy assigned it.
+
+Search matches all terms across lint names, paths, messages, and categories,
+ignoring case. Each tab shows up to 100 matches and the total count. **Summary**
+folds diagnostic details while keeping the severity, lint code, message, and
+representative location visible. **Show all** expands the details.
 
 Basic pages, links, syntax colors, diffs and individual diagnostic toggles work
 without JavaScript. Search, settings, global Summary controls and patch copying
 require JavaScript. Clipboard permissions and settings persistence across `file://`
 pages depend on the browser.
 
-Useful shortcuts: `S` or `/` opens search, `?` opens Help, `-` folds diagnostics,
-and `+` or `=` expands them. Escape closes an active Help/Settings popover before
-closing search. See Help for result navigation and Settings to disable shortcuts.
+Press `S` or `/` for search, `?` for Help, `-` to fold diagnostics, and `+` or `=`
+to expand them. Escape closes an open Help or Settings popover first. Press it
+again to leave search. In Settings, choose light, dark, Ayu, or the system theme.
+You can also wrap source lines, hide navigation or the table of contents, and
+disable shortcuts.
 
-Identical diagnostics from multiple targets are merged; different packages,
-severities, spans or suggestions remain distinct. Only eligible workspace source
-files are copied in full. External dependencies, files in Cargo target/build
-directories, and unreadable or mismatched source use snippets or fallback locations. Valid suggestion
-diffs require matching source; unavailable or oversized patches retain the original
-replacement details and a reason.
+Findings from different packages or with different severities, spans, or
+suggestions remain separate. Full source pages are limited to eligible workspace
+files. For dependency files, files in Cargo's target or build directory, and
+unreadable or outdated source, the report uses snippets or fallback locations.
+If it cannot produce a diff, it shows the original replacement and the reason.
 
 ## Navigation metadata
 
-`--metadata <FILE>` exports page and finding URLs plus basic selection fields for
-external tools. No public metadata JSON is written by default. All URLs are
-relative to the **report root**, regardless of where the JSON is saved. Consumers
-supply the report location; no deployment URL is stored. Source text and complete
-diagnostic details remain in HTML. See the [schema and consumer example](docs/metadata.md).
+Use `--metadata <FILE>` to write a JSON index that scripts can filter by fields
+such as lint code, severity, or category. Omit the flag for HTML output alone.
+Resolve URLs against the report root even if the JSON lives elsewhere. Follow a
+finding URL for its source links and diagnostic details. [Schema and Python example](docs/metadata.md)
 
 ## Failures and existing output
 
-A failed Clippy run can still produce a report, and its nonzero exit status is
-preserved. Incomplete diagnostic collection is shown separately. Report-generation
-or requested metadata-output errors also fail the command.
+When Clippy fails, the tool can still write a report. It preserves Clippy's
+nonzero status and shows incomplete collection separately. Failure to write a
+requested output also returns a nonzero status.
 
-Reports are staged and validated before replacement. An existing destination must
-be a report owned by this tool (`.clippy-html-owned`); unrelated directories and
-project, package, target and build roots are protected. Concurrent report writers
-use a publication lock. If an interrupted run leaves a lock or backup, inspect the
-reported path and confirm no generator is running before attempting recovery.
+The tool builds and checks the report in a temporary directory before replacing
+the destination. It will replace only an existing report with the
+`.clippy-html-owned` marker and protects project, package, target, and build
+roots. A lock prevents concurrent report writes. If an interrupted run leaves a
+lock or backup, check the reported path and confirm the generator has stopped
+before recovering the old report.
 
-Report-local metadata is replaced with HTML. External metadata explicitly selected
-by `--metadata` may overwrite a regular file; it is published after HTML succeeds.
-If that final replacement fails, completed HTML remains and the command fails.
-HTML and external JSON are separate publications, not a power-loss-safe transaction.
+JSON inside the report directory is replaced with the HTML. An external path
+passed to `--metadata` can replace a regular file after the HTML is ready. If the
+external write fails, the command fails and leaves the new HTML in place.
 
 ## Static hosting
 
-Upload the **entire report directory**, including `static.files/`, `licenses/`,
-lint/category pages and source pages. Internal links are relative, so reports can
-live under a repository subpath. Keep report-local metadata at the report root if
-consumers should resolve its URLs relative to the JSON's own directory.
+Upload the entire report directory, including its styles, fonts, licenses, and
+pages. Relative links let you serve it under a path such as `/my-project/`.
 
-Reports can contain **workspace source code and local paths**. Review their contents
-before sharing an artifact or publishing a site. The repository's own CI produces
-a self-report and publishes it to Pages on successful main builds; see the
-[contributor and CI guide](https://github.com/Imagination12357/clippy-html/blob/main/CONTRIBUTING.md).
+Reports can contain workspace source code and local paths. Review those files
+before sharing a report or uploading it to Pages.
 
 ## License and contributing
 
-Project code and original circle-and-paperclip artwork are licensed under
-[MIT](LICENSE-MIT) OR [Apache-2.0](LICENSE-APACHE). Bundled rustdoc styles and adapted
-UI retain their MIT notices; fonts retain their OFL-1.1 licenses. See
-[third-party notices](THIRD-PARTY-NOTICES.md) and
-[font provenance](assets/vendor/rustdoc/FONTS.md). Generated reports include the
-corresponding notices under `licenses/`. These licenses do not change the license
-of inspected source code.
-
-The global style reference is rustdoc 1.97.1, with the tabbed Settings structure
-adapted from rustdoc 1.102 nightly. This is a Clippy report viewer, not API
-documentation or a semantic Rust source browser.
+Project code and the paperclip icon are available under either the
+[MIT license](LICENSE-MIT) or the [Apache License, Version 2.0](LICENSE-APACHE).
+Reports include the MIT notices for rustdoc assets and OFL-1.1 licenses for the
+fonts under `licenses/`. Inspected source keeps its original license.
+[Third-party notices](THIRD-PARTY-NOTICES.md) · [Font sources](assets/vendor/rustdoc/FONTS.md)
 
 For repository tests, packaging checks and CI setup, see
 [CONTRIBUTING](https://github.com/Imagination12357/clippy-html/blob/main/CONTRIBUTING.md).

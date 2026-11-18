@@ -1,16 +1,20 @@
 # rustdoc font snapshot
 
-- Retrieved: 2026-10-28 from this project's local cargo-doc output.
-- Toolchain: rustdoc 1.97.1, commit 8bab26f4f68e0e26f0bb7960be334d5b520ea452.
-- Source directory: target/doc/static.files. Original generated WOFF2 filenames are retained.
-- Font source path in Rust: src/librustdoc/html/static/fonts/.
-- Exact remote commit retrieval was unavailable during review; provenance is the local toolchain output, cross-checked against the existing CSS snapshot and its bundled notices.
-- All selected fonts are OFL-1.1. Copyright and reserved-name declarations are preserved in each family's license file.
-- Binary files and license texts are byte-for-byte copies. No conversion, subsetting, metadata edits or font renaming.
-- Fira Mono is excluded because the pinned default CSS does not select it.
-- fonts.css preserves the other 12 original face declarations, including local(), weights, styles, swap and Hangul unicode-range. Files are emitted alongside fonts.css.
-- Font bytes: 1386044 total, shared once per report.
-- Original CSS SHA256: 264dc5a58dbfaf73bca6f1b5767413c775d1150c07855f6b399e8672ae3d9597.
+These fonts come from this project's local `cargo doc` output on 2026-10-28.
+The toolchain was rustdoc 1.97.1 at Rust commit
+`8bab26f4f68e0e26f0bb7960be334d5b520ea452`. We checked the files from
+`target/doc/static.files` against the stylesheet and bundled notices. The Rust
+source tree stores the fonts under `src/librustdoc/html/static/fonts/`.
+
+The report writes the 12 original WOFF2 files once, alongside `fonts.css`.
+Together they take 1,386,044 bytes. The declarations preserve `local()` sources,
+weights, styles, `font-display: swap`, and the Hangul `unicode-range`. The
+default stylesheet does not select Fira Mono, so the bundle omits it. The
+original stylesheet has SHA-256
+`264dc5a58dbfaf73bca6f1b5767413c775d1150c07855f6b399e8672ae3d9597`.
+
+The font binaries and OFL-1.1 license files are byte-for-byte copies. Each
+license preserves the original copyright and Reserved Font Name declarations.
 
 | File | Bytes | SHA-256 |
 |---|---:|---|

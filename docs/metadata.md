@@ -1,39 +1,34 @@
 # Navigation metadata, schema version 1
 
-`--metadata <FILE>` writes an optional UTF-8 JSON navigation index. It helps external
-tools select findings and discover generated HTML pages without parsing every page.
-HTML remains the source of detail. Without this option, no public metadata file is
-generated; the report's private JavaScript search index is unrelated.
+Pass `--metadata <FILE>` to write a UTF-8 JSON index of report pages and findings.
+Scripts can filter findings in the JSON, then open the HTML links for details.
+Omit the option to generate only the report. Its JavaScript search index is a
+separate file for internal use.
 
 ```sh
 # Keep JSON with its report (paths are relative to the invocation directory).
 cargo clippy-html --output report --metadata report/metadata.json
 
-# Alternatively, keep the JSON elsewhere.
+# Save the index outside the report directory.
 cargo clippy-html --output report --metadata results/navigation.json -- --all-targets
 ```
 
 ## URLs and identity
 
-Every `url` is relative to the **report root directory**, not the JSON file's
-directory. URLs use forward slashes and percent encoding and may have a fragment.
-Use them as provided; do not reconstruct filenames, anchors, or identifiers.
+Resolve each `url` against the report root directory. Use the supplied path and
+fragment as written, including percent escapes. When the index is at the report
+root, use its containing directory. If you save the index elsewhere, supply the
+report's directory or hosting URL separately. The index stores relative references
+only. When moving a report, keep its directory structure intact.
 
-There is no stored report base URL, deployment URL or report root filesystem path.
-The consumer supplies the root. If metadata is stored at the report root, its
-containing directory is the root. Otherwise the consumer must know where the
-corresponding report was saved or published. Preserve relative layout when moving
-the HTML report. A JSON file alone does not locate a report.
+Treat finding and package IDs as opaque keys within one report. They may change
+across source edits, machines, or tool versions, and package IDs can contain
+local paths. The package list comes from `cargo metadata --no-deps`, so a
+dependency finding can refer to a package outside that list.
 
-Finding IDs identify deduplicated diagnostics within a report. Package IDs are
-opaque Cargo identifiers and may contain local paths. Neither is a promise of
-persistent identity across source edits, machines or tool versions. The package
-list is the package information available from Cargo metadata (`--no-deps`), so a
-diagnostic from a dependency can have a `package_id` absent from that list.
+## Schema
 
-## Shape
-
-This illustrative excerpt abbreviates opaque IDs:
+This example uses placeholders for the IDs.
 
 ```json
 {
@@ -72,34 +67,32 @@ This illustrative excerpt abbreviates opaque IDs:
 
 | Field | Contract |
 |---|---|
-| `schema_version` | Integer `1`. Reject unsupported versions. Incompatible changes require a new version; consumers should ignore unknown fields. |
-| `generator` | Generating tool's name and version, not the inspected crate or compiler version. |
+| `schema_version` | Integer `1`. Reject unsupported versions and ignore unknown fields. Incompatible changes require a new version. |
+| `generator` | `cargo-clippy-html` and its version. |
 | `execution.clippy_exit_code` | Actual Clippy process exit code, or `null` if no numeric code is available. |
-| `execution.collection_complete` | Whether diagnostic collection completed without detected damage. Inspect this independently of the exit code. |
-| `packages` | Known packages with Cargo ID, name and version. Not a list of packages proven to have been fully checked. |
-| `pages` | Generated navigation pages: `overview`, `lint`, `category`, `source`. Includes source fallback pages; excludes Help, Settings, licenses and static assets. |
-| `findings` | Deduplicated findings, each linked to its canonical lint-page anchor. Count this array for the number of findings. |
+| `execution.collection_complete` | Whether the generator finished collecting diagnostics without detecting a problem. Check this separately from the exit code. |
+| `packages` | Cargo IDs, names, and versions from `cargo metadata --no-deps`. A package can appear here even if Clippy did not check it. |
+| `pages` | `overview`, `lint`, `category`, and `source` pages. Source pages include snippet fallbacks. |
+| `findings` | One entry per deduplicated finding, with a link to its anchor on the lint page. |
 | `origin`, `code`, `level` | Diagnostic origin, nullable lint/error code and severity. Preserve unknown string values. |
-| `category` | The HTML category group: a Clippy category or `unknown`; `null` for non-Clippy findings. |
-| `location` | Optional representative top-level location: first primary span, else first span. Absent when no top-level span exists. It is not a complete list of locations. |
-| `location.path` | Display path, normally workspace-relative. External paths can be absolute. Use `location.url` for report navigation, not this label. |
-| `location.line`, `location.column` | One-based coordinates reported by the diagnostic, not an exported precise range. |
+| `category` | The report's Clippy category, `unknown` for unclassified Clippy findings, or `null` for other findings. |
+| `location` | The first primary top-level span, or the first top-level span if none is primary. Absent when there is no top-level span. |
+| `location.path` | Label for display, usually relative to the workspace. External paths can be absolute. |
+| `location.line`, `location.column` | The diagnostic's one-based start line and column. |
 | `location.url` | Validated source line anchor, or the source page's finding anchor when the original location cannot be validated against loaded source. |
 
-Packages, pages and findings are ordered deterministically, but consumers should
-not depend on array positions. Empty reports have an empty finding array. A failed
-Clippy run can still produce metadata and HTML and retain its failing exit status.
-An incomplete run must not be treated as a successful clean inspection just
-because its finding array is empty.
+The generator orders the arrays deterministically. Use IDs and URLs to look up
+entries. A failed Clippy run can still produce HTML and JSON while returning a
+nonzero status. Treat an empty `findings` array as a clean run only when collection
+completed and Clippy returned zero.
 
-Source text, snippets, child notes, suggestion replacements, patches and exact
-ranges are not duplicated in JSON. Follow the finding URL to read those details.
-Every exported destination is checked against staged HTML before publication.
+Follow the finding URL for source text, snippets, child notes, suggestions, and
+exact ranges. The generator checks each exported destination against the HTML
+before publishing the report.
 
 ## Consumer example
 
-List warning URLs for a report hosted under a repository subpath, using only the
-Python standard library:
+This script lists warning URLs for a report hosted under a repository subpath.
 
 ```python
 import json
@@ -122,19 +115,20 @@ For a local report, use `Path("report").resolve().as_uri() + "/"` as the root.
 
 ## Existing files and failures
 
-- Relative `--metadata` paths use the invocation directory, just like `--output`.
-  Parent directories may be created. No particular filename extension is required.
-- JSON inside the HTML output directory is staged and replaced together with that
-  report. A subsequent run without `--metadata` replaces the report without retaining
-  the previous JSON. Generated-file collisions and reserved publication paths fail.
-- External regular files explicitly selected by `--metadata` may be replaced.
-  Directories and symlink/reparse-point paths are rejected. A temporary file in the
-  destination directory is prepared first, then replaces the old file after HTML
-  publication succeeds. HTML failure leaves the old external file unchanged.
-- If final external metadata publication fails, the completed HTML remains, the
-  command fails, and the error names the published HTML and the metadata failure.
-  The old external JSON is retained if it still exists. HTML and external JSON do
-  not form an atomic transaction; simultaneous readers can see different snapshots.
-  The report's writer lock remains held through external JSON publication to prevent
-  cooperating concurrent writers from interleaving the two successful publications.
-- `--open` opens the report after all requested outputs have been published.
+Relative `--metadata` paths start at the directory where you run the command.
+The tool can create parent directories and accepts any filename extension.
+
+Inside the report directory, the tool stages JSON with the HTML and replaces them
+together. Regenerating that report without `--metadata` drops the previous JSON.
+Choose a path that does not collide with generated files or reserved output names.
+
+For an external path, the tool prepares a temporary file next to the destination
+and replaces the selected regular file after publishing HTML. It rejects
+directories, symbolic links, and reparse points. If HTML publication fails, the
+old external file stays in place. If the final JSON replacement fails, the tool
+leaves the completed HTML and any previous JSON in place, reports the failure,
+and returns a nonzero status.
+
+Readers can see different HTML and JSON versions between the two writes or after
+an interrupted run. The report lock covers both writes to stop overlapping runs
+from interleaving them. With `--open`, the browser opens after both outputs are ready.

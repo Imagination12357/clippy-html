@@ -1,50 +1,33 @@
 # Diagnostic Summary provenance
 
-Reference: this project's generated rustdoc 1.97.1, Rust commit
-8bab26f4f68e0e26f0bb7960be334d5b520ea452. Inspected main-fcd733ba.js
-(SHA-256 baec8e8981b6e116315ea7ff1fed10b51352e001825228556ccd126317ed91db),
-storage-41dd4d93.js and struct.Finding.html. Source under the MIT option:
-https://github.com/rust-lang/rust/tree/8bab26f4f68e0e26f0bb7960be334d5b520ea452/src/librustdoc/html/static
-Original Rust Project Contributors notice and license remain in LICENSE-MIT /
-generated licenses/rustdoc-MIT.txt.
+The reference is this project's rustdoc 1.97.1 output at Rust commit
+`8bab26f4f68e0e26f0bb7960be334d5b520ea452`. It includes
+`main-fcd733ba.js` (SHA-256
+`baec8e8981b6e116315ea7ff1fed10b51352e001825228556ccd126317ed91db`),
+`storage-41dd4d93.js`, and `struct.Finding.html`. The adaptation uses the MIT
+option. The Rust Project Contributors' notice is in `LICENSE-MIT` and
+`licenses/rustdoc-MIT.txt` in reports. [Upstream source](https://github.com/rust-lang/rust/tree/8bab26f4f68e0e26f0bb7960be334d5b520ea452/src/librustdoc/html/static)
 
-Native structure: details.toggle > summary > section, with the item heading
-inside summary and detailed content below it. The toolbar uses button
-#toggle-all-docs > span.label, Summary/Show all labels and will-expand state.
-Existing vendored CSS supplies the chevrons; no new icon asset was copied.
-Native expandAllDocs/collapseAllDocs target managed .toggle blocks, not every
-details in the document. This report scopes the corresponding operation to
-finding toggles and nested diagnostic details only.
+Findings use rustdoc's `details.toggle > summary > section` structure. The
+summary keeps severity, lint code, message, and the first primary location,
+falling back to the first available location. When the finding is open, the
+detailed locations take its place. Findings start open and can be toggled
+individually without JavaScript.
 
-The report preserves each finding section/id. Its summary retains severity,
-lint code, message and the first primary location (first available fallback).
-The compact location is hidden when expanded because the original detailed
-locations already show it. Initial findings are open and native toggles work
-without JavaScript; the global control is created only by summary.js on pages
-with findings. No inactive control is shown on overview/Help/Settings pages.
+On pages with findings, `summary.js` adds the toolbar button after Help. It
+offers **Summary** when any finding is open and **Show all** when all are
+closed. Show all opens nested details such as targets, suggestions, and the
+original diagnostic text. The action is limited to findings and their nested
+details. The sidebar, source listing, and overview logs have their own controls.
 
-The finding wrapper misses rustdoc's direct-child mobile gutter selectors.
-Source pages and <=700px views reserve an internal 20px finding gutter and
-position the native 16px chevron inside it, including source views whose main
-element has zero left padding. Other desktop finding alignment is unchanged.
+Manual toggles update the button. If an action hides the focused element,
+focus moves to the finding's summary. A deep link opens its target finding
+and any enclosing details. Press `-` to fold or `+` or `=` to expand.
+These shortcuts respect editable fields, IME composition, modifier keys, and
+the disable-shortcuts setting.
 
-Summary closes that diagnostic scope; Show all opens it, including targets,
-suggestions and original diagnostic text. Sidebar trees, full source, overview
-status/logs and search results are excluded. Mixed state offers Summary; all
-closed offers Show all. Native manual toggles update the button. Focus in a
-closing body moves to its visible summary. No new per-finding Details label or
-legend is introduced.
-Expansion also moves focus off the compact location that becomes hidden when
-open, including self-referential fallback-location links.
-
-The native - and +/= commands operate on the same scope. _ is omitted because
-there are no impl blocks. Existing editable/IME/modifier/handled-event and
-disable-shortcuts rules apply. Search disables/hides the control and removes
-its toolbar-width contribution; closing search restores it. Deep links reveal
-only their target finding/ancestors and retain native link navigation.
-
-Summary follows Help in the toolbar. While visible it contributes the native
-80px button plus button-left-margin to both popup offsets. Help/Settings become
-compact at 850px, while the Summary width remains 80px. Search hides Summary,
-so offsets return to their no-Summary values. Browser geometry and actual
-assistive-technology behavior require separate acceptance.
+The report uses rustdoc's existing chevron. Source pages and views at or below
+700px reserve a 20px gutter so the 16px chevron stays inside the content area.
+When Summary is visible, the Help and Settings popup offsets include its 80px
+width and button margin, including at the compact 850px breakpoint. Search
+temporarily hides Summary and removes that offset.

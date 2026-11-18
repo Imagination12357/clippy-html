@@ -1,29 +1,22 @@
-# Suggestion diff and copy provenance
+# Suggestion diffs and patch copying
 
-Copy-button reference: this project's rustdoc 1.97.1 output, Rust commit
-8bab26f4f68e0e26f0bb7960be334d5b520ea452. The generated
-main-fcd733ba.js (SHA-256
-baec8e8981b6e116315ea7ff1fed10b51352e001825228556ccd126317ed91db)
-uses example-wrap > button-holder > button.copy-button at the upper right,
-copies code text through a selected temporary textarea, and shows short success
-feedback. Source: src/librustdoc/html/static/js/main.js in
-https://github.com/rust-lang/rust/tree/8bab26f4f68e0e26f0bb7960be334d5b520ea452
-under the MIT option. Original Rust Project Contributors notice and full license
-remain in LICENSE-MIT / generated licenses/rustdoc-MIT.txt.
+The copy control follows rustdoc 1.97.1 at Rust commit
+`8bab26f4f68e0e26f0bb7960be334d5b520ea452`. Its reference is
+`main-fcd733ba.js` (SHA-256
+`baec8e8981b6e116315ea7ff1fed10b51352e001825228556ccd126317ed91db`).
+The adaptation uses the MIT option. The Rust Project Contributors' notice is in
+`LICENSE-MIT` and ships as `licenses/rustdoc-MIT.txt` in reports.
+[Upstream source](https://github.com/rust-lang/rust/tree/8bab26f4f68e0e26f0bb7960be334d5b520ea452/src/librustdoc/html/static/js/main.js)
 
-assets/suggestions.js adapts this structure for a whole suggestion patch,
-initializing on load so keyboard access does not require mouse hover. It uses
-a text label (Copy patch), not the separately licensed clipboard/checkmark SVG
-assets. Success appears only after a successful copy. Clipboard API is tried
-first; selected-text fallback intercepts the copy event to avoid textarea CRLF
-normalization, then restores focus and selection. Failure remains visible as
-Copy failed, while the patch stays readable/selectable. No runtime fetch or
-automatic file changes are performed.
+`assets/suggestions.js` uses the same upper-right button placement with a
+**Copy patch** label. It initializes on load so the button works from the
+keyboard. It tries the Clipboard API first. The fallback selects text in a
+temporary textarea, then writes the original patch in the copy event to
+preserve CRLF. It restores focus and the previous selection. A failed copy
+leaves the patch selectable and displays **Copy failed**.
 
-The unified diff itself is report-specific, not a rustdoc feature being copied.
-similar 3.2.1 (Apache-2.0, Rust 1.85 minimum) computes line changes; the report
-validates and groups source replacements and creates escaped a/b file headers.
-Each generated suggestion keeps one patch, including multiple files. Prefixes
-and theme-specific red/green backgrounds distinguish removals and additions.
-Original applicability values are preserved. A2 (separate Before/After display)
-is deferred as a possible future option, without an inactive control.
+The generator validates each replacement against the original source and builds
+one unified patch for the entire suggestion, even when it spans several files.
+`similar` 3.2.1 (Apache-2.0, Rust 1.85 minimum) computes the line changes.
+The report escapes file headers, preserves Clippy's applicability, and uses
+diff prefixes and theme colors to distinguish additions and removals.

@@ -1,23 +1,14 @@
 # Clippy HTML favicon
 
-The current favicon is original project artwork: a white paperclip on a black
-circle, drawn from simple SVG geometry for Clippy HTML. It uses no Rust logo
-artwork. The user approved this design on 2026-11-14. The artwork is distributed
-under the project's MIT OR Apache-2.0 license; see the root LICENSE-MIT and
-LICENSE-APACHE files (generator-MIT.txt and generator-APACHE.txt in reports).
+Clippy HTML's original icon is a white paperclip on a black circle. The artwork
+uses the project's `MIT OR Apache-2.0` license. Reports include both texts as
+`licenses/generator-MIT.txt` and `licenses/generator-APACHE.txt`.
 
-favicon.svg has a 32-by-32 viewBox, a #000000 circle, a #ffffff clip and a
-transparent outside background. Its approved geometry is unchanged. favicon.ico
-contains 16-, 32- and 48-pixel rasterizations of this exact SVG. Rasterization
-uses sharp/libvips and Pillow assembles the ICO; these are development tools,
-not runtime or Cargo dependencies. The ICO images are checked byte-for-byte
-against the corresponding SVG rasterizations.
+`favicon.svg` has a 32 × 32 viewBox with a transparent background outside the
+circle. `favicon.ico` contains 16, 32, and 48 pixel images from that SVG.
+Development uses sharp/libvips for rasterization and Pillow to assemble the ICO.
+Each decoded ICO image matches its SVG rasterization byte for byte.
 
-Earlier Rust-gear assets and design experiments are local archives under
-target/, which is ignored by Git and explicitly excluded from Cargo packaging.
-The retired CC-BY-4.0.txt is preserved locally but untracked, ignored and
-package-excluded; it is not embedded in the executable or new reports. Earlier
-Git commits retain their original artwork and attribution as historical records.
-
-These asset terms do not change the license of inspected project source or
-diagnostic content. Clippy HTML is an independent project.
+The Rust gear drafts and their attribution belong to earlier versions. The
+current package and reports ship the paperclip icon under the project's own
+license.
