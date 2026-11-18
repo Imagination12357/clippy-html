@@ -64,6 +64,30 @@ bash .github/scripts/dogfood.sh /absolute/path/to/a-fresh-directory
 
 The script installs the tool there and saves the report and logs alongside it.
 
+## Release archives for Binstall
+
+Run the CI workflow manually with **Build archives for GitHub Releases and cargo
+binstall** enabled. The existing test jobs will also build a release archive on
+Windows x64 (MSVC), Linux x64 (glibc), and macOS arm64. The workflow saves the
+archives as Actions artifacts and skips report generation and Pages deployment
+for that run.
+
+After the checks pass, download the three `.tar.gz` files. Attach them to the
+GitHub Release for the same commit and version as the crates.io package, using
+the tag `v<version>`. Keep the filenames as downloaded. For example, the Windows
+asset for `v0.1.0` is `cargo-clippy-html-x86_64-pc-windows-msvc-v0.1.0.tar.gz`.
+The archive contains the executable and notices in a directory of the same name
+without `.tar.gz`. [Binstall's archive conventions](https://github.com/cargo-bins/cargo-binstall/blob/main/SUPPORT.md)
+
+Once the crate and release assets are public, try the command below from an
+environment with no existing installation. Selecting the repository strategy
+lets you check that Binstall downloads our asset for that platform.
+
+```sh
+cargo binstall --strategies crate-meta-data cargo-clippy-html
+cargo clippy-html --version
+```
+
 ## Structure and reference behavior
 
 The CLI collects Cargo diagnostics, merges duplicates, and loads the referenced
