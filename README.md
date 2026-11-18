@@ -1,7 +1,7 @@
 # Clippy HTML
 
-`cargo clippy-html` turns Clippy diagnostics into a static report styled like
-rustdoc. Browse findings by lint, category, or source file, and review Clippy's
+`cargo clippy-html` generates static, rustdoc-style HTML reports from Clippy
+diagnostics. Browse findings by lint, category, or source file, and review Clippy's
 suggestions as unified diffs.
 
 ![Clippy HTML report overview showing the run status, warning count, and diagnostic kinds](docs/report-preview.jpg)

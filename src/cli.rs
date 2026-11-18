@@ -6,11 +6,7 @@ use std::{
 };
 
 #[derive(Debug, Parser)]
-#[command(
-    name = "cargo clippy-html",
-    version,
-    about = "Generate offline HTML reports from Clippy diagnostics"
-)]
+#[command(name = "cargo clippy-html", version, about)]
 pub struct RunOptions {
     #[arg(long, value_name = "DIR")]
     pub output: Option<PathBuf>,
