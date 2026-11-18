@@ -4,6 +4,8 @@
 rustdoc. Browse findings by lint, category, or source file, and review Clippy's
 suggestions as unified diffs. Your source files stay untouched.
 
+![Clippy HTML report overview showing the run status, warning count, and diagnostic kinds](docs/report-preview.jpg)
+
 ## Install from source
 
 Use Rust 1.88 or later to build the tool. Install Clippy for the toolchain you use
