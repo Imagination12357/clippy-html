@@ -4,7 +4,7 @@
 diagnostics. Browse findings by lint, category, or source file, and review Clippy's
 suggestions as unified diffs.
 
-![Clippy HTML report overview showing the run status, warning count, and diagnostic kinds](docs/report-preview.jpg)
+[![Clippy HTML report overview showing the run status, warning count, and diagnostic kinds](docs/report-preview.jpg)](https://imagination12357.github.io/clippy-html/)
 
 ## Install from source
 
