@@ -1,10 +1,7 @@
 //! Run Cargo directly and drain both pipes while retaining bounded logs.
 use crate::{
     cli::{CargoContext, RunOptions},
-    diagnostic::{
-        model::*,
-        parse::{ParsedLine, parse_line},
-    },
+    diagnostic::model::*,
 };
 use std::{
     collections::BTreeSet,
@@ -139,6 +136,33 @@ fn collect_command(
     }
     Ok(result)
 }
+#[derive(Debug)]
+enum ParsedLine {
+    Message(Box<cargo_metadata::Message>),
+    Extension,
+    Text(String),
+    Malformed(String),
+}
+// Classify JSON stream extensions separately from damaged known messages.
+fn parse_line(line: &str) -> ParsedLine {
+    let line = line.trim();
+    if !line.starts_with('{') {
+        return ParsedLine::Text(line.to_owned());
+    }
+    let value: serde_json::Value = match serde_json::from_str(line) {
+        Ok(v) => v,
+        Err(e) => return ParsedLine::Malformed(e.to_string()),
+    };
+    match value.get("reason").and_then(|v| v.as_str()) {
+        Some(
+            "compiler-message" | "compiler-artifact" | "build-script-executed" | "build-finished",
+        ) => match serde_json::from_value(value) {
+            Ok(m) => ParsedLine::Message(Box::new(m)),
+            Err(e) => ParsedLine::Malformed(e.to_string()),
+        },
+        _ => ParsedLine::Extension,
+    }
+}
 fn read_stream(mut input: impl BufRead) -> Collection {
     let mut result = Collection {
         execution: Execution {
@@ -236,6 +260,26 @@ fn read_stream(mut input: impl BufRead) -> Collection {
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn distinguishes_json_extensions_text_and_damage() {
+        assert!(matches!(
+            parse_line(&crate::diagnostic::sample().to_string()),
+            ParsedLine::Message(_)
+        ));
+        assert!(matches!(
+            parse_line("{\"reason\":\"future\",\"extra\":true}"),
+            ParsedLine::Extension
+        ));
+        assert!(matches!(parse_line("build log"), ParsedLine::Text(_)));
+        assert!(matches!(
+            parse_line("{\"reason\":"),
+            ParsedLine::Malformed(_)
+        ));
+        assert!(matches!(
+            parse_line("{\"reason\":\"compiler-message\"}"),
+            ParsedLine::Malformed(_)
+        ));
+    }
     #[test]
     fn parsing_damage_marks_incomplete() {
         let c = read_stream(io::Cursor::new(

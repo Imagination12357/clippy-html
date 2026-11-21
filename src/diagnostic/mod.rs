@@ -2,7 +2,6 @@
 pub mod dedup;
 pub mod model;
 pub mod normalize;
-pub mod parse;
 
 #[cfg(test)]
 pub fn sample() -> serde_json::Value {
