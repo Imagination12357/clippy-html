@@ -157,7 +157,7 @@ struct Help {
 }
 struct SourceRow {
     number: usize,
-    fragments: Vec<super::ranges::Fragment>,
+    fragments: Vec<super::highlight::AnnotatedFragment>,
     marked: bool,
     links: Vec<Link>,
 }
@@ -182,7 +182,7 @@ fn source_rows(
     };
     let lexical = super::highlight::lines(text);
     let lines: Vec<_> = text.split('\n').map(|s| s.trim_end_matches('\r')).collect();
-    let mut annotations: Vec<Vec<super::ranges::Range>> =
+    let mut annotations: Vec<Vec<super::highlight::Range>> =
         (0..lexical.len()).map(|_| vec![]).collect();
     let mut rows: Vec<_> = lexical
         .iter()
@@ -246,7 +246,7 @@ fn source_rows(
                 }
                 if start < end || insertion {
                     let kind = if span.primary { "Primary" } else { "Secondary" };
-                    annotations[number - 1].push(super::ranges::Range {
+                    annotations[number - 1].push(super::highlight::Range {
                         start,
                         end,
                         primary: span.primary,
@@ -279,7 +279,7 @@ fn source_rows(
         }
     }
     for ((row, fragments), ranges) in rows.iter_mut().zip(lexical).zip(annotations) {
-        row.fragments = super::ranges::annotate(fragments, &ranges);
+        row.fragments = super::highlight::annotate(fragments, &ranges);
     }
     rows
 }
@@ -1180,27 +1180,29 @@ mod tests {
     fn precise_range_markup_preserves_escaped_source_and_caret_labels() {
         let text = "<script>한글";
         let ranges = [
-            super::super::ranges::Range {
+            super::super::highlight::Range {
                 start: 0,
                 end: 8,
                 primary: true,
                 title: "Primary: <img onerror=bad>".into(),
             },
-            super::super::ranges::Range {
+            super::super::highlight::Range {
                 start: 8,
                 end: text.len(),
                 primary: false,
                 title: "Secondary: related".into(),
             },
-            super::super::ranges::Range {
+            super::super::highlight::Range {
                 start: text.len(),
                 end: text.len(),
                 primary: true,
                 title: "Primary: insert".into(),
             },
         ];
-        let fragments =
-            super::super::ranges::annotate(super::super::highlight::lines(text).remove(0), &ranges);
+        let fragments = super::super::highlight::annotate(
+            super::super::highlight::lines(text).remove(0),
+            &ranges,
+        );
         let html = render(&SourceView {
             reason: String::new(),
             digits: 1,
