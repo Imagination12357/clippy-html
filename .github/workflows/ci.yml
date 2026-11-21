@@ -3,7 +3,23 @@ name: CI
 on:
   push:
     branches: [main]
+    paths-ignore:
+      - 'README.md'
+      - 'CONTRIBUTING.md'
+      - 'ROADMAP.md'
+      - 'docs/metadata.md'
+      - 'docs/report-preview.jpg'
+      - 'docs/superpowers/**'
+      - 'docs/validation/**'
   pull_request:
+    paths-ignore:
+      - 'README.md'
+      - 'CONTRIBUTING.md'
+      - 'ROADMAP.md'
+      - 'docs/metadata.md'
+      - 'docs/report-preview.jpg'
+      - 'docs/superpowers/**'
+      - 'docs/validation/**'
   workflow_dispatch:
     inputs:
       release_archives:
